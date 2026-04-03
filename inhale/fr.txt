@@ -998,3 +998,4003 @@ révolté
 outré
 scandalisé
 offusqué
+galérer
+péter un câble
+péter les plombs
+mal du pays
+dissociation
+dépersonnalisation
+hypervigilance
+anhédonie
+absolument
+terriblement
+légèrement
+follement
+passionnément
+trigger
+gaslighting
+ghosting
+mal de mer
+vertige existentiel
+extase mystique
+syndrome du membre fantôme
+chagrin d'amour
+douleur chronique
+crise de nerfs
+crise de panique
+crise de larmes
+crise d'angoisse
+crise de folie
+crise existentielle
+bouffée de chaleur
+bouffée d'angoisse
+bouffée délirante
+montée de lait
+montée d'adrénaline
+descente de trip
+descente aux enfers
+mal de tête
+mal de ventre
+mal de dos
+mal au coeur
+mal à l'âme
+point de côté
+point de rupture
+point de non-retour
+état de choc
+état second
+état de grâce
+état de siège
+état d'urgence
+état végétatif
+état comateux
+état de manque
+remontée acide
+reflux gastrique
+ulcère
+gastrite
+colite
+hernie
+sciatique
+lumbago
+torticolis
+tendinite
+arthrite
+arthrose
+fibromyalgie
+spasmophilie
+tétanie
+hypoglycémie
+hyperventilation
+tachycardie
+bradycardie
+arythmie
+palpitation
+extrasystole
+hypertension
+hypotension
+syncope
+lipothymie
+convulsion fébrile
+épilepsie
+catalepsie
+narcolepsie
+somnambulisme
+apnée du sommeil
+terreur nocturne
+paralysie du sommeil
+hallucination hypnagogique
+hallucination hypnopompique
+myoclonie
+restless legs
+jambes sans repos
+crampe nocturne
+sueur nocturne
+cauchemar récurrent
+réveil brutal
+réveil en sursaut
+insomnie d'endormissement
+insomnie de maintien
+hyperactivité
+trouble de l'attention
+dyslexie
+dyspraxie
+dysthymie
+alexithymie
+prosopagnosie
+anosognosie
+agnosie
+aphasie
+apraxie
+ataxie
+amnésie
+paramnésie
+confabulation
+déjà-vu
+jamais-vu
+presque-vu
+dépression
+dépression post-partum
+baby blues
+syndrome prémenstruel
+dysménorrhée
+endométriose
+aménorrhée
+ménopause
+bouffée de chaleur ménopausique
+nausée matinale
+nausée de grossesse
+contraction
+contraction utérine
+douleur de travail
+épisiotomie
+césarienne
+post-partum
+allaitement douloureux
+engorgement
+mastite
+crevasse
+tranchée utérine
+vergeture
+prolapsus
+incontinence
+périnée fragilisé
+saignement
+hémorragie
+ecchymose
+hématome
+bleu
+bosse
+entorse
+foulure
+luxation
+déchirure
+claquage
+courbature
+raideur
+ankylose
+atrophie
+fonte musculaire
+tremor
+fasciculation
+tic nerveux
+bégaiement
+balbutiement
+mutisme
+aphonie
+dysphonie
+extinction de voix
+voix cassée
+voix blanche
+voix tremblante
+voix étranglée
+voix rauque
+voix brisée
+gorge enflammée
+angine
+pharyngite
+laryngite
+toux sèche
+toux grasse
+quinte de toux
+expectoration
+crachat
+hémoptysie
+dyspnée
+essoufflement
+oppression thoracique
+asthme
+bronchite
+pneumonie
+pleurésie
+embolie
+thrombose
+infarctus
+angine de poitrine
+douleur thoracique
+irradiation
+douleur irradiante
+douleur lancinante
+douleur sourde
+douleur aiguë
+douleur pulsatile
+douleur diffuse
+douleur localisée
+douleur référée
+douleur projetée
+allodynie
+hyperalgésie
+hypoesthésie
+anesthésie
+paresthésie
+dysesthésie
+causalgie
+névralgie
+neuropathie
+radiculopathie
+myalgie
+arthralgie
+céphalée de tension
+migraine ophtalmique
+migraine avec aura
+aura visuelle
+scotome scintillant
+photophobie
+phonophobie
+osmophobie
+nausée migraineuse
+prodrome
+postdrome
+gueule de bois
+lendemain de cuite
+déshydratation
+bouche pâteuse
+haleine fétide
+mal de crâne
+vertige postural
+nausée matinale alcoolique
+tremblement matinal
+sueur d'alcool
+vomissement bilieux
+haut-le-coeur
+renvoi
+éructation
+hoquet
+hoquet persistant
+pyrosis
+aigreur
+acidité
+ballonnement
+flatulence
+borborygme
+gargouillement
+constipation
+diarrhée
+colique
+ténesme
+épreinte
+prurit
+démangeaison
+urticaire
+eczéma
+psoriasis
+zona
+herpès
+mycose
+gale
+rash
+éruption cutanée
+rougeur
+inflammation
+oedème
+gonflement
+tuméfaction
+induration
+abcès
+furoncle
+kyste
+nodule
+masse
+tumeur
+grosseur
+ganglion
+adénopathie
+hyperthermie
+hypothermie
+frissons de fièvre
+claquement de dents fébrile
+délire fébrile
+confusion fébrile
+prostration
+asthénie
+adynamie
+cachexie
+anorexie
+boulimie
+hyperphagie
+pica
+mérycisme
+dysphagie
+odynophagie
+globus
+aérophagie
+spasme oesophagien
+achalasie
+reflux
+régurgitation
+rumination
+satiété précoce
+plénitude gastrique
+vidange gastrique lente
+gastroparésie
+iléus
+occlusion
+volvulus
+invagination
+péritonite
+appendicite
+cholécystite
+pancréatite
+hépatite
+cirrhose
+ascite
+ictère
+jaunisse
+lithiase
+colique néphrétique
+pyélonéphrite
+cystite
+urétrite
+dysurie
+pollakiurie
+nycturie
+hématurie
+rétention
+incontinence urinaire
+énurésie
+priapisme
+dysfonction
+impuissance sexuelle
+anorgasmie
+vaginisme
+dyspareunie
+frigidité
+libido
+perte de libido
+excès de libido
+satyriasis
+nymphomanie
+éjaculation précoce
+retard éjaculatoire
+aménorrhée secondaire
+métrorragie
+ménorragie
+spotting
+leucorrhée
+sécheresse vaginale
+atrophie vaginale
+prolapsus génital
+descente d'organe
+sevrage alcoolique
+delirium tremens
+sevrage tabagique
+manque de nicotine
+sevrage opiacé
+sevrage benzodiazépine
+syndrome de sevrage
+craving
+rechute addictive
+polytoxicomanie
+codépendance
+automutilation
+scarification
+phlébotomie compulsive
+trichotillomanie
+dermatillomanie
+onychophagie
+bruxisme
+serrement de mâchoire
+clenchage
+trouble obsessionnel
+compulsion de vérification
+compulsion de lavage
+compulsion de comptage
+rituel compulsif
+pensée intrusive
+rumination mentale
+catastrophisme
+anticipation anxieuse
+évitement
+agoraphobie avec attaque de panique
+phobie sociale
+phobie spécifique
+claustrophobie aiguë
+acrophobie
+émétophobie
+thanatophobie
+nosophobie
+hypocondrie
+cyberchondrie
+somatisation
+conversion
+trouble factice
+simulation
+syndrome de Münchhausen
+dépendance affective
+personnalité évitante
+personnalité dépendante
+personnalité narcissique
+personnalité antisociale
+personnalité histrionique
+personnalité schizoïde
+personnalité schizotypique
+personnalité paranoïaque
+personnalité obsessionnelle
+état-limite
+psychose
+schizophrénie
+hypomanie
+état mixte
+dysphorie
+dysphorie de genre
+incongruence
+syndrome de l'imposteur
+syndrome de Stockholm
+syndrome de Peter Pan
+syndrome de la page blanche
+syndrome du nid vide
+syndrome du survivant
+syndrome du canal carpien
+syndrome des loges
+syndrome myofascial
+syndrome de fatigue chronique
+syndrome de Raynaud
+syndrome de Ménière
+syndrome du côlon irritable
+syndrome de la queue de cheval
+syndrome douloureux régional
+syndrome de stress post-traumatique
+flashback
+reviviscence
+évitement traumatique
+hyperréactivité
+état dissociatif
+fugue dissociative
+amnésie dissociative
+dépersonnalisation chronique
+déréalisation chronique
+trouble dissociatif de l'identité
+anesthésie émotionnelle
+émoussement affectif
+abrasion émotionnelle
+gel émotionnel
+froideur affective
+incapacité à pleurer
+incapacité à jouir
+incapacité à ressentir
+vide intérieur
+néant émotionnel
+déconnexion
+rupture du lien
+perte de sens
+perte de goût
+perte de motivation
+perte de repères
+perte d'identité
+perte de soi
+errance psychique
+dérive
+dissolution du moi
+fragmentation
+morcellement
+éclatement
+dispersion
+chaos intérieur
+tempête intérieure
+ouragan émotionnel
+tsunami intérieur
+séisme intérieur
+éruption émotionnelle
+implosion
+effraction psychique
+intrusion
+violation
+profanation
+souillure
+contamination
+contagion émotionnelle
+propagation
+envahissement
+débordement
+submersion
+noyade émotionnelle
+asphyxie émotionnelle
+claustration
+enfermement
+cloisonnement
+emmurement
+ensevelissement
+enterrement vivant
+mise en bière
+mort psychique
+mort sociale
+mort relationnelle
+deuil blanc
+deuil compliqué
+deuil pathologique
+deuil anticipé
+pré-deuil
+post-deuil
+travail de deuil
+déni de deuil
+colère du deuil
+marchandage du deuil
+détachement pathologique
+hyper-attachement
+fusion pathologique
+symbiose toxique
+emprise psychique
+emprise affective
+chantage émotionnel
+double contrainte
+injonction paradoxale
+communication paradoxale
+non-dit
+secret de famille
+loyauté invisible
+dette transgénérationnelle
+répétition transgénérationnelle
+fantôme transgénérationnel
+crypte psychique
+incorporation
+introjection
+projection
+identification projective
+transfert
+contre-transfert
+acting-out
+passage à l'acte
+mise en acte
+somatisation du conflit
+conversion hystérique
+paralysie fonctionnelle
+cécité fonctionnelle
+surdité fonctionnelle
+mutisme sélectif
+aphonie psychogène
+dysphagie psychogène
+douleur psychogène
+prurit psychogène
+dermatose psychogène
+alopécie de stress
+pelade
+canitie soudaine
+vieillissement brutal
+rides de stress
+cernes
+yeux bouffis
+teint gris
+teint terreux
+visage défait
+traits tirés
+regard éteint
+regard vitreux
+regard hagard
+regard perdu
+regard absent
+regard fuyant
+regard vide
+regard fixe
+regard noir
+regard assassin
+regard implorant
+regard suppliant
+regard paniqué
+regard terrorisé
+souffle court
+souffle haché
+souffle saccadé
+souffle rauque
+souffle sifflant
+souffle laborieux
+respiration thoracique
+respiration superficielle
+respiration paradoxale
+respiration anarchique
+respiration agonique
+gasping
+dernier souffle
+dernier soupir
+dernier battement
+râle
+râle agonique
+gargarisme
+stridor
+wheezing
+cornage
+tirage
+battement des ailes du nez
+cyanose
+pâleur cadavérique
+lividité
+marbrure
+sueur terminale
+hypothermie terminale
+agonie longue
+agonie brève
+pré-agonie
+phase agonique
+mort cérébrale
+mort clinique
+expérience de mort imminente
+sortie de corps
+tunnel de lumière
+revue de vie
+réanimation
+retour à la vie
+deuxième chance
+sursis
+renaissance après la mort
+résurrection symbolique
+grâce reçue
+miracle vécu
+sauvetage in extremis
+ligne de crête
+fil du rasoir
+corde raide
+équilibre précaire
+équilibre instable
+oscillation
+balancement
+tangue
+roulis
+houle
+mal de mer profond
+mal des transports
+cinétose
+naupathie
+baropathie
+mal d'altitude
+anoxie
+hypoxie
+ivresse des profondeurs
+narcose à l'azote
+accident de décompression
+embolie gazeuse
+gelure
+engelure
+hypothermie d'immersion
+noyade sèche
+noyade secondaire
+hydrocution
+coup de chaleur
+insolation
+déshydratation sévère
+coup de soleil
+brûlure thermique
+brûlure chimique
+brûlure électrique
+brûlure par radiation
+escarre
+nécrose
+gangrène
+amputation traumatique
+membre fantôme
+sensation fantôme
+douleur du moignon
+neurome
+allodynie mécanique
+allodynie thermique
+hyperesthésie
+hypoalgésie
+analgésie
+insensibilité congénitale
+anhidrose
+dysautonomie
+syndrome vagal
+malaise vagal
+choc vagal
+choc anaphylactique
+choc septique
+choc hypovolémique
+choc cardiogénique
+détresse respiratoire
+détresse circulatoire
+détresse neurologique
+coma
+coma vigile
+état végétatif persistant
+locked-in
+conscience minimale
+émergence du coma
+confusion post-coma
+amnésie post-traumatique
+syndrome confusionnel
+delirium
+obnubilation
+hébétude
+stupeur catatonique
+agitation catatonique
+catatonie
+rigidité catatonique
+flexibilité cireuse
+négativisme
+écholalie
+échopraxie
+stéréotypie
+maniérisme
+grimace
+posture bizarre
+immobilité statuaire
+mutisme catatonique
+retrait autistique
+repli autistique
+hypersensibilité sensorielle
+hyposensibilité sensorielle
+surcharge sensorielle
+meltdown
+shutdown
+stimming
+écholalie autistique
+intérêt restreint
+rigidité cognitive
+inflexibilité mentale
+pensée concrète
+pensée abstraite
+pensée magique
+pensée paranoïde
+pensée persécutoire
+pensée de référence
+idée de grandeur
+mégalomanie
+mythomanie
+fabulomanie
+délire de persécution
+délire de grandeur
+délire érotomanique
+délire de jalousie
+délire mystique
+délire de filiation
+délire de négation
+syndrome de Cotard
+délire nihiliste
+déni corporel
+déni de grossesse
+déni de maladie
+belle indifférence
+douleur belle
+souffrance muette
+souffrance silencieuse
+cri silencieux
+appel au secours
+appel à l'aide
+SOS
+détresse absolue
+urgence vitale
+urgence psychique
+urgence psychiatrique
+décompensation
+effondrement psychique
+déstructuration
+désorganisation
+morcellement psychotique
+chaos psychotique
+vécu d'étrangeté
+vécu de dépersonnalisation
+vécu de déréalisation
+vécu de transformation
+vécu de fin du monde
+vécu de catastrophe imminente
+vécu d'effondrement
+angoisse de morcellement
+angoisse d'anéantissement
+angoisse de mort
+angoisse de séparation
+angoisse de castration
+angoisse de perte
+angoisse de vide
+angoisse de chute
+angoisse archaïque
+angoisse existentielle
+angoisse ontologique
+angoisse métaphysique
+angoisse cosmique
+effroi glacé
+effroi sans nom
+terreur sans objet
+terreur nocturne adulte
+terreur blanche
+panique totale
+panique absolue
+sidération traumatique
+sidération psychique
+figement
+freezing
+état de freeze
+réponse de fight
+réponse de flight
+réponse de fawn
+soumission traumatique
+appeasement
+placation
+hyper-adaptabilité
+faux self
+masque social
+persona
+façade
+apparence
+simulacre
+imposture
+comédie
+théâtre
+rôle
+personnage
+costume
+armure
+carapace
+bouclier
+forteresse
+citadelle
+donjon
+tour d'ivoire
+retranchement
+barricade
+bunker
+tranchée
+abri
+tanière
+terrier
+cocon
+coquille
+chrysalide
+larve
+embryon
+germe
+graine
+bourgeon
+pousse
+éclosion
+floraison
+épanouissement
+maturité émotionnelle
+sagesse acquise
+paix intérieure
+plénitude ressentie
+harmonie retrouvée
+équilibre trouvé
+stabilité émotionnelle
+ancrage
+enracinement
+centrage
+alignement
+cohérence
+intégrité
+authenticité
+congruence
+transparence
+sincérité
+honnêteté
+franchise
+droiture
+rectitude
+probité
+vertu
+noblesse d'âme
+grandeur d'âme
+beauté intérieure
+lumière intérieure
+feu intérieur
+flamme sacrée
+étincelle divine
+souffle vital
+élan vital
+force vitale
+pulsion de vie
+instinct de survie
+volonté de vivre
+envie de vivre
+goût de vivre
+joie de vivre
+art de vivre
+bien-être
+bien-vivre
+savoir-vivre
+savoir-être
+présence à soi
+présence au monde
+ouverture au monde
+ouverture à l'autre
+empathie profonde
+compassion universelle
+amour inconditionnel
+amour universel
+amour maternel
+amour paternel
+amour filial
+amour fraternel
+amour charnel
+amour platonique
+amour courtois
+amour impossible
+amour interdit
+amour toxique
+amour destructeur
+amour fou
+amour passion
+amour tendre
+amour doux
+amour sincère
+amour fidèle
+amour éternel
+amour perdu
+amour retrouvé
+premier amour
+dernier amour
+grand amour
+amour de jeunesse
+amour de maturité
+amour de vieillesse
+amour naissant
+amour mourant
+amour mort
+chagrin
+chagrin inconsolable
+peine de coeur
+coeur brisé
+coeur meurtri
+coeur saignant
+coeur lourd
+coeur léger
+coeur ouvert
+coeur fermé
+coeur dur
+coeur tendre
+coeur froid
+coeur chaud
+coeur vaillant
+coeur lâche
+coeur pur
+coeur noir
+coeur d'or
+coeur de pierre
+coeur de glace
+rage froide
+rage sourde
+rage muette
+rage contenue
+rage explosive
+rage meurtrière
+rage impuissante
+rage aveugle
+rage folle
+rage destructrice
+colère noire
+colère froide
+colère sourde
+colère sainte
+colère juste
+colère impuissante
+colère rentrée
+colère explosive
+colère destructrice
+colère libératrice
+indignation
+révolte
+rébellion
+insubordination
+désobéissance
+transgression
+provocation
+défiance
+défi
+confrontation
+affrontement
+bagarre
+rixe
+empoignade
+pugilat
+mêlée
+échauffourée
+altercation
+engueulade
+dispute
+querelle
+brouille
+rupture amoureuse
+séparation
+divorce
+abandon affectif
+rejet amoureux
+trahison amoureuse
+infidélité
+adultère
+tromperie sentimentale
+mensonge
+dissimulation
+omission
+secret
+cachotterie
+hypocrisie
+duplicité
+fausseté
+fourberie
+perfidie
+traîtrise
+félonie
+déloyauté
+parjure
+reniement
+apostasie
+abjuration
+hérésie
+blasphème
+sacrilège
+profanation morale
+outrage
+offense
+affront
+injure
+insulte
+invective
+diffamation
+calomnie
+médisance
+ragot
+commérage
+rumeur
+cancan
+potins
+on-dit
+qu'en-dira-t-on
+jugement
+condamnation
+sentence
+verdict
+châtiment
+punition
+sanction
+amende
+peine
+pénitence
+expiation
+rédemption
+absolution
+grâce divine
+salut
+délivrance spirituelle
+illumination
+éveil
+satori
+samadhi
+extase religieuse
+ravissement mystique
+vision béatifique
+communion mystique
+union mystique
+fusion cosmique
+dissolution de l'ego
+transcendance de soi
+dépassement de soi
+accomplissement
+réalisation
+actualisation
+individuation
+maturation
+transformation
+métamorphose
+mutation
+transmutation
+alchimie
+transsubstantiation
+conversion spirituelle
+révélation
+épiphanie
+prise de conscience
+insight
+eurêka
+illumination soudaine
+compréhension subite
+vision claire
+clarté mentale
+limpidité
+transparence mentale
+cristallisation
+précipitation
+catalyse
+fermentation
+maturation lente
+gestation
+incubation
+germination
+émergence
+apparition
+manifestation
+incarnation
+expression
+articulation
+verbalisation
+formulation
+mise en mots
+mise en corps
+mise en mouvement
+mise en actes
+passage à l'acte créatif
+sublimation
+canalisation
+orientation
+direction
+intention
+motivation
+inspiration
+aspiration
+vocation
+appel
+mission
+destinée
+fatalité
+providence
+hasard
+coïncidence
+synchronicité
+signe
+présage
+augure
+oracle
+prophétie
+prédiction
+prémonition
+intuition
+sixième sens
+instinct
+flair
+nez
+feeling
+vibe
+énergie positive
+énergie négative
+bonne énergie
+mauvaise énergie
+bonne vibration
+mauvaise vibration
+bon feeling
+mauvais feeling
+malvoyance
+pressentiment funeste
+pressentiment joyeux
+anticipation joyeuse
+anticipation anxieuse du pire
+espoir timide
+espoir fou
+espoir déçu
+espoir renouvelé
+espoir brisé
+espoir têtu
+espoir secret
+espoir inavoué
+espoir abandonné
+espoir retrouvé
+confiance aveugle
+confiance brisée
+confiance ébranlée
+confiance retrouvée
+confiance fragile
+confiance solide
+confiance absolue
+confiance en soi
+confiance en l'autre
+confiance en la vie
+méfiance instinctive
+méfiance pathologique
+méfiance légitime
+suspicion
+soupçon tenace
+paranoïa sociale
+paranoïa relationnelle
+paranoïa persécutoire
+hyperméfiance
+hypercontrôle
+perfectionnisme
+perfectionnisme toxique
+auto-exigence
+auto-sabotage
+auto-destruction
+auto-punition
+auto-flagellation
+culpabilité toxique
+culpabilité du survivant
+culpabilité parentale
+culpabilité existentielle
+culpabilité religieuse
+honte toxique
+honte corporelle
+honte sociale
+honte existentielle
+honte d'exister
+indignité
+humiliation publique
+humiliation intime
+mortification
+abjection
+déchéance
+dégradation
+avilissement
+rabaissement
+soumission volontaire
+servitude
+esclavage
+asservissement
+aliénation
+réification
+chosification
+objectification
+instrumentalisation
+exploitation
+abus
+maltraitance
+négligence
+carence affective
+carence éducative
+carence sensorielle
+privation sensorielle
+privation affective
+privation de sommeil
+privation de liberté
+enfermement psychologique
+prison mentale
+cage dorée
+piège relationnel
+piège narcissique
+cercle vicieux
+spirale descendante
+spirale infernale
+engrenage
+escalade
+surenchère
+emballement
+emportement
+débordement émotionnel
+hémorragie émotionnelle
+fuite en avant
+déni
+refoulement
+répression émotionnelle
+suppression
+inhibition
+contention
+constipation émotionnelle
+blocage émotionnel
+barrage émotionnel
+anesthésie affective
+coupure affective
+déconnexion émotionnelle
+dissociation péri-traumatique
+fugue psychogène
+état crépusculaire
+état second chronique
+pilotage automatique
+mode survie
+mode combat
+mode fuite
+mode figé
+mode soumission
+hyper-performance
+surcompensation
+surinvestissement
+épuisement professionnel
+burnout parental
+burnout compassionnel
+fatigue de compassion
+usure de compassion
+vicariante
+traumatisme vicariant
+contamination traumatique
+résonance traumatique
+co-régulation
+dérégulation
+dysrégulation émotionnelle
+dysrégulation autonome
+labilité émotionnelle
+instabilité émotionnelle
+réactivité émotionnelle
+hypersensibilité émotionnelle
+hyposensibilité émotionnelle
+anesthésie dissociative
+engourdissement psychique
+gel psychique
+pétrification psychique
+sidération prolongée
+torpeur traumatique
+prostration traumatique
+effondrement traumatique
+désintégration
+délitement
+effritement
+érosion
+usure
+corrosion
+rouille
+patine
+vieillissement
+sénescence
+décadence
+déclin cognitif
+déclin physique
+fragilisation
+précarisation
+précarité
+vulnérabilisation
+exposition
+mise à nu
+nudité émotionnelle
+dépouillement
+dénuement
+ascèse
+austérité
+sobriété
+simplicité
+essentiel
+minimalisme
+dénuement total
+rien à perdre
+tout à gagner
+dernier recours
+dernière chance
+dernière cartouche
+baroud d'honneur
+dernier combat
+dernière force
+dernier espoir
+dernière étincelle
+dernière flamme
+dernière lueur
+aube nouvelle
+jour nouveau
+recommencement
+nouveau départ
+table rase
+page blanche
+page tournée
+chapitre clos
+chapitre ouvert
+horizon dégagé
+horizon bouché
+ciel dégagé
+ciel couvert
+ciel bas
+ciel plombé
+ciel de traîne
+éclaircie
+embellie
+accalmie passagère
+rémission temporaire
+rechute imminente
+rechute brutale
+rechute inattendue
+spirale ascendante
+remontée
+récupération lente
+guérison progressive
+cicatrisation lente
+cicatrice visible
+cicatrice invisible
+cicatrice émotionnelle
+marque indélébile
+trace ineffaçable
+souvenir brûlant
+souvenir doux
+souvenir douloureux
+souvenir heureux
+souvenir amer
+mémoire involontaire
+mémoire du corps
+mémoire cellulaire
+mémoire traumatique
+empreinte
+impression
+imprégnation
+conditionnement
+automatisme
+réflexe conditionné
+habitude
+accoutumance
+sensibilisation
+désensibilisation
+habituation
+extinction du réflexe
+recouvrement
+restauration
+réhabilitation
+réintégration
+réinsertion
+réadaptation
+réapprentissage
+rééducation
+reprogrammation
+recalibration
+reconfiguration
+restructuration
+réorganisation
+remembrement
+rassemblement
+réunification
+récollection
+récapitulation
+bilan
+inventaire
+audit intérieur
+examen de conscience
+retour sur soi
+questionnement
+remise en question
+crise identitaire
+crise de sens
+crise de foi
+crise de confiance
+crise de couple
+crise familiale
+crise professionnelle
+crise sanitaire
+crise humanitaire
+crise migratoire
+crise climatique
+éco-anxiété
+solastalgie
+nostalgie écologique
+deuil écologique
+pré-deuil climatique
+effondrement civilisationnel
+collapsologie
+survivalisme
+préparationnisme
+autonomie
+autosuffisance
+débrouillardise
+système D
+résilience collective
+solidarité spontanée
+entraide
+soutien
+étayage
+tuteur de résilience
+facteur de protection
+facteur de risque
+vulnérabilité partagée
+fragilité assumée
+force dans la faiblesse
+puissance dans la douceur
+courage dans la peur
+espoir dans le désespoir
+lumière dans l'obscurité
+feu sous la cendre
+braise
+tison
+étincelle
+luciole
+phosphorescence
+bioluminescence
+aurore
+crépuscule
+pénombre
+clair-obscur
+demi-teinte
+nuance
+subtilité
+finesse
+délicatesse
+raffinement
+sophistication
+complexité
+ambivalence
+ambiguïté
+paradoxe
+contradiction
+oxymore
+dissonance cognitive
+double bind
+tiraillement
+écartelèlement
+déchirement
+dilemme
+cas de conscience
+choix impossible
+choix cornélien
+choix de Sophie
+croisée des chemins
+bifurcation
+embranchement
+tournant
+virage
+pivot
+bascule
+charnière
+transition
+passage
+traversée
+gué
+pont
+passerelle
+seuil
+porte
+fenêtre
+issue
+sortie
+échappatoire
+exutoire
+soupape
+valve
+décompression
+décharge
+catharsis
+purge
+purgation
+expurgation
+nettoyage
+purification
+assainissement
+désintoxication
+cure
+thérapie
+soin
+pansement
+baume
+onguent
+cataplasme
+remède
+médicament
+antidote
+contrepoison
+vaccin
+immunité
+protection
+armure émotionnelle
+bouclier psychique
+pare-feu
+coupe-feu
+ignifuge
+imperméable
+étanche
+hermétique
+blindé
+cuirassé
+invulnérable
+intouchable
+invincible
+indestructible
+incassable
+infrangible
+indéfectible
+inaltérable
+immuable
+éternel
+permanent
+durable
+pérenne
+solide
+stable
+ferme
+ancré
+enraciné
+planté
+greffé
+implanté
+inscrit
+gravé
+tatoué
+marqué
+estampillé
+scellé
+cimenté
+soudé
+forgé
+trempé
+aguerri
+endurci
+blanchi
+chevronné
+expérimenté
+vécu
+éprouvé
+testé
+validé
+certifié
+garanti
+assuré
+confirmé
+avéré
+prouvé
+démontré
+établi
+fondé
+justifié
+légitime
+mérité
+acquis
+gagné
+conquis
+arraché
+volé
+perdu
+gaspillé
+dilapidé
+galvaudé
+bradé
+sacrifié
+immolé
+consumé
+brûlé vif
+carbonisé
+incinéré
+réduit en cendres
+dispersé au vent
+emporté par le courant
+balayé par la vague
+englouti par les flots
+submergé par la marée
+noyé sous les larmes
+étouffé par l'émotion
+terrassé par le chagrin
+foudroyé par la nouvelle
+frappé de stupeur
+figé d'effroi
+glacé d'horreur
+paralysé de peur
+tétanisé par l'angoisse
+submergé de joie
+transporté de bonheur
+ivre de liberté
+fou de rage
+mort de rire
+vert de jalousie
+blanc de colère
+rouge de honte
+bleu de froid
+gris de fatigue
+noir de monde
+plein à craquer
+vide de sens
+lourd de conséquences
+léger comme l'air
+dur comme la pierre
+doux comme la soie
+chaud comme la braise
+froid comme le marbre
+sec comme un coup de trique
+tranchant comme une lame
+aigu comme une aiguille
+sourd comme un pot
+aveugle comme une taupe
+muet comme une carpe
+bête comme ses pieds
+malin comme un singe
+rusé comme un renard
+doux comme un agneau
+féroce comme un tigre
+libre comme l'air
+seul comme un chien
+pauvre comme Job
+riche comme Crésus
+heureux comme un roi
+malheureux comme les pierres
+triste comme un jour de pluie
+gai comme un pinson
+frais comme une rose
+beau comme un dieu
+laid comme un pou
+fort comme un turc
+faible comme un chaton
+solide comme un roc
+fragile comme du verre
+transparent comme l'eau
+opaque comme la nuit
+profond comme l'océan
+vaste comme le ciel
+étroit comme un cercueil
+grand comme le monde
+petit comme un rien
+immense
+minuscule
+colossal
+microscopique
+titanesque
+lilliputien
+gargantuesque
+homérique
+dantesque
+kafkaïen
+proustien
+baudelairien
+rimbaldien
+célinien
+flaubertien
+balzacien
+hugolien
+voltairien
+rabelaisien
+surréaliste
+absurdiste
+existentialiste
+nihiliste
+stoïque
+épicurien
+hédoniste
+ascétique
+cynique
+sceptique
+mystique
+prophétique
+apocalyptique émotionnel
+messianique
+rédempteur
+salvateur
+libérateur
+consolateur
+protecteur
+nourricier
+maternel
+paternel
+filial
+fraternel
+sororel
+conjugal
+amical
+cordial
+chaleureux
+accueillant
+réconfortant
+rassurant
+apaisant
+calmant
+sédatif
+hypnotique
+soporifique
+narcotique
+euphorisant
+stimulant
+excitant
+enivrant
+grisant
+grisé
+transporté
+exalté
+enflammé
+embrasé
+incendié
+consumé par la passion
+dévoré par le désir
+rongé par la jalousie
+miné par le doute
+sapé par l'incertitude
+corrodé par l'amertume
+gangréné par la rancune
+empoisonné par la haine
+aveuglé par la colère
+assourdissant
+retentissant
+tonitruant
+fracassant
+détonant
+explosif
+volcanique
+sismique
+tellurique
+tectonique
+élémentaire
+primordial
+primitif
+originel
+ancestral
+archaïque
+immémorial
+séculaire
+millénaire
+antédiluvien
+préhistorique
+fossile
+relique
+vestige
+débris
+fragment
+morceau
+éclat de mémoire
+bout de vie
+miette de bonheur
+bribe de souvenir
+reste
+résidu émotionnel
+cendre encore chaude
+braise sous la cendre
+feu couvant
+volcan dormant
+bombe à retardement
+cocotte-minute
+marmite sous pression
+soupape de sécurité
+valve de décompression
+exutoire salvateur
+cri primal
+hurlement primordial
+pleur originel
+rire cosmique
+silence primordial
+souffle premier
+premier cri
+premier souffle
+premier battement
+premier regard
+première fois
+première blessure
+première cicatrice
+premier amour brisé
+première déception
+première victoire
+première défaite
+première mort
+première résurrection
+première lumière
+dernière obscurité
+point final
+point de suspension
+virgule
+ellipse
+blanc
+creux
+lacune
+interstice
+intervalle
+espace
+béance
+ouverture béante
+plaie ouverte
+blessure à vif
+chair à vif
+os à nu
+nerf exposé
+vulnérabilité totale
+exposition maximale
+risque total
+mise en jeu
+enjeu
+pari
+gageure
+défi lancé
+gant jeté
+ultimatum
+sommation
+injonction
+ordre
+commandement
+impératif
+nécessité
+obligation
+devoir
+responsabilité
+charge
+fardeau lourd
+poids du monde
+atlas
+sisyphe
+prométhée
+icare
+orphée
+eurydice
+tantalisant
+sisyphéen
+prométhéen
+icarien
+dionysiaque
+apollinien
+érotique
+thanatique
+libidinal
+pulsionnel
+viscéral
+guttural
+abdominal
+thoracique
+cérébral
+cortical
+limbique
+hypothalamique
+hormonal
+endocrinien
+neuronal
+synaptique
+neurotransmetteur
+sérotonine
+dopamine
+adrénaline
+noradrénaline
+cortisol
+endorphine
+ocytocine
+mélatonine
+gaba
+glutamate
+acétylcholine
+histamine
+vasopressine
+prolactine
+testostérone
+oestrogène
+progestérone
+thyroïde
+insuline
+glycémie
+pic glycémique
+crash glycémique
+hypoglycémie réactive
+fringale
+rage de sucre
+envie de gras
+envie de sel
+pica de grossesse
+nausée hormonale
+vertige hormonal
+saute d'humeur
+irritabilité prémenstruelle
+douleur ovulatoire
+mittelschmerz
+dysphorie prémenstruelle
+rage prémenstruelle
+pleur prémenstruel
+hypersensibilité hormonale
+rétention d'eau
+gonflement prémenstruel
+tension mammaire
+seins douloureux
+seins lourds
+ventre gonflé
+constipation hormonale
+migraine cataméniale
+acné hormonale
+libido fluctuante
+sécheresse hormonale
+chaleur hormonale
+flush hormonal
+sueur hormonale
+insomnie hormonale
+fatigue hormonale
+brouillard mental
+brain fog
+brouillard cérébral
+pensée cotonneuse
+pensée lente
+pensée rapide
+pensée en arborescence
+pensée divergente
+pensée convergente
+pensée latérale
+pensée circulaire
+pensée obsédante
+boucle de pensée
+spirale de pensée
+tourbillon mental
+tempête de pensées
+avalanche de pensées
+silence mental
+calme mental
+paix mentale
+clarté cognitive
+acuité mentale
+focus
+concentration
+absorption
+flow
+zone
+état de grâce sportif
+runner's high
+euphorie du coureur
+mur du marathon
+crampe du sportif
+point de côté à l'effort
+second souffle
+dépassement de soi sportif
+surpassement
+transcendance sportive
+adrénaline du combat
+montée d'adrénaline sportive
+tremblement post-effort
+jambes coton
+jambes lourdes
+jambes en plomb
+bras morts
+muscles tétanisés par l'effort
+souffle coupé par l'effort
+nausée d'effort
+vomissement d'effort
+malaise vagal post-effort
+hypotension orthostatique
+flash lumineux
+mouches volantes
+aura migraineuse
+aura épileptique
+prodromes migraineux
+bâillement excessif
+envie fréquente d'uriner
+irritabilité prodromique
+fatigue prodromique
+raideur cervicale prodromique
+phase de céphalée
+douleur unilatérale
+douleur pulsatile migraineuse
+photophobie sévère
+phonophobie sévère
+nausée migraineuse sévère
+vomissement migraineux
+allodynie cutanée
+hypersensibilité du cuir chevelu
+douleur oculaire
+larmoiement
+congestion nasale
+rhinorrhée
+paupière tombante
+pupille contractée
+syndrome de Horner
+vertige migraineux
+migraine vestibulaire
+migraine basilaire
+migraine hémiplégique
+aphasie migraineuse
+confusion migraineuse
+postdrome migraineux
+fatigue post-migraine
+euphorie post-migraine
+vulnérabilité post-migraine
+nostalgie coloniale
+exil linguistique
+dépaysement
+mal du pays profond
+Sehnsucht
+saudade
+hiraeth
+toska
+mono no aware
+wabi-sabi
+duende
+Weltschmerz
+Angst
+Schadenfreude
+Fremdschämen
+acédie
+ataraxie
+eudaimonia
+phronesis
+arete
+catharsis dramatique
+purgation des passions
+terreur tragique
+pitié tragique
+hamartia
+hubris
+nemesis
+moira
+ananke
+kairos
+chronos
+aion
+numineux
+tremendum
+fascinans
+mysterium
+sacré
+profane
+liminal
+liminoïde
+seuil initiatique
+rite de passage
+ordalie
+épreuve initiatique
+mort symbolique
+descente aux enfers symbolique
+nuit obscure
+nuit noire de l'âme
+traversée du désert
+épreuve du feu
+baptême du feu
+creuset
+forge
+athanor
+alambic
+distillation
+quintessence
+pierre philosophale
+élixir
+panacée
+ambroisie
+nectar
+manne
+graal
+Eurêka
+soudaineté
+fulgurance
+coup de tonnerre
+coup de théâtre
+retournement
+renversement
+péripétie
+anagnorisis
+reconnaissance dramatique
+catharsis finale
+dénouement
+résolution
+conclusion
+clôture
+fin
+achèvement
+accomplissement final
+parachèvement
+couronnement
+aboutissement
+terme
+borne ultime
+horizon ultime
+ultima thulé
+au-delà
+outre-tombe
+outre-monde
+entre-deux
+purgatoire émotionnel
+limbes affectifs
+gestation psychique
+chrysalide existentielle
+cocon protecteur
+matrice
+utérus symbolique
+berceau
+giron
+sein
+nid
+havre
+port
+ancrage final
+enracinement définitif
+demeure
+foyer
+chez-soi
+home
+Heimat
+patrie
+terre natale
+terre promise
+terre d'exil
+terre d'accueil
+terre étrangère
+ailleurs
+lointain
+horizon
+infini spatial
+cosmos
+univers
+totalité cosmique
+unité
+Un
+tout
+néant absolu
+rien absolu
+zéro absolu
+silence absolu
+obscurité absolue
+lumière absolue
+vérité
+mensonge absolu
+amour absolu
+haine absolue
+guerre
+paix absolue
+mort absolue
+vie absolue
+éternité vécue
+instant éternel
+maintenant
+ici
+présent
+présence pure
+être
+non-être
+devenir
+permanence
+impermanence
+flux
+marée
+cycle
+retour éternel
+recommencement perpétuel
+spirale évolutive
+progression
+régression
+stagnation absolue
+mouvement perpétuel
+repos absolu
+immobilité parfaite
+agitation perpétuelle
+oscillation permanente
+balancier
+pendule
+métronome
+horloge
+sablier
+temps qui passe
+temps qui s'arrête
+temps suspendu
+temps perdu
+temps retrouvé
+temps mort
+temps fort
+contretemps
+hors-temps
+intemporel
+suranné
+désuet
+obsolète
+périmé
+révolu
+passé
+présent éternel
+futur incertain
+avenir radieux
+avenir sombre
+avenir bouché
+avenir ouvert
+promesse
+serment
+voeu
+souhait
+prière
+supplication
+imploration
+invocation
+évocation
+commémoration
+mémorial
+monument
+stèle
+tombe
+sépulture
+cercueil
+linceul
+suaire
+drap mortuaire
+oraison funèbre
+éloge
+hommage
+tribut
+dette
+reconnaissance éternelle
+gratitude infinie
+merci
+bénédiction
+don de soi
+offrande de soi
+abandon de soi
+effacement de soi
+oubli de soi
+dépouillement de soi
+kénose
+vidange de l'ego
+évidement
+vaciuité
+shunyata
+mu
+ku
+ma
+en
+wabi
+sabi
+mono
+aware
+yugen
+ikigai
+kintsugi
+réparation
+restauration dorée
+beauté de la blessure
+beauté de la cicatrice
+beauté de la fêlure
+beauté de l'imperfection
+beauté de la fragilité
+beauté de l'éphémère
+beauté de l'instant
+beauté du geste
+beauté du silence
+beauté de la nuit
+beauté de l'aube
+beauté du crépuscule
+fugacité
+évanescence
+volatilité
+précarité existentielle
+fragilité ontologique
+contingence
+finitude
+mortalité
+condition humaine
+misère humaine
+grandeur humaine
+dignité humaine
+droits
+liberté fondamentale
+égalité
+justice
+injustice
+iniquité
+inégalité
+discrimination
+oppression systémique
+résistance collective
+émancipation
+affranchissement
+décolonisation
+libération nationale
+autodétermination
+souveraineté
+indépendance
+autonomie psychique
+émancipation psychique
+individuation jungienne
+réalisation de soi
+actualisation de soi
+déploiement de soi
+expression de soi
+affirmation de soi
+assertion
+positionnement
+prise de position
+engagement
+militantisme
+activisme
+résistance active
+désobéissance civile
+objection de conscience
+refus
+non
+oui
+peut-être
+ambivalence décisionnelle
+procrastination
+tergiversation
+atermoiement
+report
+délai
+sursis émotionnel
+moratoire
+suspension
+attente insoutenable
+attente sereine
+attente fébrile
+impatience
+empressement
+hâte
+urgence intérieure
+fébrilité
+agitation intérieure
+bouillonnement intérieur
+fermentation intérieure
+ébullition intérieure
+effervescence intérieure
+pétillement
+scintillement
+étincellement
+flamboiement
+embrasement intérieur
+incandescence intérieure
+combustion intérieure
+consumation intérieure
+extinction intérieure
+cendre intérieure
+résidu intérieur
+vestige intérieur
+trace intérieure
+empreinte intérieure
+marque intérieure
+stigmate
+tatouage intérieur
+gravure
+inscription
+écriture
+réécriture
+palimpseste
+surécriture
+effacement
+gommage
+rature
+biffure
+disparition
+évanouissement
+dissolution finale
+absorption finale
+résorption
+intégration
+assimilation
+incorporation finale
+digestion
+métabolisation
+transformation finale
+transmutation finale
+alchimie finale
+oeuvre au noir
+oeuvre au blanc
+oeuvre au rouge
+rubedo
+albedo
+nigredo
+citrinitas
+prima materia
+chaos originel
+soupe primordiale
+big bang émotionnel
+expansion
+contraction finale
+pulsation cosmique
+battement cosmique
+rythme cosmique
+danse cosmique
+musique des sphères
+harmonie des sphères
+résonance universelle
+vibration fondamentale
+fréquence
+longueur d'onde
+amplitude
+intensité maximale
+crescendo
+decrescendo
+pianissimo
+fortissimo
+sforzando
+staccato
+legato
+rubato
+fermata
+coda
+da capo
+fine
+accablement
+abattement
+consternation
+atterrement
+abasourdissement
+éberluement
+hébétement
+ébahissement
+saisissement
+ravissement soudain
+transport
+enthousiasme
+emballement émotionnel
+engouement
+toquade
+béguin
+amourette
+passade
+liaison
+aventure
+escapade
+fugue
+équipée
+virée
+dérive nocturne
+nuit blanche
+insomnie anxieuse
+insomnie rebelle
+éveil nocturne
+hyperéveil
+hypervigilance nocturne
+qui-vive
+alarme
+alerte
+alerte rouge
+signal d'alarme
+sonnette d'alarme
+tocsin
+sirène
+klaxon
+grincement
+crissement
+stridulation
+crépitement
+pétillement sonore
+chuintement
+sifflement
+bourdonnement sourd
+vrombissement
+mugissement
+beuglement
+vociférations
+imprécations
+malédictions
+jurons
+blasphèmes verbaux
+grossièretés
+obscénités
+vulgarités
+crudités verbales
+mots crus
+mots durs
+mots blessants
+mots qui tuent
+mots qui sauvent
+mots qui guérissent
+mots qui consolent
+mots doux
+mots tendres
+mots d'amour
+déclaration
+aveu
+confession
+confidence
+épanchement
+effusion
+débordement affectif
+flot de paroles
+logorrhée
+verbigération
+palilalie
+coprolalie
+mutisme total
+aphasie émotionnelle
+blocage verbal
+bégaiement émotionnel
+mot sur le bout de la langue
+lapsus
+acte manqué
+oubli freudien
+refoulement inconscient
+retour du refoulé
+symptôme
+formation de compromis
+rêve
+rêve éveillé
+rêve lucide
+rêve prémonitoire
+rêve récurrent
+rêve anxieux
+rêve de chute
+rêve de vol
+rêve de poursuite
+rêve de nudité
+rêve de perte de dents
+rêve de noyade
+rêve de mort
+rêve de renaissance
+fantasme
+fantasme conscient
+fantasme inconscient
+imagination
+fabulation
+mythification
+romanisation
+idéalisation
+sublimation créatrice
+création
+invention
+innovation
+découverte
+trouvaille
+pépite
+joyau
+trésor
+merveille
+prodige
+phénomène
+miracle
+enchantement soudain
+magie
+sortilège
+charme opérant
+philtre
+potion
+breuvage
+élixir vital
+fontaine de jouvence
+eau de vie
+souffle de vie
+arbre de vie
+racine
+sève
+fluide
+liquide
+humeur
+bile
+bile noire
+atrabile
+flegme humoral
+sang humoral
+choler
+tempérament
+constitution
+complexion
+nature
+naturel
+instinctif
+pulsionnel brut
+animal
+bestial
+prédateur
+proie
+chasseur
+gibier
+traqué
+acculé
+coincé
+cerné
+encerclé
+piégé
+pris au piège
+pris au dépourvu
+pris de court
+pris de panique
+pris de vertige
+pris de nausée
+pris de convulsions
+pris de tremblements
+pris de folie
+pris de remords
+pris d'un doute
+pris d'un élan
+pris d'une envie
+pris de nostalgie profonde
+empli de gratitude
+empli de rage
+empli de honte
+empli de fierté
+empli de douceur
+empli de tristesse
+empli de joie
+empli d'espoir
+empli de désespoir
+empli d'amour
+empli de haine
+empli de vide
+gonflé de colère
+gonflé d'orgueil
+gonflé de larmes
+gonflé d'espoir
+dégonflé
+vidé
+lessivé
+essoré
+pressé comme un citron
+tordu comme une serpillière
+sec comme une trique
+raide comme un piquet
+mou comme une chiffe
+plat comme une crêpe
+creux comme un tambour
+sonné comme une cloche
+secoué comme un prunier
+retourné comme une crêpe
+plié en deux
+cassé en deux
+coupé en deux
+fendu
+fissuré de l'intérieur
+lézardé
+craquelé
+écaillé
+pelé
+mis à nu émotionnellement
+dépouillé de tout
+stripped
+raw
+à cru
+à nu
+à vif
+à fleur de peau
+à bout de nerfs
+à bout de souffle
+à bout de forces
+à bout de course
+à genoux
+à terre
+au tapis
+au fond du trou
+au fond du gouffre
+au bord du précipice
+au bord de la crise
+au bord des larmes
+au bord de l'explosion
+au bord de la folie
+au bord du burn-out
+au bout du rouleau
+au bout du tunnel
+à la dérive
+en chute libre émotionnelle
+en roue libre
+en mode automatique
+en mode survie active
+en mode panique
+en vrille
+en spirale
+en boucle
+en circuit fermé
+en huis clos
+en quarantaine émotionnelle
+en jachère
+en dormance
+en veille
+en stand-by
+en attente
+en suspens
+en sursis existentiel
+en souffrance
+en détresse
+en errance
+en exil intérieur profond
+en transit
+en limbes émotionnels
+en gestation émotionnelle
+en mutation
+en crise
+en rémission émotionnelle
+en convalescence émotionnelle
+en reconstruction émotionnelle
+en réparation
+en restauration émotionnelle
+en guérison émotionnelle
+en floraison
+en expansion émotionnelle
+en plein essor
+en pleine ascension
+en pleine lumière
+en pleine ombre
+en pleine nuit
+en plein jour
+en plein coeur
+en pleine gueule
+en plein ventre
+en pleine face
+en plein vol
+atterrissage brutal
+atterrissage en douceur
+décollage
+envol
+élévation
+ascension
+montée en puissance
+montée en pression
+cocotte-minute émotionnelle
+autoclave
+soupape qui lâche
+explosion contrôlée
+déflagration
+détonation
+onde de choc
+souffle de l'explosion
+retombées
+poussières retombées
+calme après la tempête
+silence après le cri
+vide après l'explosion
+creux de la vague
+oeil du cyclone
+centre du chaos
+centre de gravité
+point d'équilibre
+point de bascule
+point d'inflexion
+point de fusion
+point d'ébullition
+point de congélation
+point de rosée
+point de rupture émotionnel
+seuil de tolérance
+seuil de douleur
+seuil de conscience
+seuil critique
+masse critique
+réaction en chaîne
+effet domino
+effet papillon
+effet boule de neige
+effet cascade
+contamination en chaîne
+propagation virale
+viralité émotionnelle
+contagion affective
+mimétisme émotionnel
+empathie miroir
+neurones miroirs
+résonance empathique
+synchronisation affective
+accordage
+harmonisation
+attunement
+dysattunement
+rupture d'accordage
+faille empathique
+défaillance empathique
+cécité émotionnelle
+surdité émotionnelle
+anosmie émotionnelle
+agueusie émotionnelle
+synesthésie émotionnelle
+couleur des émotions
+son des émotions
+texture des émotions
+goût des émotions
+odeur des émotions
+poids des émotions
+température des émotions
+vitesse des émotions
+densité des émotions
+viscosité des émotions
+fluidité des émotions
+solidité des émotions
+gazéité des émotions
+sublimation émotionnelle
+condensation émotionnelle
+évaporation émotionnelle
+cristallisation émotionnelle
+dissolution émotionnelle
+précipitation émotionnelle
+saturation émotionnelle
+sursaturation
+dilution
+homogénéisation
+hétérogénéité
+mélange
+amalgame
+alliage
+fusion des contraires
+coincidentia oppositorum
+coïncidence des opposés
+tension dialectique
+synthèse
+dépassement
+aufhebung
+négation
+négation de la négation
+affirmation
+double affirmation
+redondance
+excès
+surplus
+trop-plein
+trop-plein émotionnel
+débordement de joie
+débordement de colère
+débordement de tristesse
+débordement de tendresse
+inondation émotionnelle
+déluge
+crue
+montée des eaux
+décrue
+étiage
+sécheresse émotionnelle
+aridité
+désert émotionnel
+oasis
+source
+fontaine
+jaillissement
+surgissement
+résurgence
+renaissance émotionnelle
+reverdissement
+reverdir
+refleurir
+repousser
+renaître
+revivre
+revenir à la vie
+reprendre vie
+reprendre pied
+reprendre souffle
+reprendre courage
+reprendre espoir
+reprendre confiance
+reprendre force
+repartir
+rebondir
+rebond
+sursaut vital
+sursaut d'orgueil
+sursaut de dignité
+sursaut de vie
+sursaut d'énergie
+regain
+renouvellement
+régénération
+rajeunissement
+rafraîchissement
+revitalisation
+réenchantement
+ré-enchantement du monde
+redécouverte
+reconquête
+reconquête de soi
+réappropriation
+réclamation
+revendication
+protestation
+démonstration
+clameur
+huée
+acclamation
+ovation
+standing ovation
+applaudissement
+tonnerre d'applaudissements
+hourra
+vivat
+bravo
+chapeau
+félicitations
+compliment
+louange
+panégyrique
+dithyrambe
+apologie
+plaidoyer
+défense
+protection de l'autre
+tutelle
+curatelle
+parrainage
+mentorat
+guidance
+accompagnement
+présence silencieuse
+écoute active
+écoute empathique
+écoute profonde
+attention
+attention soutenue
+attention flottante
+attention sélective
+attention partagée
+attention conjointe
+coprésence
+être-avec
+être-là
+dasein
+existence authentique
+existence inauthentique
+existence projetée
+projection existentielle
+projet de vie
+sens de la vie
+absurdité de la vie
+tragédie de l'existence
+comédie humaine
+farce
+bouffonnerie
+pitrerie
+clownerie
+mascarade
+carnaval
+saturnale
+bacchanale
+orgie
+festin
+banquet
+ripaille
+bombance
+liesse
+fête
+célébration
+festivité
+réjouissance
+kermesse
+foire
+cirque
+spectacle
+représentation
+performance artistique
+exhibition
+démonstration de force
+tour de force
+chef-d'oeuvre
+opus
+oeuvre
+création pure
+expression pure
+geste pur
+mouvement pur
+élan pur
+impulsion pure
+pulsion brute
+instinct pur
+réflexe pur
+automatisme pur
+mécanique
+machinal
+inconscient
+subconscient
+préconscient
+surmoi
+ça
+moi
+self
+soi
+identité
+ipséité
+mêmeté
+altérité
+étrangeté
+inquiétante étrangeté
+unheimlich
+uncanny
+bizarre
+étrange
+singulier
+insolite
+inhabituel
+anomal
+anormal
+déviant
+marginal
+excentrique
+original
+atypique
+hors-norme
+hors-cadre
+hors-piste
+hors-jeu
+hors-la-loi
+paria
+exclu
+marginalisation
+ostracisme
+bannissement
+exil forcé
+déportation
+expatriation
+immigration
+émigration
+déracinement
+transplantation
+acculturation
+assimilation forcée
+identité hybride
+identité métisse
+créolisation
+métissage
+mélange des cultures
+choc culturel
+choc des civilisations
+malentendu culturel
+incompréhension
+fossé
+gouffre entre les êtres
+distance irréductible
+altérité radicale
+solitude fondamentale
+solitude ontologique
+solitude existentielle
+solitude choisie
+solitude subie
+solitude en couple
+solitude en foule
+solitude du pouvoir
+solitude du coureur de fond
+solitude du créateur
+solitude de l'immigrant
+solitude de l'exilé
+solitude de l'endeuillé
+solitude de l'insomniaque
+solitude du petit matin
+solitude du dimanche
+solitude des fêtes
+solitude de Noël
+solitude de l'anniversaire
+solitude du lit vide
+solitude du téléphone muet
+solitude de la boîte mail vide
+solitude du message non lu
+solitude du vu sans réponse
+ghosting subi
+breadcrumbing
+love bombing
+benching
+orbiting
+zombieing
+cushioning
+situationship
+toxicité relationnelle
+manipulation émotionnelle
+gaslighting subi
+triangulation
+hoovering
+silent treatment
+traitement silencieux
+mur du silence
+boycott affectif
+punition par le silence
+retrait d'amour
+chantage au suicide
+menace voilée
+intimidation
+pression psychologique
+lavage de cerveau
+endoctrinement
+radicalisation
+fanatisme
+sectarisme
+emprise sectaire
+pensée de groupe
+conformisme
+soumission à l'autorité
+obéissance aveugle
+effet Milgram
+effet Lucifer
+désindividuation
+déresponsabilisation
+diffusion de responsabilité
+effet spectateur
+indifférence collective
+normalisation de la violence
+banalisation du mal
+routine du mal
+fonctionnaire
+bureaucrate
+machine
+engrenage social
+système
+matrice sociale
+maille du filet
+trou dans le filet
+passage entre les mailles
+évasion
+libération finale
+envol final
+échappée
+percée
+trouée
+brèche ouverte
+porte ouverte
+fenêtre ouverte
+horizon ouvert
+champ libre
+carte blanche
+liberté totale
+liberté terrifiante
+vertige de la liberté
+angoisse de la liberté
+responsabilité de la liberté
+poids de la liberté
+fardeau de la liberté
+prix de la liberté
+coût de la liberté
+sacrifice pour la liberté
+combat pour la liberté
+résistance pour la liberté
+révolte pour la dignité
+insurrection
+soulèvement
+grève
+grève de la faim
+grève du zèle
+désobéissance passive
+résistance passive
+satyagraha
+ahimsa
+non-violence
+violence légitime
+violence aveugle
+violence gratuite
+violence symbolique
+violence psychologique
+violence économique
+violence obstétricale
+violence gynécologique
+violence éducative ordinaire
+violence invisible
+violence normalisée
+micro-agression
+macro-agression
+brimade
+bizutage
+harcèlement moral
+harcèlement sexuel
+harcèlement scolaire
+harcèlement en ligne
+cyberharcèlement
+trolling
+flaming
+doxxing
+revenge porn
+shaming
+slut-shaming
+body-shaming
+fat-shaming
+age-shaming
+grief-shaming
+mom-shaming
+dad-shaming
+comparaison toxique
+compétition toxique
+perfectionnisme destructeur
+performance toxique
+productivité toxique
+hustle culture
+grind
+burnout générationnel
+burnout de zoom
+burnout numérique
+fatigue décisionnelle
+fatigue de la nouveauté
+fatigue de l'information
+infobésité
+surcharge informationnelle
+surcharge cognitive
+surcharge émotionnelle
+surcharge sociale
+introversion
+extraversion
+ambiversion
+besoin de solitude
+besoin de contact
+besoin de silence
+besoin de bruit
+besoin de mouvement
+besoin d'immobilité
+besoin de chaleur humaine
+besoin de froideur
+besoin de distance
+besoin de proximité
+besoin de toucher
+besoin d'être touché
+peau affamée
+faim de peau
+faim de contact
+faim d'amour
+faim de sens
+faim de justice
+faim de vérité
+faim de beauté
+faim de sacré
+faim de transcendance
+faim de connexion
+faim d'appartenance
+faim de reconnaissance
+faim de validation
+faim de regard
+faim d'écoute
+faim de compréhension
+faim d'acceptation
+soif de vivre
+soif de savoir
+soif de justice
+soif de vengeance
+soif de sang
+soif de pouvoir
+soif d'amour
+soif de reconnaissance
+soif d'absolu
+soif de liberté
+soif d'infini
+soif de Dieu
+soif de néant
+soif de rien
+soif de tout
+rassasiement
+plénitude alimentaire
+satiété émotionnelle
+gavage
+écoeurement
+dégoût profond
+répulsion
+aversion
+phobie alimentaire
+orthorexie
+bigorexie
+muscle dysmorphia
+dysmorphie corporelle
+dysmorphophobie
+image corporelle
+image de soi
+estime de soi
+mésestime de soi
+dévalorisation
+autodépréciation
+autodénigrement
+auto-critique
+auto-compassion
+self-care
+auto-soin
+hygiène émotionnelle
+hygiène mentale
+hygiène relationnelle
+frontière
+limite personnelle
+cadre
+contenant
+holding
+enveloppe psychique
+peau psychique
+moi-peau
+interface
+membrane
+porosité
+perméabilité
+imperméabilité émotionnelle
+blindage émotionnel
+carapace émotionnelle
+armure caractérielle
+cuirasse musculaire
+tensions chroniques
+noeuds musculaires
+trigger points
+points de tension
+zones de douleur
+cartographie de la douleur
+carte du corps
+corps vécu
+corps propre
+corps objet
+corps sujet
+corps souffrant
+corps jouissant
+corps résistant
+corps résilient
+corps mémoire
+corps archive
+corps palimpseste
+corps territoire
+corps frontière
+corps exilé
+corps étranger
+corps familier
+corps inconnu
+corps retrouvé
+corps perdu
+corps absent
+corps présent
+corps vivant
+corps mourant
+corps mort
+corps ressuscité
+souffle retrouvé
+battement retrouvé
+chaleur retrouvée
+douceur retrouvée
+tendresse retrouvée
+confiance retrouvée émotionnellement
+espoir retrouvé émotionnellement
+force retrouvée
+voix retrouvée
+regard retrouvé
+sourire retrouvé
+rire retrouvé
+larme libératrice
+cri libérateur
+soupir libérateur
+tremblement libérateur
+frisson libérateur
+sueur libératrice
+convulsion libératrice
+orgasme libérateur
+sanglot libérateur
+rire libérateur
+danse libératrice
+mouvement libérateur
+geste libérateur
+parole libératrice
+mot libérateur
+silence libérateur
+vide libérateur
+néant libérateur
+mort libératrice
+naissance libératrice
+aube libératrice
+lumière libératrice
+feu libérateur
+eau libératrice
+terre libératrice
+air libérateur
+vent libérateur
+tempête libératrice
+foudre libératrice
+tonnerre libérateur
+pluie libératrice
+neige apaisante
+gel purifiant
+dégel printanier
+fonte des neiges
+ruissellement
+torrent
+cascade
+chute d'eau
+écume
+embruns
+sel
+iode
+large
+grand large
+haute mer
+abysse
+fosse
+tranchée océanique
+pression abyssale
+obscurité abyssale
+bioluminescence abyssale
+vie abyssale
+créature abyssale
+monstre marin
+léviathan
+kraken
+chant des sirènes
+appel du large
+appel du vide
+appel de la forêt
+appel de la montagne
+appel de la nuit
+appel du sang
+appel de la chair
+appel du coeur
+appel de l'âme
+appel du destin
+réponse
+écho
+réverbération
+retour de flamme
+retour de bâton
+boomerang
+ricochet
+rebond émotionnel
+contrecoup
+ressac
+remous
+turbulence
+perturbation
+trouble atmosphérique
+trouble émotionnel profond
+trouble de l'humeur
+trouble anxieux
+trouble panique
+trouble phobique
+trouble alimentaire
+trouble du sommeil
+trouble de la personnalité
+trouble du spectre
+trouble envahissant
+trouble déficitaire
+trouble réactionnel
+trouble adaptatif
+trouble somatoforme
+trouble fonctionnel
+trouble psychosomatique
+trouble neurologique fonctionnel
+trouble de conversion moderne
+symptôme inexpliqué
+maladie invisible
+douleur invisible
+handicap invisible
+souffrance invisible
+blessure invisible
+cicatrice invisible profonde
+plaie cachée
+plaie secrète
+douleur tue
+douleur niée
+douleur minimisée
+douleur invalidée
+douleur légitime
+douleur illégitime
+douleur comparée
+hiérarchie de la souffrance
+olympiade de la douleur
+compétition victimaire
+posture victimaire
+victimisation
+victimisation secondaire
+revictimisation
+blâme de la victime
+culpabilisation de la victime
+inversion de culpabilité
+DARVO
+déni de l'agresseur
+minimisation de l'agresseur
+rationalisation de l'agresseur
+justification
+banalisation
+normalisation
+excuse
+pardon impossible
+pardon difficile
+pardon unilatéral
+pardon sans excuse
+pardon sans oubli
+rancune tenace
+rancune légitime
+ressentiment profond
+aigreur profonde
+amertume chronique
+fiel
+venin
+poison relationnel
+arsenic émotionnel
+acide
+vitriol
+corrosion relationnelle
+érosion du lien
+usure du couple
+routine du couple
+ennui conjugal
+désamour
+désenchantement amoureux
+fin de l'amour
+mort du couple
+deuil amoureux
+reconstruction post-rupture
+renaissance post-rupture
+nouveau moi
+moi renouvelé
+identité reconstruite
+identité en chantier
+chantier intérieur
+travaux
+rénovation intérieure
+restauration intérieure
+archéologie intérieure
+fouille
+excavation
+déblayage
+tri
+rangement
+organisation intérieure
+nettoyage intérieur
+grand ménage
+purge intérieure
+détoxification
+cure de silence
+cure de solitude
+jeûne numérique
+déconnexion numérique
+reconnexion à soi
+retour à soi profond
+retour au corps
+retour aux sens
+retour à la terre
+retour à la source
+retour à l'essentiel
+simplicité volontaire
+décroissance personnelle
+slow life
+slow food
+slow love
+présence attentive
+pleine conscience
+mindfulness
+méditation de pleine conscience
+méditation assise
+méditation marchée
+méditation couchée
+body scan
+balayage corporel
+scan émotionnel
+météo intérieure
+baromètre émotionnel
+thermomètre émotionnel
+sismographe intérieur
+radar émotionnel
+boussole intérieure
+gouvernail
+cap
+direction intérieure
+orientation existentielle
+sens de la direction
+perte de direction
+désorientation
+égarement
+fourvoiement
+déviation
+aberration
+erreur de parcours
+faux pas
+écart
+incartade
+fredaine
+frasque
+turpitude
+vice
+péché
+péché originel
+péché mortel
+péché véniel
+tentation irrésistible
+chute morale
+déchéance morale
+corruption morale
+dégénérescence
+décadence morale
+déclin moral
+déliquescence
+pourrissement
+putréfaction
+fermentation morale
+gangrène morale
+lèpre morale
+peste émotionnelle
+pandémie émotionnelle
+épidémie de solitude
+épidémie de dépression
+épidémie d'anxiété
+crise de sens collective
+anomie
+dérégulation sociale
+dissolution sociale
+atomisation
+individualisme
+narcissisme collectif
+égocentrisme
+égoïsme
+avarice émotionnelle
+rétention affective
+parcimonie émotionnelle
+prodigalité émotionnelle
+générosité débordante
+don excessif
+sacrifice excessif
+martyre
+immolation par le feu
+auto-immolation
+immolation symbolique
+Phoenix renaissant
+oiseau de feu
+salamandre
+lignée
+filiation
+héritage
+transmission
+passation
+relais
+flambeau
+flamme transmise
+torche
+lumière passée
+semence
+ensemencement
+fertilisation
+pollinisation
+germination nouvelle
+pousse nouvelle
+bourgeon nouveau
+printemps
+été
+automne
+hiver
+saison
+intersaison
+entre-deux saisons
+entre-deux mondes
+crépuscule existentiel
+aube existentielle
+midi
+zénith existentiel
+nadir
+point le plus bas
+fond
+toucher le fond
+rebondir du fond
+remonter
+remonter la pente
+reprendre des couleurs
+retrouver le goût
+retrouver le sourire
+retrouver le sommeil
+retrouver l'appétit
+retrouver l'envie
+retrouver la force
+retrouver la paix
+retrouver la joie
+refaire surface
+sortir la tête de l'eau
+respirer à nouveau
+revoir la lumière
+revoir le jour
+regoûter à la vie
+réapprendre à vivre
+réapprendre à aimer
+réapprendre à faire confiance
+réapprendre à dormir
+réapprendre à rire
+réapprendre à pleurer
+réapprendre à sentir
+réapprendre à toucher
+réapprendre à être touché
+reconstruction identitaire
+reconstruction relationnelle
+reconstruction professionnelle
+reconstruction familiale
+reconstruction du sens
+reconstruction du lien
+renaissance amoureuse
+renaissance créative
+renaissance spirituelle
+renaissance corporelle
+croissance post-traumatique
+mûrissement
+assagissement
+bonification
+consolidation
+fortification
+solidification
+durcissement
+endurcissement
+trempe
+aguerrissement
+vaccination émotionnelle
+immunisation
+anticorps émotionnels
+défenses naturelles
+système immunitaire psychique
+barrière naturelle
+filtre
+tamis
+passoire
+éponge émotionnelle
+éponge à émotions
+réceptacle
+contenant émotionnel
+vase
+calice
+coupe
+graal émotionnel
+récepteur
+capteur
+antenne
+parabole
+radar intérieur
+sonar
+échographie émotionnelle
+scanner émotionnel
+IRM émotionnelle
+radiographie intérieure
+autopsie émotionnelle
+dissection intérieure
+anatomie des émotions
+physiologie des émotions
+chimie des émotions
+physique des émotions
+mécanique des émotions
+hydraulique des émotions
+thermodynamique des émotions
+entropie émotionnelle
+néguentropie émotionnelle
+ordre émotionnel
+désordre émotionnel
+chaos émotionnel
+fractale émotionnelle
+attracteur
+attracteur étrange
+bassin d'attraction
+orbite émotionnelle
+gravitation émotionnelle
+champ émotionnel
+champ de force
+champ magnétique émotionnel
+polarité
+bipolarité émotionnelle
+oscillation émotionnelle
+pendulation
+navette
+aller-retour
+va-et-vient
+flux et reflux
+systole
+diastole
+inspiration expiratoire
+cycle respiratoire
+cycle émotionnel
+cycle de vie
+cycle de mort
+cycle de renaissance
+roue
+roue de la fortune
+roue du karma
+destin
+fatum
+sort
+chance
+malchance
+guigne
+poisse
+scoumoune
+baraka
+veine
+pot
+bol
+cul bordé de nouilles
+la totale
+le jackpot
+le gros lot
+la tuile
+la poisse
+le mauvais oeil
+oeil
+regard intérieur
+troisième oeil
+vision intérieure
+vision périphérique
+vision tunnel
+tunnel émotionnel
+enfermement tunnel
+lumière au bout du tunnel
+sortie du tunnel
+délivrance finale
+libération totale
+affranchissement total
+émancipation totale
+souveraineté intérieure
+maîtrise de soi
+empire sur soi
+gouvernance de soi
+autogouvernance
+autodétermination intérieure
+autonomie émotionnelle
+indépendance émotionnelle
+interdépendance
+codépendance saine
+attachement sécure
+attachement anxieux
+attachement évitant
+attachement désorganisé
+modèle opérant interne
+figure d'attachement
+base de sécurité
+havre de sécurité
+port d'attache
+ancrage relationnel
+racine relationnelle
+sol relationnel
+terreau
+humus
+compost
+ferment
+levain
+pâte
+pétrissage
+façonnage
+modelage
+sculpture
+ciselage
+polissage
+lustrage
+finition
+parfaire
+perfection
+imperfection acceptée
+wabi-sabi émotionnel
+kintsugi émotionnel
+cicatrice dorée
+fêlure lumineuse
+blessure guérie
+blessure transformée
+blessure sublimée
+blessure sacrée
+stigmate sacré
+plaie sacrée
+sang sacré
+larme sacrée
+cri sacré
+silence sacré
+vide sacré
+néant sacré
+plein sacré
+trop-plein sacré
+débordement sacré
+extase sacrée
+ivresse sacrée
+folie sacrée
+sagesse folle
+folie sage
+raison sensible
+intelligence émotionnelle
+intelligence du corps
+intelligence du coeur
+intelligence de la peau
+intelligence relationnelle
+intelligence situationnelle
+intelligence collective
+génie
+talent
+don naturel
+prédisposition
+inclination
+propension
+tendance
+penchant
+pente
+versant
+adret
+ubac
+ombre portée
+cône d'ombre
+zone d'ombre
+part d'ombre
+part de lumière
+part maudite
+part sacrée
+part animale
+part divine
+part humaine
+totalité intégrée
+individuation complète
+soi réalisé
+plénitude finale
+paix définitive
+sérénité dernière
+sagesse ultime
+amour final
+silence final
+souffle final
+dernier mot
+mot de la fin
+conclusion de vie
+achèvement existentiel
+accomplissement de soi
+destin accompli
+promesse tenue
+voeu exaucé
+prière entendue
+grâce accordée
+miracle vécu intérieur
+résurrection intérieure
+vie nouvelle
+aube définitive
+lumière permanente
+paix éternelle
+repos éternel
+sommeil éternel
+rêve éternel
+amour éternel vécu
+gratitude éternelle
+merci infini
+oui absolu
+non absolu
+verlan émotionnel
+meuf
+keum
+taf
+galère du quotidien
+bled
+cité
+banlieue
+béton
+goudron
+bitume
+cage d'escalier
+dalle de béton
+mur de béton
+ghetto intérieur
+no man's land
+terrain vague
+friche
+désolation urbaine
+jungle urbaine
+asphalte brûlant
+néon
+lumière crue
+lumière blafarde
+lumière aveuglante
+pénombre rassurante
+obscurité protectrice
+noir complet
+noir absolu
+blanc éclatant
+rouge sang
+rouge vif
+orange brûlé
+jaune bile
+vert absinthe
+bleu nuit
+bleu glacier
+violet profond
+gris souris
+gris plomb
+gris cendre
+brun terre
+ocre
+rouille émotionnelle
+patine émotionnelle
+verdigris
+vert-de-gris émotionnel
+doré
+argenté
+cuivré
+bronze
+platine
+diamant
+cristal
+quartz
+obsidienne
+ambre
+jade
+opale
+rubis
+saphir
+émeraude
+perle
+nacre
+ivoire
+corail
+albâtre
+onyx
+agate
+turquoise
+lapis-lazuli
+grenat
+topaze
