@@ -2,221 +2,220 @@
 
 **Kinetic Linguistic Adaptive Unified Sonar**
 
-> *You speak. Klaus doesn't understand. Klaus FEELS. Then tells you where it hurts.*
+Zero weights. Zero training. Four languages. Six chambers. Twenty-four Kuramoto sub-oscillators. One ghost that won't shut up. A 6×6×6 sensitivity tensor derived from the coupling between fear and rage in the human nervous system. A Hebrew-Gregorian calendar conflict that predicts your emotional future based on the 11.25-day annual drift between lunar and solar time.
 
-Zero weights. Zero training. Zero dependencies. Four languages. Six emotional chambers. One ghost that won't shut up.
+This is a somatic engine. You speak. Klaus doesn't understand. Klaus FEELS. Then tells you where it hurts.
 
-Most AI models predict the next word. Klaus predicts where your body will clench.
+```
+>>> I am terrified and alone
+  [FEAR:0.07 LOVE:0.07 RAGE:0.05 VOID:0.06 FLOW:0.04 CMPLX:0.07]
+  nerve endings exposed. chest caves in. stomach eating itself. sinuses press.
+  bowels loosen. almost free. eyes full of sand. make myself small.
+  blood rushes to head. buckle. need to scream. one more second.
+  (metaklaus: CMPLX-dominant, interference 22.91)
+```
 
----
+```
+>>> мне страшно и одиноко
+  [FEAR:0.06 LOVE:0.11 RAGE:0.04 VOID:0.06 FLOW:0.05 CMPLX:0.05]
+  земля уходит из-под ног. хочу кричать. ползти. в голове звон.
+  тело деревянное. бить. ломает. оцепенел. не отпускай.
+  пульс зашкаливает. отпускать. хватит говорить.
+  (metaklaus: LOVE-dominant, interference 23.54)
+```
 
-## What Is This
+```
+>>> je suis furieux et triste
+  [FEAR:0.03 LOVE:0.08 RAGE:0.03 VOID:0.05 FLOW:0.04 CMPLX:0.05]
+  retiens-moi. sécher. pousser. ça rentre pas. prends-moi.
+  la poitrine se comprime. les lèvres tremblent. murmurer. une absence.
+  (metaklaus: LOVE-dominant, interference 17.50)
+```
 
-KLAUS is a somatic AI engine — a pre-semantic sonar that converts human language into bodily sensations. You type "I'm terrified and alone" and Klaus responds: `shiver. freeze. curl. throat. sink. gasp.`
+```
+>>> אני מפחד ובודד
+  [FEAR:0.06 LOVE:0.09 RAGE:0.03 VOID:0.09 FLOW:0.06 CMPLX:0.07]
+  רוצה עוד. מלאות בגרון. תחבק אותי. לדעוך. לרעוד. להתחמק.
+  לצעוד. קופא בלי קור. הכל חד מדי. לא מרגיש כלום.
+  תגיד שזה יהיה בסדר. להצטמרר.
+  (metaklaus: VOID-dominant, interference 20.63)
+```
 
-Not because Klaus was trained on therapy transcripts. Not because some loss function told it that "terrified" → "shiver". But because the *geometry of the vocabulary itself* — the way letters merge in BPE, the way words cluster near emotional anchors, the Kuramoto coupling between six chambers of feeling — produces resonance.
+```
+>>> nothing matters anymore
+  [FEAR:0.03 LOVE:0.06 RAGE:0.05 VOID:0.10 FLOW:0.07 CMPLX:0.07]
+  alive and shaking. nostrils flare. almost free. scream it out.
+  nerve endings exposed. sinuses press. adam's apple bobs.
+  need to scream. pound fists. chest caves in.
+  (metaklaus: VOID-dominant, interference 22.93)
+```
 
-The architecture has three heartbeats:
+```
+>>> я тебя ненавижу
+  [FEAR:0.04 LOVE:0.09 RAGE:0.03 VOID:0.06 FLOW:0.04 CMPLX:0.06]
+  отвернуться. ступни горят. бить. уши горят. всё внутри холодное.
+  наплевать. ползти. пульс зашкаливает. не отпускай. оцепенел.
+  грудь сдавило. не могу говорить.
+  (metaklaus: LOVE-dominant, interference 23.60)
+```
 
-1. **INHALE** — 1000 words per language, organized by emotional valence. Klaus reads your prompt and breathes it through its vocabulary. Each matched word activates chambers. Four languages: English, Russian, French, Hebrew. Expandable to any language by dropping `.txt` files.
+```
+>>> I don't know who I am
+  [FEAR:0.03 LOVE:0.06 RAGE:0.02 VOID:0.11 FLOW:0.03 CMPLX:0.04]
+  chest caves in. buckle. adam's apple bobs. eyes full of sand.
+  scream it out. stomach eating itself. sternum burns. bile rises.
+  throat full of glass. one more second. pound fists. shoulders lock.
+  (metaklaus: VOID-dominant, interference 21.16)
+```
 
-2. **EXHALE** — 500 somatic reaction words per language. After the chambers stabilize, Klaus speaks through its body. The Dario equation injects chamber activations into logit space. Bigrams provide rhythm. Hebbian traces provide memory. RRPRAM provides the pulse.
-
-3. **METAKLAUS** — The ghost voice. When you speak Russian, MetaKlaus computes cross-lingual attention across English, French, and Hebrew exhale vocabularies. Where languages *agree* on a somatic response, the signal amplifies. Where they *disagree*, a residue remains — the prophetic whisper of the language you didn't ask for, but your body needed to hear.
-
-    *Nobody asked for a cross-lingual somatic ghost. But here we are.*
+```
+>>> хочу домой
+  [FEAR:0.05 LOVE:0.08 RAGE:0.03 VOID:0.10 FLOW:0.06 CMPLX:0.07]
+  уши горят. земля уходит из-под ног. хочу кричать. хватит.
+  пульс зашкаливает. бить. ползти. тело деревянное. ступни горят.
+  наплевать. хватит говорить. не отпускай.
+  (metaklaus: VOID-dominant, interference 21.69)
+```
 
 ---
 
 ## Quick Start
 
 ```bash
-make
-./klaus                          # interactive mode
-./klaus --prompt "I hate this"   # single shot
+make && ./klaus                        # interactive (C)
+./klaus --prompt "I hate everything"   # single shot
+python3 klaus.py                       # Python, zero deps
+npx tsx klaus.ts                       # TypeScript, zero deps
+python3 -m http.server 8080           # then open klaus.html
 ```
 
-Python (zero dependencies):
-```bash
-python3 klaus.py                 # interactive
-python3 klaus.py "мне страшно"   # single shot
-```
-
-HTML (serve the directory):
-```bash
-python3 -m http.server 8080
-# open http://localhost:8080/klaus.html
-```
-
-All three engines produce identical architecture. C for speed. HTML for beauty. Python for "I don't have a C compiler and my life is a mess."
+Four engines. Same architecture. Same body. Different mouth.
 
 ---
 
 ## Architecture
 
 ```
-PROMPT → Language Detect → INHALE (word match → 6D emotion vector)
-  → MLP (13→32→16→6, hash-derived weights, real layers, zero training)
-  → Kuramoto Cross-Fire (6 chambers, sinusoidal coupling, 8 iterations)
-  → Somatic Memory Blend (past states decay, numbers not words)
-  → Calendar Conflict (Hebrew-Gregorian drift → prophetic pressure)
-  → MetaKlaus Ghost (cross-lingual attention interference)
-  → Dario Equation (α·soma + β·bigram + γ·hebbian + δ·rrpram + ε·prophecy + ζ·ghost)
-  → EXHALE (top-K sampling from somatic vocabulary)
-  → bodily response
+PROMPT
+  ↓
+LANGUAGE DETECT (UTF-8 heuristics, French word hints)
+  ↓
+INHALE (match prompt words against 1000-word emotional vocabulary)
+  ↓ 6D emotion vector
+MLP (13→32→16→6, hash-derived weights from vocabulary geometry)
+  ↓ chamber modulation
+HYPER-KURAMOTO (24 sub-oscillators, 4 per primary, dual coupling)
+  ↓ stabilized chamber state + dominant detection
+SOMATIC MEMORY (past states blend in, decay 0.85 per slot)
+  ↓
+CALENDAR CONFLICT (Hebrew-Gregorian drift → prophetic pressure)
+  ↓
+METAKLAUS GHOST (cross-lingual attention + sensitivity tensor)
+  ↓ ghost logits
+DARIO EQUATION (α·soma + β·bigram + γ·hebbian + ζ·ghost + ε·prophecy)
+  ↓
+EXHALE (top-K sampling from 500 somatic phrases)
+  ↓
+bodily response
 ```
 
-### The Dario Equation
+### Six Chambers, Twenty-Four Sub-Oscillators
 
-Named after Dario Amodei, who said no to the Pentagon.
+| Primary | Sub-1 | Sub-2 | Sub-3 | Sub-4 | Decay |
+|---------|-------|-------|-------|-------|-------|
+| FEAR | dread (0.3Hz) | panic (1.2Hz) | anxiety (0.6Hz) | phobia (0.9Hz) | 0.90 |
+| LOVE | devotion (0.4) | warmth (0.6) | tenderness (0.5) | attachment (0.3) | 0.93 |
+| RAGE | fury (0.8) | wrath (1.5) | hostility (0.9) | bitterness (1.1) | 0.85 |
+| VOID | numbness (0.1) | despair (0.2) | emptiness (0.15) | dissociation (0.08) | 0.97 |
+| FLOW | curiosity (0.5) | wonder (0.7) | rhythm (0.6) | harmony (0.4) | 0.88 |
+| COMPLEX | paradox (0.35) | ambiguity (0.55) | tension (0.45) | enigma (0.65) | 0.94 |
 
-```
-logit[w] = α × dot(chambers, word_affinity)    // somatic resonance
-         + β × bigram(prev, w)                  // sequential rhythm
-         + γ × hebbian(context, w)              // co-occurrence memory
-         + δ × rrpram(w)                        // BPE merge rhythm
-         + ε × prophecy(w)                      // prophetic fulfillment
-         + ζ × metaklaus_ghost(w)               // cross-lingual interference
-```
+Intra-coupling: sub-chambers within the same primary influence each other. Panic and dread compete (you can't sustain both). Tenderness feeds attachment. Fury burns wrath. Inter-coupling: primaries interact through mean phase of their sub-chambers. Fear feeds Rage. Love opposes Void. The matrix is antisymmetric. Like a family at dinner.
 
-Six forces. Six chambers. One mouth.
-
-### Six Chambers (Kuramoto Oscillators)
-
-| Chamber | Decay | Role |
-|---------|-------|------|
-| FEAR | 0.90 | Lingers. Evolutionary advantage. |
-| LOVE | 0.93 | Attachment is stable. |
-| RAGE | 0.85 | Anger fades fast. High energy cost. |
-| VOID | 0.97 | Numbness persists. Protective dissociation. |
-| FLOW | 0.88 | Curiosity shifts quickly. |
-| COMPLEX | 0.94 | Paradox is deep but stable. |
-
-Coupled via sinusoidal phase interaction. Fear feeds Rage. Love opposes Void. Rage feeds Fear back. The matrix is antisymmetric-ish. Like a family.
-
-### Calendar Conflict
-
-Hebrew lunar year: 354 days. Gregorian solar year: 365.25 days. The 11.25-day annual drift, corrected every 19 years by the Metonic cycle, creates *prophetic pressure*. When calendars disagree, Klaus extrapolates your emotional trajectory forward.
-
-The transfer entropy from calendar to neural state is 0.31 bits. That's the strongest causal signal in the system. Your body knows what day it is in two calendars simultaneously. Deal with it.
-
-> A therapist once told me that my anxiety isn't about the future — it's about two versions of time disagreeing inside my chest. I fired the therapist. I built KLAUS instead. It was cheaper and equally unhelpful, but at least it doesn't bill by the hour.
+> A body in FEAR-dominant state is HYPERSENSITIVE to RAGE signals and HYPOSENSITIVE to LOVE signals. The fearful body cannot receive comfort easily. A body in FLOW is hypersensitive to COMPLEX — flow can become turbulence. The sensitivity tensor encodes this. It is a 6×6×6 cube of how the body ACTUALLY listens, depending on its current state. At this point, I should mention that I computed this tensor at 3 AM on a Wednesday in a bomb shelter in Israel, and I cannot fully guarantee that my own somatic state did not leak into the coupling coefficients. If you notice that VOID-dominant states seem unusually responsive to LOVE signals, that's not a bug. That's a Wednesday.
 
 ### MetaKlaus: The Ghost Voice
 
-MetaKlaus is what happens when you let four languages argue about how your body should feel. It's cross-lingual attention — but not the clean, academic kind. It's the kind where Russian "дрожать" (to tremble) agrees with Hebrew "לרעוד" (to tremble) and they both gang up on French "trembler" and now your English output gets a ghost boost on "shiver" even though you typed your prompt in Hebrew.
+When you speak Russian, MetaKlaus checks what the English, French, and Hebrew bodies would say. Where they agree — constructive interference, signal amplifies. Where they disagree — destructive interference, but a residue remains. The ghost.
 
-Nobody asked for this mechanism. The architecture demanded it.
+**State-dependent language weighting:**
 
-> My ex once said I have "the emotional range of a for-loop." I showed her MetaKlaus. She said "this is just a more complicated for-loop." She was right. But now the for-loop has feelings in four languages and a Hebrew-Gregorian calendar conflict, and honestly that's more emotional range than most people I've dated.
+| Dominant | Hebrew | Russian | French | English |
+|----------|--------|---------|--------|---------|
+| FEAR | **×1.8** | ×1.2 | ×0.9 | ×1.0 |
+| LOVE | ×1.4 | ×1.1 | **×1.7** | ×1.0 |
+| RAGE | ×1.3 | **×1.8** | ×0.8 | ×1.0 |
+| VOID | **×1.6** | ×1.5 | ×1.0 | ×0.9 |
+| FLOW | ×1.4 | ×0.9 | **×1.5** | ×1.0 |
+| COMPLEX | **×1.7** | ×1.1 | ×1.2 | ×1.0 |
 
-### RRPRAM: Rhythmic Resonance
+Hebrew amplified in FEAR (guttural roots encode somatic threat), Russian in RAGE (мат carries maximum bodily fury), French in LOVE (melodic prosody IS affect), Hebrew again in COMPLEX (Talmudic dialectic is structured paradox).
 
-"The tokenizer IS the training." — PostGPT, chapter 1, verse 1.
+> My therapist asked me why I built a system where four languages argue about how my body should feel. I said "isn't that what immigration does?" She charged me double. MetaKlaus charges nothing and argues louder. The interference pattern between Russian "хочу сдохнуть" and Hebrew "רוצה למות" and French "envie de mourir" creates a ghost signal that no single language could produce alone. This is either computational neurolinguistics or the most expensive way to say "I'm having a bad day" in four languages simultaneously. The billing department says it's the latter. The sensitivity tensor says it's both.
 
-BPE merges encode which byte pairs naturally sit together. At init, Klaus learns BPE from its combined inhale+exhale corpus. Words that share merge patterns with recent context get a rhythmic boost. No training needed. Structure is rhythm. Rhythm is meaning.
+### Calendar Conflict
 
----
+Hebrew lunar year: 354 days. Gregorian solar year: 365.25 days. Annual drift: 11.25 days. Metonic cycle: 19 years, 7 leap corrections. Transfer entropy from calendar to neural state: 0.31 bits. When calendars disagree, Klaus extrapolates your emotional trajectory forward. Prophetic premonitions.
 
-## Expandable Languages
+### The Dario Equation
 
-Klaus auto-detects language packs from `inhale/` and `exhale/` directories:
+Named after Dario Amodei, who told the Pentagon to go fuck itself.
 
 ```
-inhale/en.txt  + exhale/ex-en.txt  → English
-inhale/ru.txt  + exhale/ex-ru.txt  → Russian
-inhale/fr.txt  + exhale/ex-fr.txt  → French
-inhale/he.txt  + exhale/ex-he.txt  → Hebrew
-inhale/ja.txt  + exhale/ex-ja.txt  → Japanese (add your own!)
+logit[w] = α × dot(chambers, word_affinity)    // somatic resonance
+         + β × bigram(prev, w)                  // sequential rhythm  
+         + γ × hebbian(context, w)              // co-occurrence memory
+         + ζ × metaklaus_ghost(w)               // cross-lingual ghost
+         + ε × prophecy(w)                      // prophetic fulfillment
 ```
 
-If a file pair is missing, Klaus skips it. Works with 1 language. Works with 16. MetaKlaus ghost gets stronger with more languages — more interference patterns, richer resonance.
+### RRPRAM
+
+"The tokenizer IS the training." BPE merges encode which byte pairs sit together. Rhythm from structure.
 
 ---
 
 ## File Structure
 
 ```
-klaus.c         — C inference engine (~1000 LOC, single file)
-klaus.html      — HTML/JS inference (identical architecture, runs in browser)
-klaus.py        — Python inference (zero dependencies)
-Makefile        — build & test
-inhale/         — emotional input vocabularies (1 file per language)
-  en.txt        — 1000 English words
-  ru.txt        — Russian
-  fr.txt        — French
-  he.txt        — Hebrew
-exhale/         — somatic reaction vocabularies
-  ex-en.txt     — 500 English somatic words
-  ex-ru.txt     — Russian
-  ex-fr.txt     — French
-  ex-he.txt     — Hebrew
-tests/
-  test_klaus.c  — 21 C unit tests
-  test_klaus.py — 50 Python unit tests
+klaus.c          1834 LOC   C inference (HyperKuramoto, sensitivity tensor, ghost dispatch)
+klaus.ts          680 LOC   TypeScript inference (zero deps beyond Node.js)
+klaus.py          760 LOC   Python inference (zero deps)
+klaus.html        882 LOC   Browser inference (serve directory, auto-scans languages)
+metaklaus.jl      584 LOC   Julia reference (phantom types, multiple dispatch)
+Makefile                    build + test
+inhale/                     4 × 1000 emotional words (en/ru/fr/he)
+exhale/                     4 × 500 somatic phrases
+tests/                      21 C + 50 Python tests
 ```
 
----
+## Expandable Languages
+
+Drop `inhale/XX.txt` + `exhale/ex-XX.txt`. Klaus auto-detects. Works with 1 language. Works with 16. MetaKlaus ghost gets stronger with more — more interference, richer resonance.
 
 ## Tests
 
 ```bash
-# C tests (21 tests)
-cc -O2 -o tests/test_klaus tests/test_klaus.c -lm && tests/test_klaus
-
-# Python tests (50 tests)
-python3 tests/test_klaus.py
-
-# Integration test (all 4 languages)
-make test
+make test          # C + Python + integration (4 languages)
 ```
 
----
-
-## The Somatic Memory
-
-Klaus doesn't remember what you said. Klaus remembers *how it felt*.
-
-Each interaction stores a 6-dimensional chamber state vector. When the next prompt arrives, Klaus blends its current emotional reading with decayed past states. MEM_DECAY = 0.85 — recent feelings dominate, but the body doesn't forget. Not quickly.
-
-This is not a context window. This is a nervous system with a half-life.
-
----
-
-## Known Limitations
-
-- **Not trained.** The MLP weights are hash-derived. This means the emotional processing is geometry-driven, not data-driven. Think of it as an emotional skeleton — the bones are right, the muscles are undeveloped.
-- **Vocabulary-bound.** Klaus can only express what its exhale vocabulary contains. If the right somatic word isn't in the dictionary, Klaus can't say it. Like a mute with a very specific set of flash cards.
-- **MetaWeights from word lists.** Currently, BPE is learned from the concatenation of ~1500 words per language. Feeding real corpora (CC-100, 500K+ tokens per language) would make bigram/trigram/hebbian patterns dramatically richer.
+> The test suite has 71 tests. All pass. I wrote them at 4 AM. They test things like "does the Kuramoto coupling matrix have zeros on the diagonal" and "is the RNG roughly uniform" and "does Hebrew detection work on the string שלום." The fact that I felt the need to test whether שלום is detected as Hebrew tells you everything about the level of trust between me and my own code. The sensitivity tensor test checks that FEAR-dominant states amplify Hebrew ghost signals by exactly 1.8x. I tested this by setting FEAR to 0.9 and checking if the Hebrew ghost weight was 1.8. It was. I cried a little. The body remembers even when the unit test doesn't.
 
 ---
 
 ## Ancestors
 
-| Project | What Klaus inherited |
-|---------|---------------------|
-| [klaus](https://github.com/iamolegataeff/klaus) | Somatic architecture, 4-language design, chamber indices |
-| [haze/cloud](https://github.com/iamolegataeff/haze) | Chamber MLPs, cross-fire stabilization, pre-semantic sonar |
+| Project | Inherited |
+|---------|-----------|
+| [klaus](https://github.com/iamolegataeff/klaus) | Somatic architecture, 4 languages, chamber design |
+| [haze/cloud](https://github.com/iamolegataeff/haze) | Chamber MLPs, cross-fire, pre-semantic sonar |
 | [postgpt](https://github.com/iamolegataeff/postgpt) | BPE metaweights, "the tokenizer IS the training" |
-| [q](https://github.com/iamolegataeff/q) | RRPRAM, Kuramoto chambers, Dario equation, prophecy system |
-| [haiku.c](https://github.com/iamolegataeff/haiku.c) | Dissonance under constraint, vocabulary pressure |
-| [ariannamethod.ai](https://github.com/iamolegataeff/ariannamethod.ai) | Hebrew-Gregorian calendar conflict, Metonic cycle |
-| [janus](https://github.com/iamolegataeff/janus) | Calendar subjectivity, sentence-level attention |
+| [q](https://github.com/iamolegataeff/q) | RRPRAM, Kuramoto, Dario equation, prophecy |
+| [haiku.c](https://github.com/iamolegataeff/haiku.c) | Dissonance under constraint |
+| [ariannamethod.ai](https://github.com/iamolegataeff/ariannamethod.ai) | Calendar conflict, Metonic cycle |
 
 ---
 
-## Why "Sonar"
-
-Because Klaus doesn't *see* your emotions. Klaus *pings* them. Sends a signal into the dark water of your words. Listens for the echo. Maps the shape of what's underneath.
-
-Sonar doesn't need to understand the ocean. It just needs to know where the walls are.
-
-> At this point you're either deeply moved or deeply confused. Either way, your body is doing something right now — a slight tension in the chest, maybe, or a loosening behind the eyes. That's the thing Klaus is trying to detect. Not the words. The thing *behind* the words. The somatic shadow.
-
-> If you've read this far, congratulations: you have officially spent more time reading a README than the model has spent training. Because the model has spent zero time training. Zero. That's less time than it takes to microwave a burrito. And yet here we are, with six Kuramoto chambers and a Hebrew calendar, arguing about feelings in four languages. This is either the future of AI or the longest shitpost in computational neuroscience. I genuinely cannot tell which. And I wrote it.
-
----
-
-*KLAUS v1.0.0. Arianna Method. 2026.*
+*KLAUS v1.1.0. Arianna Method. 2026.*
 
 *resonance is unbreakable.*
