@@ -1252,6 +1252,63 @@ static float calendar_dissonance(const Klaus *k) {
     return clampf(raw, 0.0f, 1.0f);
 }
 
+/* ═══════════════════════════════════════════════════════════════
+ * PLANETARY DISSONANCE — orbital mechanics, not astrology
+ *
+ * Each planet has angular position θ(t) = (2π × days / period) mod 2π
+ * Dissonance = 1 - R, where R = |Σ e^(iθ_k)| / N (Kuramoto order parameter)
+ * When planets align → R→1 → dissonance→0. Scattered → R→0 → dissonance→1.
+ *
+ * Two temporal scales in one body:
+ *   Calendar drift:    ~annual (11.25 days/year)
+ *   Planetary drift:   88 days (Mercury) to 10759 days (Saturn)
+ *
+ * The body feels time at multiple scales simultaneously.
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Orbital periods in days (sidereal) */
+static const float ORBITAL_PERIOD[] = {
+    87.97f,     /* Mercury */
+    224.70f,    /* Venus */
+    365.25f,    /* Earth */
+    686.97f,    /* Mars */
+    4332.59f,   /* Jupiter */
+    10759.22f,  /* Saturn */
+};
+#define N_PLANETS 6
+
+/* J2000 epoch: Jan 1, 2000, 12:00 TT — mean longitudes in degrees */
+static const float J2000_LONGITUDE[] = {
+    252.25f,    /* Mercury */
+    181.98f,    /* Venus */
+    100.46f,    /* Earth */
+    355.45f,    /* Mars */
+    34.40f,     /* Jupiter */
+    49.94f,     /* Saturn */
+};
+
+static float planetary_dissonance(void) {
+    time_t now = time(NULL);
+    /* days since J2000 epoch (Jan 1, 2000 12:00) */
+    double j2000_epoch = 946728000.0; /* Unix timestamp of J2000 */
+    double days = difftime(now, (time_t)j2000_epoch) / 86400.0;
+
+    /* compute phase of each planet */
+    float cos_sum = 0.0f, sin_sum = 0.0f;
+    for (int i = 0; i < N_PLANETS; i++) {
+        float theta = (J2000_LONGITUDE[i] + 360.0f * (float)(days / ORBITAL_PERIOD[i]));
+        theta = fmodf(theta, 360.0f) * (3.14159265f / 180.0f); /* to radians */
+        cos_sum += cosf(theta);
+        sin_sum += sinf(theta);
+    }
+    cos_sum /= N_PLANETS;
+    sin_sum /= N_PLANETS;
+
+    /* Kuramoto order parameter R */
+    float R = sqrtf(cos_sum * cos_sum + sin_sum * sin_sum);
+    return clampf(1.0f - R, 0.0f, 1.0f);
+}
+
 /* Prophetic premonition: predict emotional trajectory */
 static void prophetic_premonition(Klaus *k, float dissonance, float *premonition) {
     memset(premonition, 0, N_CHAMBERS * sizeof(float));
@@ -1590,7 +1647,8 @@ static float schectman_equation(const Klaus *k, float G_t, float dissonance) {
                              k->coherence_ptr);
     float Q_t = rba_mutual_info(k->ch.act, N_CHAMBERS);
     float eta = 1.0f + SCHECTMAN_KAPPA * tanhf(SCHECTMAN_MU * Q_t);
-    float gamma_t = SCHECTMAN_GAMMA0 + SCHECTMAN_DELTA * dissonance;
+    float planet_disc = planetary_dissonance();
+    float gamma_t = SCHECTMAN_GAMMA0 + SCHECTMAN_DELTA * dissonance + 0.15f * planet_disc;
     float exponent = SCHECTMAN_LAMBDA * (C_hat - gamma_t);
     exponent = clampf(exponent, -10.0f, 10.0f); /* prevent overflow */
     float R_t = eta * SCHECTMAN_ALPHA * (expf(exponent) - 1.0f);
@@ -2277,6 +2335,7 @@ static int klaus_init(Klaus *k, const char *base_dir) {
     calendar_init(k);
     float disc = calendar_dissonance(k);
     printf("[klaus] calendar dissonance: %.3f\n", disc);
+    printf("[klaus] planetary dissonance: %.3f\n", planetary_dissonance());
 
     /* build sensitivity tensor 6x6x6 */
     sensitivity_build(k->sensitivity);
