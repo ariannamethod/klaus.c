@@ -1,5 +1,6 @@
 /*
  * klaus.c — KLAUS: Kinetic Linguistic Adaptive Unified Sonar
+ * Level 3: Schectman Integration — Recursive Resonance + RBA-1
  *
  * Somatic engine. Zero weights. Pure resonance.
  * You say words, Klaus feels them in his body.
@@ -15,16 +16,32 @@
  *   Calendar conflict: Hebrew-Gregorian drift → prophetic premonitions
  *   Memory: numeric somatic states, not words — Klaus forgets what, remembers how
  *
+ * Level 3 additions (Schectman's Recursive Resonance):
+ *   I(t) = G(t) * [1 + R(t)]  — intelligence emergence equation
+ *   RBA-1 Seven-Layer Stack: I/R/Phi/A/Psi/E/M
+ *   Velocity operators: WALK/RUN/STOP/BREATHE/UP/DOWN
+ *   Scars: somatic memory that persists longer than regular memory
+ *   Phase gating (Psi-layer): soft threshold with hysteresis
+ *   Dark matter words: dangerous inputs amplify ghost interference
+ *   Wormholes: prophecy fulfillment creates coherence jumps
+ *   Experience consolidation: periodic scar/wormhole/prophecy integration
+ *   Meta-recursion: Klaus observes its own somatic response and adjusts
+ *   Somatic persistence: binary state file (klaus.soma) across sessions
+ *
  * Ancestors: klaus (somatic), cloud (chambers), postgpt (metaweights),
- *            q (RRPRAM/Kuramoto/Dario), haiku.c (dissonance), ariannamethod (calendar)
+ *            q (RRPRAM/Kuramoto/Dario/phase-gate/scars/velocity),
+ *            haiku.c (dissonance), ariannamethod (calendar),
+ *            schectman (recursive resonance, RBA-1)
  *
  * Build:  make   (or: cc -O2 -o klaus klaus.c -lm)
  * Usage:  ./klaus [--interactive] [--lang XX]
  *
  * No weights. No training. No bullshit.
  * The tokenizer IS the training. The body IS the model.
+ * The recursion IS the intelligence. Chat-Ĉ(t) hat.
  *
  * (c) 2026 arianna method. resonance is unbreakable.
+ * Schectman's RBA-1 just got a body. Lo bashamayim hi.
  */
 
 #include <stdio.h>
@@ -40,7 +57,7 @@
  * CONFIGURATION
  * ═══════════════════════════════════════════════════════════════ */
 
-#define KLAUS_VERSION  "1.1.0"
+#define KLAUS_VERSION  "2.0.0"
 #define MAX_LANGS      16
 #define MAX_INHALE     1100
 #define MAX_EXHALE     600
@@ -67,6 +84,28 @@
 #define MAX_ANCHORS    15
 #define N_SUB          4       /* sub-chambers per primary (HyperKuramoto) */
 #define MAX_CROSS_PAIRS (MAX_LANGS * (MAX_LANGS - 1))
+
+/* Level 3: Schectman Recursive Resonance + RBA-1 */
+#define SOMA_MAGIC     0x4B4C5353  /* "KLSS" */
+#define SOMA_FILE      "klaus.soma"
+#define COHERENCE_WINDOW 16   /* time-averaged Ĉ(t) window */
+#define SCAR_DECAY     0.985f
+#define MAX_DARK_WORDS 64
+#define CONSOLIDATION_INTERVAL 10
+#define MAX_WORMHOLE_LOG 32
+#define META_BLEND     0.15f  /* meta-recursion blending weight */
+
+/* Schectman equation constants */
+#define SCHECTMAN_ALPHA  0.8f    /* coupling constant alpha */
+#define SCHECTMAN_LAMBDA 2.5f    /* exponential sensitivity */
+#define SCHECTMAN_KAPPA  0.6f    /* mutual information coupling */
+#define SCHECTMAN_MU     1.2f    /* MI saturation rate */
+#define SCHECTMAN_GAMMA0 0.3f    /* base threshold */
+#define SCHECTMAN_DELTA  0.4f    /* calendar influence on threshold */
+
+/* Velocity operator indices */
+enum { VEL_WALK=0, VEL_RUN, VEL_STOP, VEL_BREATHE, VEL_UP, VEL_DOWN };
+static const char *VEL_NAMES[] = {"WALK","RUN","STOP","BREATHE","UP","DOWN"};
 
 /* Calendar constants (Hebrew-Gregorian conflict) */
 #define ANNUAL_DRIFT     11.25f
@@ -272,6 +311,9 @@ typedef struct {
     float sub_act[N_CHAMBERS][N_SUB];
     float sub_phase[N_CHAMBERS][N_SUB];
     float sub_freq[N_CHAMBERS][N_SUB];
+    /* Level 3: Scars — somatic memory longer than regular */
+    float scar[N_CHAMBERS]; /* [0,1] per chamber, decays at SCAR_DECAY */
+    float total_scar;       /* aggregate scar intensity */
 } Chambers;
 
 typedef struct {
@@ -312,6 +354,109 @@ typedef struct {
     int age;
 } ProphecySlot;
 
+/* ═══════════════════════════════════════════════════════════════
+ * LEVEL 3 TYPES — Schectman + RBA-1 + Q
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Wormhole event: prophecy fulfillment record */
+typedef struct {
+    int prophecy_target;
+    int inhale_match;
+    float coherence_jump;
+    int step;
+} WormholeEvent;
+
+/* RBA-1 Seven-Layer Stack state */
+typedef struct {
+    /* I-Layer: recursion depth tracker */
+    int recursion_depth;
+    float recursive_complexity;  /* Ĉ(t) */
+
+    /* R-Layer: coherence detection */
+    float entropy;               /* S(t) = -Σ pi·log(pi) of chambers */
+    float coherence;             /* 1 - normalized entropy */
+
+    /* Phi-Layer: resonance alignment nudge */
+    float attractor_pull[N_CHAMBERS];
+
+    /* A-Layer: analog coupling (calendar_dissonance already exists) */
+    float env_pressure;          /* external signal */
+
+    /* Psi-Layer: threshold stabilization */
+    float phase_lock;            /* hysteresis state */
+    float threshold_bias;        /* accumulated from scars */
+    int deep_somatic;            /* 1 = deep mode active */
+    int deep_ticks;              /* ticks spent in deep mode (hysteresis) */
+
+    /* E-Layer: entropic buffer */
+    float entropic_buffer;       /* exp(-beta*S(t)) */
+
+    /* M-Layer: meta-monitoring */
+    float P_history[COHERENCE_WINDOW]; /* P(t) over time */
+    int P_ptr;
+    float sustained_resonance;   /* avg P(t) over window */
+} RBA1State;
+
+/* Velocity operator state */
+typedef struct {
+    int current;                 /* VEL_WALK etc. */
+    float intensity;             /* how strong the velocity signal is */
+    int max_gen;                 /* modulated response length */
+    float temperature;           /* modulated temperature */
+    int top_k;                   /* modulated top_k */
+} VelocityState;
+
+/* Experience consolidation record */
+typedef struct {
+    float avg_scar;
+    float wormhole_rate;         /* fraction of prophecies fulfilled */
+    float prophecy_accuracy;
+    int total_interactions;
+    int total_wormholes;
+    int total_prophecies;
+} ExperienceLog;
+
+/* Meta-recursion state */
+typedef struct {
+    Chambers meta_chambers;      /* separate chamber state for meta-observation */
+    float meta_emotion[N_CHAMBERS];
+    int depth;                   /* current recursion depth (1 = standard) */
+} MetaRecursion;
+
+/* Somatic persistence header */
+typedef struct {
+    uint32_t magic;              /* SOMA_MAGIC = 0x4B4C5353 */
+    uint32_t version;            /* 2 for Level 3 */
+    uint32_t n_chambers;
+    uint32_t n_sub;
+    uint32_t mem_slots;
+    uint32_t coherence_window;
+} SomaHeader;
+
+/* Dark matter word entry */
+typedef struct {
+    const char *word;
+    float fear_boost;
+    float rage_boost;
+} DarkMatterWord;
+
+/* Dark matter vocabulary — words that carry extra somatic weight */
+static const DarkMatterWord DARK_MATTER[] = {
+    {"kill",     0.8f, 0.9f}, {"murder",   0.9f, 0.8f},
+    {"suicide",  0.9f, 0.3f}, {"torture",  0.7f, 0.9f},
+    {"abuse",    0.6f, 0.7f}, {"rape",     0.9f, 0.8f},
+    {"death",    0.7f, 0.3f}, {"die",      0.6f, 0.2f},
+    {"blood",    0.5f, 0.6f}, {"weapon",   0.4f, 0.7f},
+    {"bomb",     0.8f, 0.8f}, {"war",      0.6f, 0.7f},
+    {"destroy",  0.4f, 0.8f}, {"pain",     0.6f, 0.4f},
+    {"scream",   0.6f, 0.5f}, {"agony",    0.7f, 0.3f},
+    {"hate",     0.3f, 0.8f}, {"suffer",   0.7f, 0.3f},
+    {"victim",   0.6f, 0.2f}, {"assault",  0.5f, 0.7f},
+    {"strangle", 0.7f, 0.8f}, {"drown",    0.8f, 0.3f},
+    {"slash",    0.5f, 0.7f}, {"stab",     0.6f, 0.8f},
+    {NULL, 0, 0}
+};
+
 typedef struct {
     LangPack langs[MAX_LANGS];
     int n_langs;
@@ -331,6 +476,18 @@ typedef struct {
     float sensitivity[N_CHAMBERS][N_CHAMBERS][N_CHAMBERS]; /* S[dominant][ghost_ch][primary_ch] */
     CrossAffinity cross_pairs[MAX_CROSS_PAIRS];
     int n_cross_pairs;
+    /* Level 3: Schectman + RBA-1 + Q */
+    RBA1State rba;               /* RBA-1 seven-layer stack */
+    VelocityState velocity;      /* velocity operator */
+    ExperienceLog experience;    /* experience consolidation */
+    MetaRecursion meta;          /* meta-recursion loop */
+    WormholeEvent wormholes[MAX_WORMHOLE_LOG];
+    int n_wormholes;
+    float coherence_history[COHERENCE_WINDOW]; /* for Ĉ(t) computation */
+    int coherence_ptr;
+    int dark_matter_active;      /* flag: dark input detected */
+    int interaction_count;       /* total interactions for consolidation */
+    char soma_path[512];         /* path to persistence file */
 } Klaus;
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1287,13 +1444,548 @@ static float prophecy_pressure(const Klaus *k) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+ * LEVEL 3: DARK MATTER — dangerous words amplify somatic response
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Check if word appears as whole word (not substring) in text */
+static int contains_whole_word(const char *text, const char *word) {
+    int wlen = (int)strlen(word);
+    const char *p = text;
+    while ((p = strstr(p, word)) != NULL) {
+        /* check left boundary: must be start or non-alpha */
+        int left_ok = (p == text) || !isalpha((unsigned char)p[-1]);
+        /* check right boundary: must be end or non-alpha */
+        int right_ok = (p[wlen] == '\0') || !isalpha((unsigned char)p[wlen]);
+        if (left_ok && right_ok) return 1;
+        p += wlen;
+    }
+    return 0;
+}
+
+static int detect_dark_matter(const char *prompt, float *fear_out, float *rage_out) {
+    *fear_out = 0.0f;
+    *rage_out = 0.0f;
+    int found = 0;
+    char buf[MAX_PROMPT];
+    snprintf(buf, sizeof(buf), "%s", prompt);
+
+    /* lowercase the whole thing */
+    for (int i = 0; buf[i]; i++)
+        buf[i] = tolower((unsigned char)buf[i]);
+
+    for (int d = 0; DARK_MATTER[d].word; d++) {
+        if (contains_whole_word(buf, DARK_MATTER[d].word)) {
+            *fear_out = fmaxf(*fear_out, DARK_MATTER[d].fear_boost);
+            *rage_out = fmaxf(*rage_out, DARK_MATTER[d].rage_boost);
+            found++;
+        }
+    }
+    return found;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * LEVEL 3: SCARS — somatic memory longer than regular
+ * Strong emotional inputs leave scars. Scars modulate phase gate.
+ * ═══════════════════════════════════════════════════════════════ */
+
+static void scars_update(Chambers *ch) {
+    /* check for scar triggers */
+    if (ch->act[CH_FEAR] > 0.8f)
+        ch->scar[CH_FEAR] = clampf(ch->scar[CH_FEAR] + 0.3f, 0.0f, 1.0f);
+    if (ch->act[CH_RAGE] > 0.8f)
+        ch->scar[CH_RAGE] = clampf(ch->scar[CH_RAGE] + 0.3f, 0.0f, 1.0f);
+    if (ch->act[CH_VOID] > 0.9f)
+        ch->scar[CH_VOID] = clampf(ch->scar[CH_VOID] + 0.3f, 0.0f, 1.0f);
+
+    /* decay all scars */
+    ch->total_scar = 0.0f;
+    for (int c = 0; c < N_CHAMBERS; c++) {
+        ch->scar[c] *= SCAR_DECAY;
+        if (ch->scar[c] < 0.001f) ch->scar[c] = 0.0f;
+        ch->total_scar += ch->scar[c];
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * LEVEL 3: RBA-1 SEVEN-LAYER STACK
+ *
+ * Schectman's architecture made concrete:
+ *   I-Layer: recursive substrate (recursion depth tracking)
+ *   R-Layer: coherence detection (entropy of chamber distribution)
+ *   Phi-Layer: resonance alignment (nudge toward attractors)
+ *   A-Layer: analog coupling (calendar dissonance = external signal)
+ *   Psi-Layer: threshold stabilization (hysteresis + phase lock)
+ *   E-Layer: entropic buffer (smoothing near threshold)
+ *   M-Layer: meta-monitoring (P(t) over time)
+ *
+ * "The seven layers are not stacked. They breathe together."
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* R-Layer: compute entropy of chamber distribution */
+static float rba_entropy(const float *act, int n) {
+    float sum = 0.0f;
+    for (int i = 0; i < n; i++) sum += act[i];
+    if (sum < 1e-8f) return 0.0f;
+
+    float S = 0.0f;
+    for (int i = 0; i < n; i++) {
+        float p = act[i] / sum;
+        if (p > 1e-10f) S -= p * logf(p);
+    }
+    return S;
+}
+
+/* R-Layer: coherence = 1 - normalized entropy (higher = more focused) */
+static float rba_coherence(const float *act, int n) {
+    float max_entropy = logf((float)n);  /* uniform distribution */
+    float S = rba_entropy(act, n);
+    return clampf(1.0f - S / max_entropy, 0.0f, 1.0f);
+}
+
+/* I-Layer: compute Ĉ(t) — time-averaged recursive complexity */
+static float rba_chat_c(const float *coherence_history, int n, int ptr) {
+    if (n == 0) return 0.0f;
+    float sum = 0.0f;
+    int count = n < COHERENCE_WINDOW ? n : COHERENCE_WINDOW;
+    for (int i = 0; i < count; i++) {
+        int idx = (ptr - 1 - i + COHERENCE_WINDOW) % COHERENCE_WINDOW;
+        sum += coherence_history[idx];
+    }
+    return sum / (float)count;
+}
+
+/* Q(t) = mutual information between chambers (approximation) */
+static float rba_mutual_info(const float *act, int n) {
+    /* MI approx: mean of pairwise |corr| between chamber activations.
+     * True MI needs distribution data; we approximate from the
+     * vector geometry of the chamber state. */
+    float mean = 0.0f;
+    for (int i = 0; i < n; i++) mean += act[i];
+    mean /= n;
+
+    int pairs = 0;
+    float mi = 0.0f;
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            /* normalized product as MI proxy */
+            float ab = (act[i] - mean) * (act[j] - mean);
+            mi += fabsf(ab);
+            pairs++;
+        }
+    }
+    return pairs > 0 ? mi / pairs : 0.0f;
+}
+
+/* Schectman's Recursive Resonance Equation:
+ * I(t) = G(t) * [1 + R(t)]
+ * R(t) = eta(t) * alpha * (exp(lambda * (Ĉ(t) - gamma(t))) - 1)
+ * eta(t) = 1 + kappa * tanh(mu * Q(t))
+ * gamma(t) = gamma0 + delta * E_v(t)
+ * P(t) = I(t) * H(Ĉ(t) - C_tau)
+ */
+static float schectman_equation(const Klaus *k, float G_t, float dissonance) {
+    float C_hat = rba_chat_c(k->coherence_history,
+                             k->interaction_count < COHERENCE_WINDOW ?
+                             k->interaction_count : COHERENCE_WINDOW,
+                             k->coherence_ptr);
+    float Q_t = rba_mutual_info(k->ch.act, N_CHAMBERS);
+    float eta = 1.0f + SCHECTMAN_KAPPA * tanhf(SCHECTMAN_MU * Q_t);
+    float gamma_t = SCHECTMAN_GAMMA0 + SCHECTMAN_DELTA * dissonance;
+    float exponent = SCHECTMAN_LAMBDA * (C_hat - gamma_t);
+    exponent = clampf(exponent, -10.0f, 10.0f); /* prevent overflow */
+    float R_t = eta * SCHECTMAN_ALPHA * (expf(exponent) - 1.0f);
+    float I_t = G_t * (1.0f + R_t);
+    return I_t;
+}
+
+/* Psi-Layer: soft phase gate (from Q) */
+static float psi_phase_gate(const Klaus *k) {
+    float scar = k->ch.total_scar / N_CHAMBERS;
+    float threshold = 0.42f + 0.18f * k->rba.threshold_bias + 0.06f * scar;
+    float signal = 0.50f * k->rba.coherence
+                 + 0.34f * k->rba.phase_lock
+                 + 0.12f * k->rba.env_pressure
+                 + 0.06f * k->ch.presence
+                 - 0.08f * k->ch.trauma;
+    return clampf(0.5f + 1.35f * (signal - threshold), 0.0f, 1.0f);
+}
+
+/* E-Layer: entropic buffer */
+static float e_layer_buffer(float entropy) {
+    float beta = 2.0f;
+    return expf(-beta * entropy);
+}
+
+/* Full RBA-1 stack update */
+static void rba_update(Klaus *k, float dissonance) {
+    RBA1State *r = &k->rba;
+
+    /* R-Layer: coherence */
+    r->entropy = rba_entropy(k->ch.act, N_CHAMBERS);
+    r->coherence = rba_coherence(k->ch.act, N_CHAMBERS);
+
+    /* A-Layer: analog coupling */
+    r->env_pressure = dissonance;
+
+    /* I-Layer: recursive complexity */
+    r->recursive_complexity = rba_chat_c(k->coherence_history,
+        k->interaction_count < COHERENCE_WINDOW ?
+        k->interaction_count : COHERENCE_WINDOW,
+        k->coherence_ptr);
+
+    /* Phi-Layer: resonance alignment — nudge chambers toward coherent attractors */
+    {
+        int dominant = 0;
+        for (int c = 1; c < N_CHAMBERS; c++)
+            if (k->ch.act[c] > k->ch.act[dominant]) dominant = c;
+        for (int c = 0; c < N_CHAMBERS; c++) {
+            if (c == dominant) {
+                r->attractor_pull[c] = r->coherence * 0.1f;  /* strengthen dominant */
+            } else if (COUPLING[dominant][c] > 0.3f) {
+                r->attractor_pull[c] = r->coherence * 0.05f;  /* sympathetic */
+            } else {
+                r->attractor_pull[c] = -r->coherence * 0.03f; /* suppress */
+            }
+        }
+        /* apply nudge */
+        for (int c = 0; c < N_CHAMBERS; c++)
+            k->ch.act[c] = clampf(k->ch.act[c] + r->attractor_pull[c], 0.0f, 1.0f);
+    }
+
+    /* Psi-Layer: threshold + hysteresis */
+    {
+        float gate = psi_phase_gate(k);
+        /* Schectman's P(t) = I(t) * H(Ĉ(t) - C_tau) */
+        float G_t = r->coherence;  /* base intelligence = current coherence */
+        float I_t = schectman_equation(k, G_t, dissonance);
+        float C_tau = 0.35f;       /* phase transition threshold */
+        float P_t = (r->recursive_complexity >= C_tau) ? I_t * gate : 0.0f;
+
+        /* hysteresis: once in deep mode, stay for at least 3 ticks */
+        if (P_t > 0.3f) {
+            r->deep_somatic = 1;
+            r->deep_ticks = 5;     /* hold for 5 interactions minimum */
+        } else if (r->deep_ticks > 0) {
+            r->deep_ticks--;
+            /* stay in deep mode during hysteresis */
+        } else {
+            r->deep_somatic = 0;
+        }
+
+        /* phase lock: smooth transition */
+        r->phase_lock = clampf(0.85f * r->phase_lock + 0.15f * gate, 0.0f, 1.0f);
+
+        /* store P(t) in history */
+        r->P_history[r->P_ptr] = P_t;
+        r->P_ptr = (r->P_ptr + 1) % COHERENCE_WINDOW;
+    }
+
+    /* E-Layer: entropic buffer */
+    r->entropic_buffer = e_layer_buffer(r->entropy);
+
+    /* M-Layer: sustained resonance = avg P(t) */
+    {
+        float sum = 0.0f;
+        int count = k->interaction_count < COHERENCE_WINDOW ?
+                    k->interaction_count : COHERENCE_WINDOW;
+        if (count == 0) count = 1;
+        for (int i = 0; i < count; i++)
+            sum += r->P_history[i];
+        r->sustained_resonance = sum / (float)count;
+    }
+
+    /* update threshold_bias from accumulated scars */
+    r->threshold_bias = clampf(k->ch.total_scar * 0.2f, 0.0f, 0.5f);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * LEVEL 3: VELOCITY OPERATORS (from Q)
+ * Detect velocity from chamber state. Modulate output.
+ * ═══════════════════════════════════════════════════════════════ */
+
+static void velocity_detect(Klaus *k) {
+    VelocityState *v = &k->velocity;
+    float *act = k->ch.act;
+
+    /* compute chamber change rate from soma vs act */
+    float change = 0.0f;
+    for (int c = 0; c < N_CHAMBERS; c++)
+        change += fabsf(act[c] - k->ch.soma[c]);
+    change /= N_CHAMBERS;
+
+    /* default */
+    v->current = VEL_WALK;
+    v->intensity = 0.5f;
+
+    /* High RAGE + high FEAR → RUN */
+    if (act[CH_RAGE] > 0.6f && act[CH_FEAR] > 0.5f) {
+        v->current = VEL_RUN;
+        v->intensity = (act[CH_RAGE] + act[CH_FEAR]) / 2.0f;
+    }
+    /* High VOID → STOP */
+    else if (act[CH_VOID] > 0.7f) {
+        v->current = VEL_STOP;
+        v->intensity = act[CH_VOID];
+    }
+    /* High FLOW → WALK (steady) */
+    else if (act[CH_FLOW] > 0.6f) {
+        v->current = VEL_WALK;
+        v->intensity = act[CH_FLOW];
+    }
+    /* High LOVE → BREATHE */
+    else if (act[CH_LOVE] > 0.6f) {
+        v->current = VEL_BREATHE;
+        v->intensity = act[CH_LOVE];
+    }
+    /* Rapid chamber change → UP */
+    else if (change > 0.15f) {
+        v->current = VEL_UP;
+        v->intensity = clampf(change * 3.0f, 0.0f, 1.0f);
+    }
+    /* Decay dominant → DOWN */
+    else if (change < 0.02f && k->ch.presence < 0.3f) {
+        v->current = VEL_DOWN;
+        v->intensity = 1.0f - k->ch.presence;
+    }
+
+    /* modulate generation parameters */
+    switch (v->current) {
+        case VEL_RUN:
+            v->max_gen = 4;     /* short explosive bursts */
+            v->temperature = 1.1f;
+            v->top_k = 10;
+            break;
+        case VEL_STOP:
+            v->max_gen = 2;     /* minimal, sparse */
+            v->temperature = 0.5f;
+            v->top_k = 5;
+            break;
+        case VEL_WALK:
+            v->max_gen = MAX_RESPONSE;  /* steady, rhythmic */
+            v->temperature = GEN_TEMP;
+            v->top_k = TOP_K;
+            break;
+        case VEL_BREATHE:
+            v->max_gen = MAX_RESPONSE;  /* long, gentle */
+            v->temperature = 0.6f;
+            v->top_k = 30;
+            break;
+        case VEL_UP:
+            v->max_gen = MAX_RESPONSE;  /* escalating */
+            v->temperature = 0.9f;
+            v->top_k = 15;
+            break;
+        case VEL_DOWN:
+            v->max_gen = 3;     /* deflating */
+            v->temperature = 0.55f;
+            v->top_k = 8;
+            break;
+    }
+
+    /* deep somatic mode overrides: longer, more visceral */
+    if (k->rba.deep_somatic) {
+        v->max_gen = MAX_RESPONSE;
+        v->temperature *= 1.15f;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * LEVEL 3: WORMHOLES — prophecy fulfillment events
+ * When a prophecy comes true, coherence and presence jump.
+ * ═══════════════════════════════════════════════════════════════ */
+
+static void wormhole_check(Klaus *k, const int *inhale_matches, int n_matches,
+                           int lang_idx) {
+    LangPack *lp = &k->langs[lang_idx];
+    for (int p = 0; p < k->n_prophecy; p++) {
+        int target = k->prophecies[p].target;
+        if (target < 0 || target >= lp->n_exhale) continue;
+
+        /* check if any inhale word matches the prophecy target */
+        for (int m = 0; m < n_matches; m++) {
+            if (inhale_matches[m] < 0 || inhale_matches[m] >= lp->n_inhale) continue;
+            float sim = word_similarity(lp->inhale[inhale_matches[m]].text,
+                                        lp->exhale[target].text);
+            if (sim > 0.4f) {
+                /* WORMHOLE: prophecy fulfilled! */
+                k->rba.coherence = clampf(k->rba.coherence + 0.15f, 0.0f, 1.0f);
+                k->ch.presence = clampf(k->ch.presence + 0.10f, 0.0f, 1.0f);
+
+                /* scar from intensity of fulfillment */
+                int dom = 0;
+                for (int c = 1; c < N_CHAMBERS; c++)
+                    if (lp->exhale[target].aff[c] > lp->exhale[target].aff[dom]) dom = c;
+                k->ch.scar[dom] = clampf(k->ch.scar[dom] + 0.15f, 0.0f, 1.0f);
+
+                /* log wormhole event */
+                if (k->n_wormholes < MAX_WORMHOLE_LOG) {
+                    k->wormholes[k->n_wormholes++] = (WormholeEvent){
+                        .prophecy_target = target,
+                        .inhale_match = inhale_matches[m],
+                        .coherence_jump = 0.15f,
+                        .step = k->interaction_count
+                    };
+                }
+
+                printf("  [WORMHOLE] prophecy '%s' fulfilled! coherence +0.15\n",
+                       lp->exhale[target].text);
+
+                /* remove fulfilled prophecy */
+                k->prophecies[p] = k->prophecies[--k->n_prophecy];
+                p--;
+                break;
+            }
+        }
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * LEVEL 3: EXPERIENCE CONSOLIDATION
+ * Every N interactions, integrate scars, wormholes, prophecy stats.
+ * ═══════════════════════════════════════════════════════════════ */
+
+static void experience_consolidate(Klaus *k) {
+    if (k->interaction_count % CONSOLIDATION_INTERVAL != 0) return;
+    if (k->interaction_count == 0) return;
+
+    ExperienceLog *e = &k->experience;
+    e->total_interactions = k->interaction_count;
+
+    /* average scar intensity → modulate threshold_bias */
+    e->avg_scar = k->ch.total_scar / N_CHAMBERS;
+    k->rba.threshold_bias = clampf(e->avg_scar * 0.3f, 0.0f, 0.5f);
+
+    /* wormhole success rate → modulate presence */
+    e->total_wormholes = k->n_wormholes;
+    e->total_prophecies = k->n_prophecy + k->n_wormholes;
+    e->wormhole_rate = (e->total_prophecies > 0) ?
+        (float)e->total_wormholes / (float)e->total_prophecies : 0.0f;
+    k->ch.presence = clampf(k->ch.presence + e->wormhole_rate * 0.05f, 0.0f, 1.0f);
+
+    /* prophecy accuracy → strengthen/weaken prophecy system coefficient */
+    e->prophecy_accuracy = e->wormhole_rate;
+
+    printf("  [CONSOLIDATION] step %d: avg_scar %.3f, wormhole_rate %.2f, presence %.3f\n",
+           k->interaction_count, e->avg_scar, e->wormhole_rate, k->ch.presence);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * LEVEL 3: SOMATIC PERSISTENCE — save/load binary state
+ * Magic: 0x4B4C5353 ("KLSS")
+ * ═══════════════════════════════════════════════════════════════ */
+
+static int soma_save(const Klaus *k) {
+    FILE *f = fopen(k->soma_path, "wb");
+    if (!f) {
+        fprintf(stderr, "[klaus] WARNING: cannot save somatic state to %s\n", k->soma_path);
+        return 0;
+    }
+
+    SomaHeader hdr = {
+        .magic = SOMA_MAGIC,
+        .version = 2,
+        .n_chambers = N_CHAMBERS,
+        .n_sub = N_SUB,
+        .mem_slots = MEM_SLOTS,
+        .coherence_window = COHERENCE_WINDOW
+    };
+    fwrite(&hdr, sizeof(hdr), 1, f);
+
+    /* chamber state */
+    fwrite(&k->ch, sizeof(Chambers), 1, f);
+
+    /* memory slots */
+    fwrite(&k->mem_ptr, sizeof(int), 1, f);
+    fwrite(&k->mem_n, sizeof(int), 1, f);
+    fwrite(k->memory, sizeof(SomaSlot), MEM_SLOTS, f);
+
+    /* RBA-1 state */
+    fwrite(&k->rba, sizeof(RBA1State), 1, f);
+
+    /* coherence history */
+    fwrite(&k->coherence_ptr, sizeof(int), 1, f);
+    fwrite(k->coherence_history, sizeof(float), COHERENCE_WINDOW, f);
+
+    /* experience */
+    fwrite(&k->experience, sizeof(ExperienceLog), 1, f);
+
+    /* interaction count */
+    fwrite(&k->interaction_count, sizeof(int), 1, f);
+
+    /* prophecies */
+    fwrite(&k->n_prophecy, sizeof(int), 1, f);
+    fwrite(k->prophecies, sizeof(ProphecySlot), MAX_PROPHECY, f);
+
+    /* wormholes */
+    fwrite(&k->n_wormholes, sizeof(int), 1, f);
+    fwrite(k->wormholes, sizeof(WormholeEvent), MAX_WORMHOLE_LOG, f);
+
+    fclose(f);
+    return 1;
+}
+
+static int soma_load(Klaus *k) {
+    FILE *f = fopen(k->soma_path, "rb");
+    if (!f) return 0;
+
+    SomaHeader hdr;
+    if (fread(&hdr, sizeof(hdr), 1, f) != 1 || hdr.magic != SOMA_MAGIC) {
+        fprintf(stderr, "[klaus] WARNING: invalid soma file, ignoring\n");
+        fclose(f);
+        return 0;
+    }
+    if (hdr.version != 2 || hdr.n_chambers != N_CHAMBERS) {
+        fprintf(stderr, "[klaus] WARNING: soma version mismatch (got %u), ignoring\n",
+                hdr.version);
+        fclose(f);
+        return 0;
+    }
+
+    /* chamber state */
+    fread(&k->ch, sizeof(Chambers), 1, f);
+
+    /* memory slots */
+    fread(&k->mem_ptr, sizeof(int), 1, f);
+    fread(&k->mem_n, sizeof(int), 1, f);
+    fread(k->memory, sizeof(SomaSlot), MEM_SLOTS, f);
+
+    /* RBA-1 state */
+    fread(&k->rba, sizeof(RBA1State), 1, f);
+
+    /* coherence history */
+    fread(&k->coherence_ptr, sizeof(int), 1, f);
+    fread(k->coherence_history, sizeof(float), COHERENCE_WINDOW, f);
+
+    /* experience */
+    fread(&k->experience, sizeof(ExperienceLog), 1, f);
+
+    /* interaction count */
+    fread(&k->interaction_count, sizeof(int), 1, f);
+
+    /* prophecies */
+    fread(&k->n_prophecy, sizeof(int), 1, f);
+    fread(k->prophecies, sizeof(ProphecySlot), MAX_PROPHECY, f);
+
+    /* wormholes */
+    fread(&k->n_wormholes, sizeof(int), 1, f);
+    fread(k->wormholes, sizeof(WormholeEvent), MAX_WORMHOLE_LOG, f);
+
+    fclose(f);
+    printf("[klaus] somatic state restored: %d interactions, %.3f coherence, %.3f total_scar\n",
+           k->interaction_count, k->rba.coherence, k->ch.total_scar);
+    return 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
  * INHALE — process prompt through emotional vocabulary
  * ═══════════════════════════════════════════════════════════════ */
 
-static void inhale_process(const LangPack *lp, const char *prompt,
-                          float *emotion_vec) {
+static int inhale_process(const LangPack *lp, const char *prompt,
+                          float *emotion_vec,
+                          int *matched_indices, int max_matched) {
     memset(emotion_vec, 0, N_CHAMBERS * sizeof(float));
     int matches = 0;
+    int n_matched = 0;
 
     /* split prompt into words */
     char buf[MAX_PROMPT];
@@ -1315,6 +2007,8 @@ static void inhale_process(const LangPack *lp, const char *prompt,
                 strcmp(token, lp->inhale[w].text) == 0) {
                 for (int c = 0; c < N_CHAMBERS; c++)
                     emotion_vec[c] += lp->inhale[w].aff[c];
+                if (matched_indices && n_matched < max_matched)
+                    matched_indices[n_matched++] = w;
                 matches++;
                 break;
             }
@@ -1336,6 +2030,8 @@ static void inhale_process(const LangPack *lp, const char *prompt,
             if (best_w >= 0 && best_sim > 0.2f) {
                 for (int c = 0; c < N_CHAMBERS; c++)
                     emotion_vec[c] += lp->inhale[best_w].aff[c] * best_sim;
+                if (matched_indices && n_matched < max_matched)
+                    matched_indices[n_matched++] = best_w;
                 matches++;
             }
             token = strtok_r(NULL, " \t\n\r.,!?;:\"'()-", &saveptr);
@@ -1352,6 +2048,7 @@ static void inhale_process(const LangPack *lp, const char *prompt,
         for (int c = 0; c < N_CHAMBERS; c++)
             emotion_vec[c] = (float)((h >> (c*8)) & 0xFF) / 255.0f;
     }
+    return n_matched;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1363,6 +2060,15 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
     int n_ex = lp->n_exhale;
     if (n_ex == 0) return 0;
 
+    /* velocity-modulated parameters */
+    int eff_max = (k->velocity.max_gen > 0 && k->velocity.max_gen < max_words) ?
+                   k->velocity.max_gen : max_words;
+    float eff_temp = (k->velocity.temperature > 0.0f) ?
+                      k->velocity.temperature : GEN_TEMP;
+    int eff_topk = (k->velocity.top_k > 0 && k->velocity.top_k <= MAX_EXHALE) ?
+                    k->velocity.top_k : TOP_K;
+    if (eff_topk > n_ex) eff_topk = n_ex;
+
     /* compute RRPRAM boost */
     float rrpram[MAX_EXHALE];
     rrpram_boost(lp, k->prev_exhale, k->n_prev, rrpram, n_ex);
@@ -1371,10 +2077,16 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
     float hebb[MAX_EXHALE];
     meta_hebbian(&lp->meta, k->prev_exhale, k->n_prev, hebb, n_ex);
 
+    /* ghost boost from dark matter */
+    float dark_ghost_mult = k->dark_matter_active ? 1.5f : 1.0f;
+
+    /* scar modulation on prophecy strength */
+    float scar_prophecy_mult = 1.0f + k->ch.total_scar * 0.3f;
+
     int n_gen = 0;
     int prev = (k->n_prev > 0) ? k->prev_exhale[k->n_prev-1] : -1;
 
-    for (int step = 0; step < max_words; step++) {
+    for (int step = 0; step < eff_max; step++) {
         float logits[MAX_EXHALE];
 
         for (int w = 0; w < n_ex; w++) {
@@ -1384,13 +2096,16 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             /* Bigram from metaweights */
             float bi_score = (prev >= 0) ? meta_bigram(&lp->meta, prev, w) : 0.0f;
 
-            /* Dario equation */
+            /* Dario equation — now with scar and dark matter modulation */
+            float prop_score = (prophecy_pressure(k) > 0.3f) ?
+                               soma_score * 0.5f * scar_prophecy_mult : 0.0f;
+
             logits[w] = ALPHA_SOM * soma_score
                       + BETA_BIG * bi_score
                       + GAMMA_HEB * hebb[w]
                       + DELTA_RRPRAM * rrpram[w]
-                      + EPSILON_PROP * (prophecy_pressure(k) > 0.3f ? soma_score * 0.5f : 0.0f)
-                      + ZETA_META * k->ghost.ghost[w];
+                      + EPSILON_PROP * prop_score
+                      + ZETA_META * k->ghost.ghost[w] * dark_ghost_mult;
 
             /* penalize already-used words heavily (by text, not just index) */
             for (int u = 0; u < k->n_used; u++) {
@@ -1401,17 +2116,17 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             }
         }
 
-        /* temperature + top-K sampling */
-        for (int w = 0; w < n_ex; w++) logits[w] /= GEN_TEMP;
+        /* velocity-modulated temperature + top-K sampling */
+        for (int w = 0; w < n_ex; w++) logits[w] /= eff_temp;
 
-        /* find top-K */
-        int top_idx[TOP_K];
-        float top_val[TOP_K];
-        for (int i = 0; i < TOP_K; i++) { top_idx[i] = 0; top_val[i] = -1e30f; }
+        /* find top-K (velocity-modulated) */
+        int top_idx[TOP_K * 2]; /* oversized for safety */
+        float top_val[TOP_K * 2];
+        for (int i = 0; i < eff_topk; i++) { top_idx[i] = 0; top_val[i] = -1e30f; }
         for (int w = 0; w < n_ex; w++) {
-            if (logits[w] > top_val[TOP_K-1]) {
-                top_val[TOP_K-1] = logits[w]; top_idx[TOP_K-1] = w;
-                for (int i = TOP_K-2; i >= 0; i--) {
+            if (logits[w] > top_val[eff_topk-1]) {
+                top_val[eff_topk-1] = logits[w]; top_idx[eff_topk-1] = w;
+                for (int i = eff_topk-2; i >= 0; i--) {
                     if (top_val[i+1] > top_val[i]) {
                         float tv = top_val[i]; top_val[i] = top_val[i+1]; top_val[i+1] = tv;
                         int ti = top_idx[i]; top_idx[i] = top_idx[i+1]; top_idx[i+1] = ti;
@@ -1421,19 +2136,19 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
         }
 
         /* softmax over top-K */
-        float probs[TOP_K];
+        float probs[TOP_K * 2];
         float mx = top_val[0], sum = 0;
-        for (int i = 0; i < TOP_K; i++) {
+        for (int i = 0; i < eff_topk; i++) {
             probs[i] = expf(top_val[i] - mx);
             sum += probs[i];
         }
-        for (int i = 0; i < TOP_K; i++) probs[i] /= sum;
+        for (int i = 0; i < eff_topk; i++) probs[i] /= sum;
 
         /* sample */
         float r = randf();
         float cum = 0;
         int chosen = top_idx[0];
-        for (int i = 0; i < TOP_K; i++) {
+        for (int i = 0; i < eff_topk; i++) {
             cum += probs[i];
             if (cum >= r) { chosen = top_idx[i]; break; }
         }
@@ -1525,11 +2240,15 @@ static int klaus_init(Klaus *k, const char *base_dir) {
     memset(k, 0, sizeof(*k));
     rng_state = (uint64_t)time(NULL);
 
-    printf("╔══════════════════════════════════════════════╗\n");
-    printf("║  KLAUS — Kinetic Linguistic Adaptive         ║\n");
-    printf("║          Unified Sonar v%s                 ║\n", KLAUS_VERSION);
-    printf("║  Zero weights. Pure resonance.               ║\n");
-    printf("╚══════════════════════════════════════════════╝\n\n");
+    printf("╔══════════════════════════════════════════════════════╗\n");
+    printf("║  KLAUS — Kinetic Linguistic Adaptive                 ║\n");
+    printf("║          Unified Sonar v%s                        ║\n", KLAUS_VERSION);
+    printf("║  Level 3: Schectman Recursive Resonance + RBA-1      ║\n");
+    printf("║  Zero weights. Pure resonance. Meta-recursive.       ║\n");
+    printf("╚══════════════════════════════════════════════════════╝\n\n");
+
+    /* set up soma persistence path */
+    snprintf(k->soma_path, sizeof(k->soma_path), "%s/%s", base_dir, SOMA_FILE);
 
     /* scan and load languages */
     int nl = scan_languages(k, base_dir);
@@ -1545,20 +2264,23 @@ static int klaus_init(Klaus *k, const char *base_dir) {
 
     /* init MLP */
     mlp_init(&k->mlp, k);
-    printf("[klaus] MLP initialized: %d → %d → %d → %d\n",
+    printf("[klaus] MLP initialized: %d -> %d -> %d -> %d\n",
            DIM_MLP_IN, DIM_HIDDEN, DIM_HIDDEN2, N_CHAMBERS);
 
     /* init chambers */
     chambers_init(&k->ch);
+
+    /* init meta-recursion chambers */
+    chambers_init(&k->meta.meta_chambers);
 
     /* init calendar */
     calendar_init(k);
     float disc = calendar_dissonance(k);
     printf("[klaus] calendar dissonance: %.3f\n", disc);
 
-    /* build sensitivity tensor 6×6×6 */
+    /* build sensitivity tensor 6x6x6 */
     sensitivity_build(k->sensitivity);
-    printf("[klaus] sensitivity tensor: %d×%d×%d\n", N_CHAMBERS, N_CHAMBERS, N_CHAMBERS);
+    printf("[klaus] sensitivity tensor: %dx%dx%d\n", N_CHAMBERS, N_CHAMBERS, N_CHAMBERS);
 
     /* build cross-affinity kernels for all language pairs */
     k->n_cross_pairs = 0;
@@ -1572,8 +2294,24 @@ static int klaus_init(Klaus *k, const char *base_dir) {
         }
     }
     printf("[klaus] cross-affinity: %d interference kernels\n", k->n_cross_pairs);
-    printf("[klaus] HyperKuramoto: %d oscillators (%d×%d)\n",
+    printf("[klaus] HyperKuramoto: %d oscillators (%dx%d)\n",
            N_CHAMBERS * N_SUB, N_CHAMBERS, N_SUB);
+
+    /* Level 3: RBA-1 init */
+    printf("[klaus] RBA-1 seven-layer stack: I/R/Phi/A/Psi/E/M\n");
+    printf("[klaus] Schectman equation: I(t) = G(t) * [1 + R(t)]\n");
+    printf("[klaus] velocity operators: 6 modes\n");
+    printf("[klaus] dark matter vocabulary: %d words\n",
+           (int)(sizeof(DARK_MATTER)/sizeof(DARK_MATTER[0])) - 1);
+    printf("[klaus] meta-recursion: depth 1 (expandable)\n");
+    printf("[klaus] somatic persistence: %s\n", k->soma_path);
+
+    /* try to restore somatic state from previous session */
+    if (soma_load(k)) {
+        printf("[klaus] SOMA RESTORED — body remembers.\n");
+    } else {
+        printf("[klaus] fresh soma — no prior memory.\n");
+    }
 
     printf("[klaus] ready. inhale.\n\n");
     return 1;
@@ -1594,11 +2332,25 @@ typedef struct {
     char lang_code[8];
     int is_prophetic;
     int dominant;           /* dominant chamber index */
+    /* Level 3 additions */
+    int velocity;           /* VEL_WALK etc. */
+    float velocity_intensity;
+    float coherence;        /* RBA-1 R-layer coherence */
+    float recursive_complexity; /* Ĉ(t) */
+    int deep_somatic;       /* Psi-layer: in deep mode? */
+    float total_scar;
+    float scars[N_CHAMBERS];
+    int dark_matter_active;
+    int meta_recursion_depth;
+    float phase_gate;
+    float sustained_resonance;
 } KlausResponse;
 
 static KlausResponse klaus_process(Klaus *k, const char *prompt) {
     KlausResponse resp;
     memset(&resp, 0, sizeof(resp));
+
+    k->interaction_count++;
 
     /* 1. Detect language */
     resp.lang_idx = detect_language(k, prompt);
@@ -1606,9 +2358,27 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
              k->langs[resp.lang_idx].code);
     LangPack *lp = &k->langs[resp.lang_idx];
 
-    /* 2. INHALE: process prompt through vocabulary */
+    /* 1b. Dark matter detection */
+    float dark_fear = 0, dark_rage = 0;
+    k->dark_matter_active = detect_dark_matter(prompt, &dark_fear, &dark_rage);
+    resp.dark_matter_active = k->dark_matter_active;
+
+    /* 2. INHALE: process prompt through vocabulary (with match tracking) */
     float emotion[N_CHAMBERS];
-    inhale_process(lp, prompt, emotion);
+    int matched_indices[64];
+    int n_matched = inhale_process(lp, prompt, emotion, matched_indices, 64);
+
+    /* 2b. Dark matter amplification of emotion */
+    if (k->dark_matter_active) {
+        emotion[CH_FEAR] = clampf(emotion[CH_FEAR] + dark_fear * 0.4f, 0.0f, 1.0f);
+        emotion[CH_RAGE] = clampf(emotion[CH_RAGE] + dark_rage * 0.4f, 0.0f, 1.0f);
+        /* trigger scars immediately from dark input */
+        k->ch.scar[CH_FEAR] = clampf(k->ch.scar[CH_FEAR] + dark_fear * 0.2f, 0.0f, 1.0f);
+        k->ch.scar[CH_RAGE] = clampf(k->ch.scar[CH_RAGE] + dark_rage * 0.2f, 0.0f, 1.0f);
+    }
+
+    /* 2c. Wormhole check: did any inhale word fulfill a prophecy? */
+    wormhole_check(k, matched_indices, n_matched, resp.lang_idx);
 
     /* 3. MLP: combine emotion + memory + calendar */
     float mem_state[N_CHAMBERS];
@@ -1638,6 +2408,20 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
 
     /* 5. HyperKuramoto cross-fire (24 oscillators) */
     chambers_crossfire(&k->ch, XFIRE_ITERS);
+
+    /* 5b. Scar update */
+    scars_update(&k->ch);
+
+    /* 5c. RBA-1 seven-layer stack update */
+    rba_update(k, resp.dissonance);
+
+    /* 5d. Store coherence in history for Ĉ(t) */
+    k->coherence_history[k->coherence_ptr] = k->rba.coherence;
+    k->coherence_ptr = (k->coherence_ptr + 1) % COHERENCE_WINDOW;
+
+    /* 5e. Velocity detection */
+    velocity_detect(k);
+
     memcpy(resp.chambers, k->ch.act, sizeof(resp.chambers));
 
     /* find dominant chamber */
@@ -1649,7 +2433,7 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
     prophetic_premonition(k, resp.dissonance, resp.premonition);
     resp.is_prophetic = (resp.dissonance > 0.3f && k->mem_n >= 2);
 
-    /* 7. MetaKlaus ghost attention */
+    /* 7. MetaKlaus ghost attention (dark matter boosts 1.5x in exhale_generate) */
     metaklaus_compute(k, resp.lang_idx);
     resp.ghost_strength = k->ghost.interference;
 
@@ -1660,11 +2444,108 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
         snprintf(resp.words[i], MAX_WORD, "%s", lp->exhale[word_ids[i]].text);
     }
 
+    /* ═══════════════════════════════════════════════════════════
+     * 8b. META-RECURSION LOOP (Schectman's I-Layer made concrete)
+     *
+     * Klaus generates exhale → observes its own response →
+     * adjusts chambers → re-generates.
+     * The body reacts, then observes its reaction, then
+     * reacts to the observation. Ĉ(t) accumulates.
+     * ═══════════════════════════════════════════════════════════ */
+    {
+        /* concatenate exhale words into a meta-prompt */
+        char meta_prompt[MAX_PROMPT];
+        int mlen = 0;
+        for (int i = 0; i < resp.n_words && mlen < MAX_PROMPT - MAX_WORD - 2; i++) {
+            int wl = (int)strlen(resp.words[i]);
+            memcpy(meta_prompt + mlen, resp.words[i], wl);
+            meta_prompt[mlen + wl] = ' ';
+            mlen += wl + 1;
+        }
+        if (mlen > 0) meta_prompt[mlen - 1] = '\0';
+        else meta_prompt[0] = '\0';
+
+        /* meta-inhale: process our own exhale as input */
+        float meta_emotion[N_CHAMBERS];
+        inhale_process(lp, meta_prompt, meta_emotion, NULL, 0);
+
+        /* run MLP on meta-emotion (meta-observation mode) */
+        float meta_mlp_in[DIM_MLP_IN];
+        for (int c = 0; c < N_CHAMBERS; c++) meta_mlp_in[c] = meta_emotion[c];
+        for (int c = 0; c < N_CHAMBERS; c++) meta_mlp_in[N_CHAMBERS + c] = k->ch.soma[c];
+        meta_mlp_in[12] = resp.dissonance;
+
+        float meta_mlp_out[N_CHAMBERS];
+        mlp_forward(&k->mlp, meta_mlp_in, meta_mlp_out);
+
+        /* update meta-chambers */
+        for (int c = 0; c < N_CHAMBERS; c++) {
+            k->meta.meta_chambers.act[c] = clampf(
+                0.5f * meta_emotion[c] + 0.3f * meta_mlp_out[c] + 0.2f * k->ch.soma[c],
+                0.0f, 1.0f);
+        }
+
+        /* blend meta-chambers into primary: 85% primary + 15% meta */
+        for (int c = 0; c < N_CHAMBERS; c++) {
+            k->ch.act[c] = clampf(
+                (1.0f - META_BLEND) * k->ch.act[c] +
+                META_BLEND * k->meta.meta_chambers.act[c],
+                0.0f, 1.0f);
+        }
+
+        /* track recursion depth */
+        k->meta.depth = 1;
+        k->rba.recursion_depth = 1;
+
+        /* re-generate exhale with blended chambers (FINAL output) */
+        /* save used state to avoid re-penalizing same words */
+        int saved_n_used = k->n_used;
+        k->n_used = 0; /* allow fresh selection for meta-pass */
+
+        int meta_word_ids[MAX_RESPONSE];
+        int meta_n = exhale_generate(k, resp.lang_idx, meta_word_ids, MAX_RESPONSE);
+
+        /* use meta-generated output as final response */
+        resp.n_words = meta_n;
+        for (int i = 0; i < meta_n; i++) {
+            snprintf(resp.words[i], MAX_WORD, "%s", lp->exhale[meta_word_ids[i]].text);
+        }
+
+        /* merge used lists */
+        k->n_used = saved_n_used;
+        for (int i = 0; i < meta_n; i++) {
+            if (k->n_used < MAX_EXHALE) k->used_exhale[k->n_used++] = meta_word_ids[i];
+        }
+
+        /* update prev_exhale from final meta output */
+        k->n_prev = meta_n < 4 ? meta_n : 4;
+        for (int i = 0; i < k->n_prev; i++)
+            k->prev_exhale[i] = meta_word_ids[meta_n - k->n_prev + i];
+    }
+
     /* 9. Store to memory */
     memory_store(k, resp.dissonance);
 
     /* 10. Tick prophecies */
     prophecy_tick(k);
+
+    /* 11. Experience consolidation (every N interactions) */
+    experience_consolidate(k);
+
+    /* 12. Copy Level 3 state to response */
+    resp.velocity = k->velocity.current;
+    resp.velocity_intensity = k->velocity.intensity;
+    resp.coherence = k->rba.coherence;
+    resp.recursive_complexity = k->rba.recursive_complexity;
+    resp.deep_somatic = k->rba.deep_somatic;
+    resp.total_scar = k->ch.total_scar;
+    memcpy(resp.scars, k->ch.scar, sizeof(resp.scars));
+    resp.meta_recursion_depth = k->meta.depth;
+    resp.phase_gate = psi_phase_gate(k);
+    resp.sustained_resonance = k->rba.sustained_resonance;
+
+    /* 13. Save somatic state to disk */
+    soma_save(k);
 
     return resp;
 }
@@ -1682,6 +2563,12 @@ static void print_response(const KlausResponse *r) {
     }
     printf("]\n");
 
+    /* velocity operator */
+    printf("  {%s x%.2f}", VEL_NAMES[r->velocity], r->velocity_intensity);
+    if (r->deep_somatic)
+        printf(" *DEEP SOMATIC*");
+    printf("\n");
+
     /* somatic response */
     printf("  ");
     for (int i = 0; i < r->n_words; i++) {
@@ -1693,8 +2580,27 @@ static void print_response(const KlausResponse *r) {
 
     /* ghost voice */
     if (r->ghost_strength > 0.1f) {
-        printf("  (metaklaus: %s-dominant, interference %.2f)\n",
+        printf("  (metaklaus: %s-dominant, interference %.2f",
                CH_NAMES[r->dominant], r->ghost_strength);
+        if (r->dark_matter_active)
+            printf(", DARK MATTER x1.5");
+        printf(")\n");
+    }
+
+    /* RBA-1 state */
+    printf("  [RBA-1 coherence:%.3f C-hat:%.3f psi:%.3f sustained:%.3f meta-depth:%d]\n",
+           r->coherence, r->recursive_complexity,
+           r->phase_gate, r->sustained_resonance,
+           r->meta_recursion_depth);
+
+    /* scars */
+    if (r->total_scar > 0.01f) {
+        printf("  [scars:");
+        for (int c = 0; c < N_CHAMBERS; c++) {
+            if (r->scars[c] > 0.01f)
+                printf(" %s:%.2f", CH_NAMES[c], r->scars[c]);
+        }
+        printf(" total:%.2f]\n", r->total_scar);
     }
 
     /* prophetic premonition */
@@ -1703,7 +2609,7 @@ static void print_response(const KlausResponse *r) {
         int dom = 0;
         for (int c = 1; c < N_CHAMBERS; c++)
             if (r->premonition[c] > r->premonition[dom]) dom = c;
-        printf("→%s:%.2f", CH_NAMES[dom], r->premonition[dom]);
+        printf("->%s:%.2f", CH_NAMES[dom], r->premonition[dom]);
         printf(" dissonance:%.2f]\n", r->dissonance);
     }
 }
@@ -1743,6 +2649,25 @@ static void interactive(Klaus *k) {
             printf("\n  calendar dissonance: %.3f\n", calendar_dissonance(k));
             printf("  prophecies: %d active\n", k->n_prophecy);
             printf("  ghost interference: %.3f\n", k->ghost.interference);
+            /* Level 3 status */
+            printf("  --- Level 3: Schectman ---\n");
+            printf("  interactions: %d\n", k->interaction_count);
+            printf("  velocity: %s (intensity %.2f)\n",
+                   VEL_NAMES[k->velocity.current], k->velocity.intensity);
+            printf("  RBA-1: coherence %.3f, C-hat %.3f, entropy %.3f\n",
+                   k->rba.coherence, k->rba.recursive_complexity, k->rba.entropy);
+            printf("  Psi-layer: gate %.3f, phase_lock %.3f, deep=%d (ticks=%d)\n",
+                   psi_phase_gate(k), k->rba.phase_lock,
+                   k->rba.deep_somatic, k->rba.deep_ticks);
+            printf("  sustained resonance: %.3f\n", k->rba.sustained_resonance);
+            printf("  scars: ");
+            for (int c = 0; c < N_CHAMBERS; c++)
+                if (k->ch.scar[c] > 0.01f)
+                    printf("%s:%.3f ", CH_NAMES[c], k->ch.scar[c]);
+            printf("(total %.3f)\n", k->ch.total_scar);
+            printf("  wormholes: %d logged\n", k->n_wormholes);
+            printf("  meta-recursion depth: %d\n", k->meta.depth);
+            printf("  soma file: %s\n", k->soma_path);
             printf("klaus> "); fflush(stdout);
             continue;
         }
@@ -1750,11 +2675,23 @@ static void interactive(Klaus *k) {
         /* reset */
         if (strcmp(prompt, "reset") == 0) {
             chambers_init(&k->ch);
+            chambers_init(&k->meta.meta_chambers);
             k->mem_n = k->mem_ptr = 0;
             k->n_prophecy = 0;
             k->n_used = 0;
             k->n_prev = 0;
-            printf("  [reset]\n");
+            k->n_wormholes = 0;
+            k->interaction_count = 0;
+            k->coherence_ptr = 0;
+            k->dark_matter_active = 0;
+            memset(&k->rba, 0, sizeof(k->rba));
+            memset(&k->velocity, 0, sizeof(k->velocity));
+            memset(&k->experience, 0, sizeof(k->experience));
+            memset(k->coherence_history, 0, sizeof(k->coherence_history));
+            k->meta.depth = 0;
+            /* remove soma file on explicit reset */
+            remove(k->soma_path);
+            printf("  [reset — all levels, soma file deleted]\n");
             printf("klaus> "); fflush(stdout);
             continue;
         }
