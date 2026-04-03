@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KLAUS — Somatic Sonar</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+  :root {
+    --bg: #0a0a0c;
+    --fg: #d4d0c8;
+    --dim: #666;
+    --ghost: #444;
+    --accent: #c4785a;
+    --fear: #8b1a1a;
+    --love: #c4785a;
+    --rage: #cc3333;
+    --void: #2a2a3a;
+    --flow: #3a6a5a;
+    --complex: #5a4a7a;
+    --serif: 'EB Garamond', Georgia, serif;
+    --mono: 'Courier New', monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--serif);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #logo {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+    color: var(--dim);
+    user-select: none;
+    font-weight: 500;
+  }
+  #version {
+    position: fixed;
+    top: 18px;
+    right: 24px;
+    font-size: 10px;
+    color: var(--ghost);
+    font-family: var(--mono);
+  }
+  #chambers-bar {
+    position: fixed;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--dim);
+  }
+  .ch-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .ch-bar {
+    width: 24px;
+    height: 60px;
+    background: var(--ghost);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ch-fill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    border-radius: 2px;
+    transition: height 0.6s ease, background 0.6s ease;
+  }
+  #prophecy {
+    position: fixed;
+    top: 130px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-style: italic;
+    color: var(--ghost);
+    letter-spacing: 2px;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    text-align: center;
+  }
+  #prophecy.visible { opacity: 1; }
+  #arena {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 160px 40px 100px;
+    overflow-y: auto;
+  }
+  #column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    max-width: 600px;
+  }
+  .response-block {
+    text-align: center;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards;
+  }
+  .prompt-echo {
+    font-size: 13px;
+    color: var(--dim);
+    font-style: italic;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .soma-word {
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    display: inline;
+  }
+  .ghost-line {
+    font-size: 11px;
+    color: var(--ghost);
+    font-family: var(--mono);
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(10px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  #input-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    padding: 20px 40px 30px;
+    background: linear-gradient(transparent, var(--bg) 30%);
+  }
+  #prompt-input {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px 16px;
+    font-family: var(--serif);
+    font-size: 16px;
+    background: transparent;
+    border: 1px solid var(--ghost);
+    border-radius: 4px;
+    color: var(--fg);
+    outline: none;
+    letter-spacing: 0.5px;
+  }
+  #prompt-input::placeholder { color: var(--ghost); }
+  #prompt-input:focus { border-color: var(--accent); }
+  #lang-indicator {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--dim);
+    letter-spacing: 3px;
+  }
+  #status {
+    position: fixed;
+    bottom: 10px;
+    right: 20px;
+    font-size: 9px;
+    font-family: var(--mono);
+    color: var(--ghost);
+  }
+</style>
+</head>
+<body>
+<div id="logo">KLAUS</div>
+<div id="version">v1.0.0 · sonar</div>
+<div id="chambers-bar"></div>
+<div id="prophecy"></div>
+<div id="arena"><div id="column"></div></div>
+<div id="lang-indicator"></div>
+<div id="input-area">
+  <input id="prompt-input" type="text" placeholder="inhale..." autofocus>
+</div>
+<div id="status">loading...</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// KLAUS.html — Kinetic Linguistic Adaptive Unified Sonar
+// JavaScript inference — identical to klaus.c
+// ═══════════════════════════════════════════════════
+
+const N_CHAMBERS = 6;
+const CH_NAMES = ['FEAR','LOVE','RAGE','VOID','FLOW','CMPLX'];
+const CH_COLORS = ['#8b1a1a','#c4785a','#cc3333','#2a2a3a','#3a6a5a','#5a4a7a'];
+const CH_DECAY = [0.90, 0.93, 0.85, 0.97, 0.88, 0.94];
+const COUPLING = [
+  [ 0.00,-0.30, 0.50, 0.40,-0.20, 0.10],
+  [-0.30, 0.00,-0.40,-0.50, 0.50, 0.20],
+  [ 0.50,-0.30, 0.00, 0.20,-0.30, 0.30],
+  [ 0.40,-0.50, 0.30, 0.00,-0.30, 0.40],
+  [-0.20, 0.40,-0.20,-0.30, 0.00, 0.30],
+  [ 0.10, 0.20, 0.30, 0.40, 0.30, 0.00]
+];
+const XFIRE_ITERS = 8;
+const MEM_DECAY = 0.85;
+const MEM_SLOTS = 32;
+const MAX_RESPONSE = 12;
+const GEN_TEMP = 0.75;
+const TOP_K = 20;
+const ALPHA_SOM = 2.0, BETA_BIG = 0.5, GAMMA_HEB = 0.3;
+const DELTA_RRPRAM = 0.4, EPSILON_PROP = 0.25, ZETA_META = 0.35;
+
+// Calendar constants
+const ANNUAL_DRIFT = 11.25;
+const GREGORIAN_YEAR = 365.25;
+const METONIC_LEAP = [3,6,8,11,14,17,19];
+const MAX_UNCORRECTED = 33.0;
+const EPOCH = new Date(2024, 9, 3, 12, 0, 0); // Oct 3, 2024
+
+// Anchors per language
+const ANCHORS = {
+  en: {fear:['fear','terror','panic','dread','horror','nightmare','anxiety','threat','danger','trapped'],
+       love:['love','warmth','tenderness','kindness','compassion','affection','care','embrace','comfort','gentle'],
+       rage:['rage','fury','anger','burning','explosive','violent','hostile','aggressive','bitter','cruel'],
+       void:['empty','hollow','numb','void','darkness','silence','lonely','abandoned','despair','hopeless'],
+       flow:['flow','rhythm','dance','pulse','harmony','resonance','vibration','wave','music','breath'],
+       complex:['paradox','mystery','chaos','tension','complex','uncertain','transform','strange','enigma','spiral']},
+  ru: {fear:['страх','ужас','паника','тревога','кошмар'],love:['любовь','тепло','нежность','забота'],
+       rage:['ярость','гнев','злость'],void:['пустота','тишина','одиночество'],
+       flow:['поток','ритм','гармония'],complex:['хаос','тайна','парадокс']},
+  fr: {fear:['peur','terreur','panique','horreur','angoisse','cauchemar'],
+       love:['amour','chaleur','tendresse','douceur','compassion'],
+       rage:['rage','fureur','colère','violence','cruauté'],
+       void:['vide','silence','solitude','désespoir','ténèbres'],
+       flow:['flux','rythme','harmonie','danse','résonance'],
+       complex:['paradoxe','mystère','chaos','tension']},
+  he: {fear:['פחד','אימה','חרדה'],love:['אהבה','חום','רוך'],
+       rage:['זעם','כעס'],void:['ריקנות','בדידות','שתיקה'],
+       flow:['קצב','הרמוניה'],complex:['מסתורין','כאוס']}
+};
+
+// ── State ──
+let langPacks = {};
+let chambers = {act:new Float64Array(6), soma:new Float64Array(6), phase:new Float64Array(6), presence:0, trauma:0, debt:0};
+let memory = []; let memPtr = 0;
+let mlpWeights = null;
+let usedExhale = new Set();
+let prevExhale = [];
+let prophecies = [];
+let rngState = BigInt(Date.now());
+
+// ── RNG ──
+function rngNext() {
+  rngState ^= rngState << 13n;
+  rngState &= 0xFFFFFFFFFFFFFFFFn;
+  rngState ^= rngState >> 7n;
+  rngState ^= rngState << 17n;
+  rngState &= 0xFFFFFFFFFFFFFFFFn;
+  return rngState;
+}
+function randf() { return Number(rngNext() & 0x7FFFFFFFn) / 0x7FFFFFFF; }
+function randn(std) {
+  let u1 = randf() + 1e-10, u2 = randf();
+  return std * Math.sqrt(-2*Math.log(u1)) * Math.cos(2*Math.PI*u2);
+}
+
+// ── Hash ──
+function hashWord(w) {
+  let h = 0xcbf29ce484222325n;
+  for (let i = 0; i < w.length; i++) {
+    h ^= BigInt(w.charCodeAt(i));
+    h = (h * 0x100000001b3n) & 0xFFFFFFFFFFFFFFFFn;
+  }
+  return h;
+}
+
+// ── Word similarity (trigram overlap) ──
+function wordSimilarity(a, b) {
+  if (a.length < 3 || b.length < 3) return a === b ? 1.0 : 0.0;
+  let matches = 0, totalA = a.length - 2;
+  for (let i = 0; i <= a.length-3; i++) {
+    let tri = a.substring(i, i+3);
+    if (b.includes(tri)) matches++;
+  }
+  return totalA > 0 ? matches / totalA : 0;
+}
+
+// ── Compute word chamber affinity ──
+function computeAffinity(word, langCode) {
+  let aff = new Float64Array(6);
+  const anc = ANCHORS[langCode] || ANCHORS.en;
+  const chMap = ['fear','love','rage','void','flow','complex'];
+  // exact match
+  for (let c = 0; c < 6; c++) {
+    if (anc[chMap[c]] && anc[chMap[c]].includes(word)) {
+      aff[c] = 1.0;
+      for (let j = 0; j < 6; j++) if (j !== c) aff[j] += 0.1 * Math.abs(COUPLING[c][j]);
+      return aff;
+    }
+  }
+  // similarity
+  let bestSim = new Float64Array(6);
+  for (let c = 0; c < 6; c++) {
+    if (!anc[chMap[c]]) continue;
+    for (const aw of anc[chMap[c]]) {
+      let sim = wordSimilarity(word, aw);
+      if (sim > bestSim[c]) bestSim[c] = sim;
+    }
+  }
+  // hash fallback
+  let h = hashWord(word);
+  for (let c = 0; c < 6; c++) {
+    let hashAff = Number((h >> BigInt(c*8)) & 0xFFn) / 255;
+    aff[c] = Math.min(1, bestSim[c] * 0.7 + hashAff * 0.3);
+  }
+  let mx = Math.max(...aff);
+  if (mx > 0) for (let c = 0; c < 6; c++) aff[c] /= mx;
+  return aff;
+}
+
+// ── Load word files ──
+async function loadWordFile(path, langCode) {
+  try {
+    const resp = await fetch(path);
+    if (!resp.ok) return [];
+    const text = await resp.text();
+    return text.split('\n').filter(w => w.trim()).map(w => {
+      const word = w.trim();
+      return { text: word, aff: computeAffinity(word, langCode) };
+    });
+  } catch(e) { return []; }
+}
+
+// ── BPE ──
+function bpeLearn(data, numMerges) {
+  let tokens = Array.from(data).map(c => c.charCodeAt ? c.charCodeAt(0) : c);
+  let merges = [], vocabSize = 256;
+  let vocabBytes = {};
+  for (let i = 0; i < 256; i++) vocabBytes[i] = [i];
+  for (let m = 0; m < numMerges; m++) {
+    let pairs = {};
+    for (let i = 0; i < tokens.length-1; i++) {
+      let key = tokens[i]+','+tokens[i+1];
+      pairs[key] = (pairs[key]||0) + 1;
+    }
+    let bestKey = null, bestCount = 1;
+    for (const [k,v] of Object.entries(pairs)) {
+      if (v > bestCount) { bestCount = v; bestKey = k; }
+    }
+    if (!bestKey) break;
+    let [a,b] = bestKey.split(',').map(Number);
+    let newId = 256 + m;
+    merges.push({a, b, newId});
+    vocabSize = newId + 1;
+    vocabBytes[newId] = [...(vocabBytes[a]||[a]), ...(vocabBytes[b]||[b])];
+    let newTokens = [], i = 0;
+    while (i < tokens.length) {
+      if (i < tokens.length-1 && tokens[i]===a && tokens[i+1]===b) {
+        newTokens.push(newId); i += 2;
+      } else { newTokens.push(tokens[i]); i++; }
+    }
+    tokens = newTokens;
+  }
+  return { merges, vocabSize, tokens };
+}
+
+function bpeEncode(text, merges) {
+  let tokens = [];
+  for (let i = 0; i < text.length; i++) tokens.push(text.charCodeAt(i));
+  for (const m of merges) {
+    let newTokens = [], i = 0;
+    while (i < tokens.length) {
+      if (i < tokens.length-1 && tokens[i]===m.a && tokens[i+1]===m.b) {
+        newTokens.push(m.newId); i += 2;
+      } else { newTokens.push(tokens[i]); i++; }
+    }
+    tokens = newTokens;
+  }
+  return tokens;
+}
+
+// ── MetaWeights ──
+function metaBuild(ids, V) {
+  let meta = { unigram: new Float64Array(V), bigrams: [], trigrams: [], hebbs: [] };
+  // unigram
+  for (const id of ids) if (id < V) meta.unigram[id]++;
+  let tot = meta.unigram.reduce((a,b)=>a+b,0);
+  if (tot > 0) for (let i = 0; i < V; i++) meta.unigram[i] /= tot;
+  // bigram
+  let biMap = {};
+  for (let i = 0; i < ids.length-1; i++) {
+    let key = ids[i]+','+ids[i+1];
+    biMap[key] = (biMap[key]||0) + 1;
+  }
+  for (const [k,v] of Object.entries(biMap)) {
+    let [a,b] = k.split(',').map(Number);
+    meta.bigrams.push({a, b, prob: v});
+  }
+  // normalize per source
+  let aTotals = {};
+  for (const bi of meta.bigrams) aTotals[bi.a] = (aTotals[bi.a]||0) + bi.prob;
+  for (const bi of meta.bigrams) if (aTotals[bi.a]) bi.prob /= aTotals[bi.a];
+  // hebbian (first 3000 tokens)
+  let hn = Math.min(ids.length, 3000), win = 5;
+  let hebbMap = {};
+  for (let i = 0; i < hn; i++) {
+    for (let j = Math.max(0,i-win); j <= Math.min(hn-1,i+win); j++) {
+      if (i===j) continue;
+      let ka = Math.min(ids[i],ids[j]), kb = Math.max(ids[i],ids[j]);
+      let key = ka+','+kb;
+      let decay = 1/(1+Math.abs(i-j));
+      hebbMap[key] = (hebbMap[key]||0) + decay;
+    }
+  }
+  let maxH = 0;
+  for (const v of Object.values(hebbMap)) if (v > maxH) maxH = v;
+  for (const [k,v] of Object.entries(hebbMap)) {
+    let [a,b] = k.split(',').map(Number);
+    meta.hebbs.push({a, b, strength: maxH > 0 ? v/maxH : 0});
+  }
+  return meta;
+}
+
+function metaBigram(meta, prev, next) {
+  for (const bi of meta.bigrams) if (bi.a===prev && bi.b===next) return bi.prob;
+  return 1e-10;
+}
+
+function metaHebbian(meta, ctx, V) {
+  let out = new Float64Array(V);
+  for (const c of ctx) {
+    for (const h of meta.hebbs) {
+      if (h.a === c && h.b < V) out[h.b] += h.strength;
+      else if (h.b === c && h.a < V) out[h.a] += h.strength;
+    }
+  }
+  let mx = Math.max(...out);
+  if (mx > 0) for (let i = 0; i < V; i++) out[i] /= mx;
+  return out;
+}
+
+// ── Language detection ──
+function detectLanguage(text) {
+  let cyrillic=0, hebrew=0, accented=0;
+  for (let i = 0; i < text.length; i++) {
+    let c = text.charCodeAt(i);
+    if (c >= 0x0400 && c <= 0x04FF) cyrillic++;
+    else if (c >= 0x0590 && c <= 0x05FF) hebrew++;
+    else if (c >= 0x00C0 && c <= 0x00FF) accented++;
+  }
+  if (hebrew > 2 && langPacks.he) return 'he';
+  if (cyrillic > 2 && langPacks.ru) return 'ru';
+  if (accented > 1 && langPacks.fr) return 'fr';
+  let frWords = ['je ','tu ','le ','la ','les ','suis ','est ','dans '];
+  for (const fw of frWords) if (text.includes(fw) && langPacks.fr) return 'fr';
+  if (langPacks.en) return 'en';
+  return Object.keys(langPacks)[0] || 'en';
+}
+
+// ── MLP ──
+function swish(x) { return x / (1 + Math.exp(-x)); }
+function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+
+function initMLP() {
+  let seed = 0xcbf29ce484222325n;
+  for (const code of Object.keys(langPacks)) {
+    for (const w of langPacks[code].inhale) seed ^= hashWord(w.text);
+  }
+  rngState = seed;
+  let scale1 = Math.sqrt(2/13), scale2 = Math.sqrt(2/32), scale3 = Math.sqrt(2/16);
+  let w1 = [], b1 = new Float64Array(32);
+  for (let i = 0; i < 13*32; i++) w1.push(randn(scale1));
+  let w2 = [], b2 = new Float64Array(16);
+  for (let i = 0; i < 32*16; i++) w2.push(randn(scale2));
+  let w3 = [], b3 = new Float64Array(6);
+  for (let i = 0; i < 16*6; i++) w3.push(randn(scale3));
+  rngState = BigInt(Date.now());
+  return {w1,b1,w2,b2,w3,b3};
+}
+
+function mlpForward(mlp, input) {
+  let h1 = new Float64Array(32);
+  for (let i = 0; i < 32; i++) {
+    let v = mlp.b1[i];
+    for (let j = 0; j < 13; j++) v += input[j] * mlp.w1[j*32+i];
+    h1[i] = swish(v);
+  }
+  let h2 = new Float64Array(16);
+  for (let i = 0; i < 16; i++) {
+    let v = mlp.b2[i];
+    for (let j = 0; j < 32; j++) v += h1[j] * mlp.w2[j*16+i];
+    h2[i] = swish(v);
+  }
+  let out = new Float64Array(6);
+  for (let i = 0; i < 6; i++) {
+    let v = mlp.b3[i];
+    for (let j = 0; j < 16; j++) v += h2[j] * mlp.w3[j*6+i];
+    out[i] = sigmoid(v);
+  }
+  return out;
+}
+
+// ── Kuramoto chambers ──
+function chambersInit() {
+  chambers.act = new Float64Array(6);
+  chambers.soma = new Float64Array(6);
+  chambers.phase = new Float64Array([0, 1.047, 2.094, 3.142, 4.189, 5.236]);
+  chambers.act[1] = 0.15; chambers.act[4] = 0.10;
+  chambers.presence = 0; chambers.trauma = 0; chambers.debt = 0;
+}
+
+function chambersCrossfire(iters) {
+  for (let t = 0; t < iters; t++) {
+    let old = new Float64Array(chambers.act);
+    for (let i = 0; i < 6; i++) {
+      chambers.act[i] *= CH_DECAY[i];
+      for (let j = 0; j < 6; j++) {
+        if (i === j) continue;
+        chambers.act[i] += 0.03 * COUPLING[i][j] * Math.sin(old[j] - old[i]);
+      }
+      chambers.act[i] = Math.max(0, Math.min(1, chambers.act[i]));
+      chambers.soma[i] = Math.max(0, Math.min(1, 0.92*chambers.soma[i] + 0.08*chambers.act[i]));
+      chambers.phase[i] += 0.1 * chambers.act[i];
+    }
+    chambers.presence = Math.max(0, Math.min(1,
+      0.9*chambers.presence + 0.05*(1-chambers.act[3])*chambers.act[4] + 0.03*chambers.soma[1]));
+    chambers.trauma *= 0.98;
+    chambers.debt *= 0.97;
+  }
+}
+
+// ── Memory ──
+function memoryStore(calPhase) {
+  let slot = {
+    ch: new Float64Array(chambers.act),
+    valence: chambers.act[1]+chambers.act[4]-chambers.act[0]-chambers.act[3],
+    arousal: chambers.act[2]+chambers.act[0]+chambers.act[5],
+    calPhase
+  };
+  if (memory.length >= MEM_SLOTS) memory.shift();
+  memory.push(slot);
+}
+
+function memoryBlend() {
+  let out = new Float64Array(6);
+  if (memory.length === 0) return out;
+  let totalW = 0;
+  for (let i = 0; i < memory.length; i++) {
+    let idx = memory.length - 1 - i;
+    let w = Math.pow(MEM_DECAY, i);
+    for (let c = 0; c < 6; c++) out[c] += memory[idx].ch[c] * w;
+    totalW += w;
+  }
+  if (totalW > 0) for (let c = 0; c < 6; c++) out[c] /= totalW;
+  return out;
+}
+
+// ── Calendar ──
+function calendarDissonance() {
+  let days = (Date.now() - EPOCH.getTime()) / 86400000;
+  let years = days / GREGORIAN_YEAR;
+  let baseDrift = years * ANNUAL_DRIFT;
+  let fullCycles = Math.floor(years / 19);
+  let corrections = fullCycles * 7 * 30;
+  let partial = years % 19;
+  let yearInCycle = Math.floor(partial) + 1;
+  for (const ly of METONIC_LEAP) if (ly <= yearInCycle) corrections += 30;
+  let drift = baseDrift - corrections;
+  let raw = Math.abs(drift % MAX_UNCORRECTED) / MAX_UNCORRECTED;
+  return Math.max(0, Math.min(1, raw));
+}
+
+function propheticPremonition(dissonance) {
+  let prem = new Float64Array(6);
+  if (dissonance < 0.3 || memory.length < 2) return prem;
+  let m0 = memory[memory.length-1], m1 = memory[memory.length-2];
+  for (let c = 0; c < 6; c++) {
+    let vel = m0.ch[c] - m1.ch[c];
+    prem[c] = Math.max(0, Math.min(1, chambers.act[c] + vel*dissonance*2));
+  }
+  return prem;
+}
+
+// ── MetaKlaus ghost ──
+function metaklausCompute(primaryLang) {
+  let ghost = new Float64Array(langPacks[primaryLang].exhale.length);
+  let interference = 0;
+  let codes = Object.keys(langPacks);
+  if (codes.length <= 1) return {ghost, interference};
+  let primary = langPacks[primaryLang];
+  let chNorm = Math.sqrt(chambers.act.reduce((s,v)=>s+v*v,0)+1e-12);
+  if (chNorm < 1e-6) return {ghost, interference};
+
+  for (let w = 0; w < primary.exhale.length; w++) {
+    let ghostSum = 0, ghostN = 0;
+    for (const code of codes) {
+      if (code === primaryLang) continue;
+      let other = langPacks[code];
+      let bestSim = -1, bestIdx = -1;
+      for (let ow = 0; ow < other.exhale.length; ow++) {
+        let sim = 0;
+        for (let c = 0; c < 6; c++) sim += chambers.act[c] * other.exhale[ow].aff[c];
+        sim /= chNorm;
+        if (sim > bestSim) { bestSim = sim; bestIdx = ow; }
+      }
+      if (bestIdx >= 0) {
+        let agreement = 0;
+        for (let c = 0; c < 6; c++)
+          agreement += primary.exhale[w].aff[c] * other.exhale[bestIdx].aff[c];
+        let interf = (agreement - 0.5) * 2;
+        ghostSum += interf * bestSim;
+        ghostN++;
+      }
+    }
+    if (ghostN > 0) ghost[w] = ghostSum / ghostN;
+  }
+  let total = ghost.reduce((s,v)=>s+Math.abs(v),0);
+  interference = primary.exhale.length > 0 ? total/primary.exhale.length : 0;
+  return {ghost, interference};
+}
+
+// ── Inhale ──
+function inhaleProcess(lp, prompt) {
+  let emotion = new Float64Array(6);
+  let matches = 0;
+  let words = prompt.toLowerCase().split(/[\s\t\n\r.,!?;:"'()\-]+/).filter(Boolean);
+  for (const w of words) {
+    for (const iw of lp.inhale) {
+      if (w === iw.text || prompt.includes(iw.text)) {
+        for (let c = 0; c < 6; c++) emotion[c] += iw.aff[c];
+        matches++; break;
+      }
+    }
+  }
+  if (matches === 0) {
+    for (const w of words) {
+      let bestSim = 0, bestW = null;
+      for (const iw of lp.inhale) {
+        let sim = wordSimilarity(w, iw.text);
+        if (sim > bestSim) { bestSim = sim; bestW = iw; }
+      }
+      if (bestW && bestSim > 0.2) {
+        for (let c = 0; c < 6; c++) emotion[c] += bestW.aff[c] * bestSim;
+        matches++;
+      }
+    }
+  }
+  if (matches > 0) for (let c = 0; c < 6; c++) emotion[c] /= matches;
+  else {
+    let h = hashWord(prompt);
+    for (let c = 0; c < 6; c++) emotion[c] = Number((h >> BigInt(c*8)) & 0xFFn)/255;
+  }
+  return emotion;
+}
+
+// ── Exhale ──
+function exhaleGenerate(langCode, ghostState) {
+  let lp = langPacks[langCode];
+  let nEx = lp.exhale.length;
+  if (nEx === 0) return [];
+  let hebb = metaHebbian(lp.meta, prevExhale, nEx);
+  let result = [], prev = prevExhale.length > 0 ? prevExhale[prevExhale.length-1] : -1;
+  let localUsed = new Set(usedExhale);
+
+  for (let step = 0; step < MAX_RESPONSE; step++) {
+    let logits = new Float64Array(nEx);
+    for (let w = 0; w < nEx; w++) {
+      let somaScore = 0;
+      for (let c = 0; c < 6; c++) somaScore += chambers.act[c] * lp.exhale[w].aff[c];
+      let biScore = prev >= 0 ? metaBigram(lp.meta, prev, w) : 0;
+      let propPressure = prophecies.reduce((s,p)=>s+p.strength,0)/3;
+      logits[w] = ALPHA_SOM * somaScore + BETA_BIG * biScore + GAMMA_HEB * hebb[w]
+                + DELTA_RRPRAM * 0 + EPSILON_PROP * (propPressure > 0.3 ? somaScore*0.5 : 0)
+                + ZETA_META * (ghostState.ghost[w]||0);
+      if (localUsed.has(w) || localUsed.has(lp.exhale[w].text)) logits[w] -= 100;
+    }
+    // temperature
+    for (let w = 0; w < nEx; w++) logits[w] /= GEN_TEMP;
+    // top-K
+    let indices = Array.from({length:nEx}, (_,i)=>i);
+    indices.sort((a,b)=>logits[b]-logits[a]);
+    let topK = indices.slice(0, TOP_K);
+    let mx = logits[topK[0]], probs = topK.map(i => Math.exp(logits[i]-mx));
+    let sum = probs.reduce((a,b)=>a+b,0);
+    probs = probs.map(p => p/sum);
+    let r = randf(), cum = 0, chosen = topK[0];
+    for (let i = 0; i < topK.length; i++) {
+      cum += probs[i];
+      if (cum >= r) { chosen = topK[i]; break; }
+    }
+    result.push(chosen);
+    localUsed.add(chosen);
+    localUsed.add(lp.exhale[chosen].text);
+    prev = chosen;
+    // stop condition
+    if (step > 2) {
+      let score = 0;
+      for (let c = 0; c < 6; c++) score += chambers.act[c]*lp.exhale[chosen].aff[c];
+      if (score < 0.2) break;
+    }
+  }
+  // update state
+  prevExhale = result.slice(-4);
+  for (const w of result) { usedExhale.add(w); usedExhale.add(lp.exhale[w].text); }
+  return result.map(i => lp.exhale[i].text);
+}
+
+// ── Full pipeline ──
+function klausProcess(prompt) {
+  let lang = detectLanguage(prompt);
+  let lp = langPacks[lang];
+  if (!lp) return null;
+  let emotion = inhaleProcess(lp, prompt);
+  let memState = memoryBlend();
+  let disc = calendarDissonance();
+  // MLP input
+  let mlpIn = new Float64Array(13);
+  for (let c = 0; c < 6; c++) mlpIn[c] = emotion[c];
+  for (let c = 0; c < 6; c++) mlpIn[6+c] = memState[c];
+  mlpIn[12] = disc;
+  let mlpOut = mlpForward(mlpWeights, mlpIn);
+  // combine
+  for (let c = 0; c < 6; c++)
+    chambers.act[c] = Math.max(0, Math.min(1,
+      0.4*emotion[c] + 0.3*mlpOut[c] + 0.2*memState[c] + 0.1*chambers.soma[c]));
+  chambersCrossfire(XFIRE_ITERS);
+  let prem = propheticPremonition(disc);
+  let isProphetic = disc > 0.3 && memory.length >= 2;
+  let ghostState = metaklausCompute(lang);
+  let words = exhaleGenerate(lang, ghostState);
+  memoryStore(disc);
+  // tick prophecies
+  prophecies = prophecies.filter(p => { p.age++; p.strength *= 0.95; return p.age < 20 && p.strength > 0.01; });
+  return {lang, words, chambers: Array.from(chambers.act), prem: Array.from(prem),
+          disc, ghostStrength: ghostState.interference, isProphetic};
+}
+
+// ── UI ──
+function updateChamberBars() {
+  const bar = document.getElementById('chambers-bar');
+  bar.innerHTML = '';
+  for (let c = 0; c < 6; c++) {
+    let item = document.createElement('div');
+    item.className = 'ch-item';
+    let barEl = document.createElement('div');
+    barEl.className = 'ch-bar';
+    let fill = document.createElement('div');
+    fill.className = 'ch-fill';
+    fill.style.height = (chambers.act[c]*100)+'%';
+    fill.style.background = CH_COLORS[c];
+    barEl.appendChild(fill);
+    let label = document.createElement('div');
+    label.textContent = CH_NAMES[c].substring(0,4);
+    item.appendChild(barEl);
+    item.appendChild(label);
+    bar.appendChild(item);
+  }
+}
+
+function displayResponse(prompt, result) {
+  let col = document.getElementById('column');
+  let block = document.createElement('div');
+  block.className = 'response-block';
+  let echo = document.createElement('div');
+  echo.className = 'prompt-echo';
+  echo.textContent = '> ' + prompt;
+  block.appendChild(echo);
+  let somaLine = document.createElement('div');
+  somaLine.innerHTML = result.words.map(w => `<span class="soma-word">${w}</span>`).join('. ') + '.';
+  block.appendChild(somaLine);
+  if (result.ghostStrength > 0.1) {
+    let ghost = document.createElement('div');
+    ghost.className = 'ghost-line';
+    ghost.textContent = `metaklaus: interference ${result.ghostStrength.toFixed(2)}`;
+    block.appendChild(ghost);
+  }
+  col.appendChild(block);
+  let arena = document.getElementById('arena');
+  arena.scrollTop = arena.scrollHeight;
+  updateChamberBars();
+  document.getElementById('lang-indicator').textContent = result.lang.toUpperCase();
+  // prophecy
+  let propEl = document.getElementById('prophecy');
+  if (result.isProphetic) {
+    let dom = result.prem.indexOf(Math.max(...result.prem));
+    propEl.textContent = `~premonition~ → ${CH_NAMES[dom]} (${result.disc.toFixed(2)})`;
+    propEl.className = 'visible';
+    setTimeout(() => propEl.className = '', 4000);
+  }
+}
+
+// ── Init ──
+// ── Scan directory for language files ──
+async function scanLanguages() {
+  let codes = [];
+  // Try directory listing first (works with python -m http.server)
+  try {
+    let resp = await fetch('inhale/');
+    if (resp.ok) {
+      let html = await resp.text();
+      // Parse directory listing for .txt files
+      let matches = html.matchAll(/href="([a-z]{2})\.txt"/gi);
+      for (const m of matches) codes.push(m[1].toLowerCase());
+    }
+  } catch(e) {}
+  // Fallback: try common language codes
+  if (codes.length === 0) {
+    let candidates = ['en','ru','fr','he','de','es','it','ja','zh','ar','pt','ko','nl','sv','pl','uk'];
+    for (const code of candidates) {
+      try {
+        let resp = await fetch(`inhale/${code}.txt`, {method:'HEAD'});
+        if (resp.ok) codes.push(code);
+      } catch(e) {}
+    }
+  }
+  return [...new Set(codes)];
+}
+
+async function init() {
+  let status = document.getElementById('status');
+  status.textContent = 'scanning languages...';
+  let codes = await scanLanguages();
+  if (codes.length === 0) codes = ['en','ru','fr','he']; // ultimate fallback
+  status.textContent = `found ${codes.length} language(s), loading...`;
+  for (const code of codes) {
+    let inhale = await loadWordFile(`inhale/${code}.txt`, code);
+    let exhale = await loadWordFile(`exhale/ex-${code}.txt`, code);
+    if (inhale.length > 0 && exhale.length > 0) {
+      let corpus = exhale.map(w=>w.text).join(' ') + ' ' + inhale.map(w=>w.text).join(' ');
+      let bpe = bpeLearn(corpus, 256);
+      let tokenIds = bpeEncode(corpus, bpe.merges);
+      let meta = metaBuild(tokenIds, exhale.length);
+      langPacks[code] = { inhale, exhale, meta, bpe };
+      status.textContent = `loaded ${code}: ${inhale.length}+${exhale.length}`;
+    }
+  }
+  let nLangs = Object.keys(langPacks).length;
+  if (nLangs === 0) {
+    status.textContent = 'ERROR: no word files. serve this directory with a web server.';
+    return;
+  }
+  chambersInit();
+  mlpWeights = initMLP();
+  updateChamberBars();
+  let disc = calendarDissonance();
+  status.textContent = `${nLangs} lang | cal:${disc.toFixed(3)} | ready`;
+
+  // Input handler
+  document.getElementById('prompt-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      let input = e.target;
+      let prompt = input.value.trim();
+      if (!prompt) return;
+      input.value = '';
+      let result = klausProcess(prompt);
+      if (result) displayResponse(prompt, result);
+    }
+  });
+}
+
+init();
+</script>
+</body>
+</html>

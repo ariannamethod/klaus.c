@@ -1,0 +1,6 @@
+klaus
+__pycache__/
+*.o
+*.pyc
+.DS_Store
+tests/test_klaus

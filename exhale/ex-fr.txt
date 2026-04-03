@@ -1,0 +1,500 @@
+trembler
+frissonner
+frémir
+vibrer
+pulser
+battre
+brûler
+serrer
+étouffer
+suffoquer
+haleter
+convulser
+tressaillir
+sursauter
+reculer
+se recroqueviller
+se blottir
+se figer
+se raidir
+s'engourdir
+rougir
+pâlir
+transpirer
+pleurer
+sangloter
+hurler
+gémir
+grogner
+crier
+rugir
+cracher
+vomir
+soupirer
+souffler
+chuchoter
+murmurer
+balbutier
+bégayer
+rire
+ricaner
+renifler
+râler
+claquer
+frapper
+cogner
+briser
+déchirer
+griffer
+agripper
+étreindre
+presser
+pousser
+tirer
+lâcher
+lancer
+jeter
+fondre
+geler
+apaiser
+dormir
+flotter
+couler
+tomber
+plonger
+monter
+voler
+errer
+ramper
+glisser
+s'effondrer
+se tordre
+fuir
+se cacher
+disparaître
+briller
+bouillir
+déborder
+tremper
+sécher
+ouvrir
+fermer
+mordre
+ronger
+aspirer
+la gorge se serre
+l'estomac se retourne
+le coeur s'emballe
+les mains tremblent
+les jambes flanchent
+le souffle se coupe
+la poitrine se comprime
+le ventre se noue
+les yeux brûlent
+la mâchoire se crispe
+les poings se serrent
+la peau se hérisse
+le sang se glace
+le sang monte à la tête
+les oreilles sifflent
+la tête tourne
+la vision se trouble
+les genoux lâchent
+le corps se fige
+les épaules se contractent
+le dos se voûte
+la nuque se raidit
+les lèvres tremblent
+le menton tremble
+les dents claquent
+la langue colle
+la bouche s'assèche
+les pupilles se dilatent
+les narines se pincent
+le front se plisse
+les sourcils se froncent
+le visage se ferme
+le regard se vide
+les yeux se ferment
+les paupières papillonnent
+le coeur se serre
+le coeur se brise
+le coeur s'arrête
+le coeur explose
+le coeur fond
+le coeur saigne
+le coeur bat la chamade
+le pouls s'accélère
+le pouls ralentit
+le sang bout
+le sang reflue
+le sang pulse aux tempes
+tout le corps vibre
+tout le corps tremble
+tout se contracte
+tout se relâche
+tout se crispe
+tout se détend
+tout lâche
+tout cède
+tout s'effondre
+tout explose
+tout brûle
+tout gèle
+tout se ferme
+tout s'ouvre
+envie de pleurer
+envie de crier
+envie de hurler
+envie de frapper
+envie de courir
+envie de fuir
+envie de vomir
+envie de mourir
+envie de dormir
+envie de disparaître
+envie de tout casser
+envie de tout lâcher
+envie de se rouler en boule
+envie de pisser
+envie de chialer
+envie de gueuler
+envie de mordre
+envie de griffer
+envie de étrangler
+envie de serrer quelqu'un
+envie de se cacher
+envie de s'enfouir sous terre
+envie de ne plus exister
+envie de tout arrêter
+envie de tout brûler
+envie de tout recommencer
+envie de respirer
+envie de silence
+envie d'air
+envie de chaleur
+envie de froid
+envie de noir
+envie de rien
+envie de tout
+j'ai froid
+j'ai chaud
+j'ai mal
+j'ai peur
+j'ai soif
+j'ai faim
+j'ai honte
+j'ai la nausée
+j'ai le vertige
+j'ai la tête qui tourne
+j'ai les jambes qui tremblent
+j'ai les mains qui tremblent
+j'ai la gorge serrée
+j'ai le souffle coupé
+j'ai la poitrine en feu
+j'ai le ventre noué
+j'ai envie de vomir
+j'ai les larmes aux yeux
+j'ai la chair de poule
+j'ai le coeur qui bat
+j'ai les nerfs à vif
+j'ai la peau à vif
+j'ai plus de force
+j'ai plus de voix
+j'ai plus de jambes
+j'ai plus rien
+tout fait mal
+tout brûle en moi
+tout se retourne
+tout tourne
+tout tangue
+tout vacille
+tout chavire
+tout bascule
+rien ne tient
+rien ne passe
+rien ne sort
+rien ne rentre
+ça fait mal
+ça brûle
+ça pique
+ça serre
+ça tire
+ça lance
+ça pulse
+ça vrille
+ça martèle
+ça tambourine
+ça cogne
+ça tape
+ça déchire
+ça arrache
+ça tord
+ça broie
+ça écrase
+ça comprime
+ça étouffe
+ça suffoque
+ça monte
+ça déborde
+ça explose
+ça implose
+ça craque
+ça lâche
+ça cède
+ça rompt
+ça se fissure
+ça se brise
+ça s'effrite
+ça coule
+ça fuit
+ça suinte
+ça goutte
+ça saigne
+ça suppure
+ça pourrit
+ça se nécrose
+ça suffit
+ça va pas
+ça passe pas
+ça rentre pas
+ça sort pas
+ça tient plus
+ça va craquer
+ça va péter
+lâche-moi
+tiens-moi
+serre-moi
+touche-moi pas
+laisse-moi
+aide-moi
+regarde-moi
+écoute-moi
+entends-moi
+vois-moi
+prends-moi
+porte-moi
+berce-moi
+réchauffe-moi
+protège-moi
+sauve-moi
+achève-moi
+tue-moi
+libère-moi
+retiens-moi
+arrête-moi
+empêche-moi
+pardonne-moi
+oublie-moi
+attends-moi
+reviens
+reste
+pars
+tais-toi
+parle
+approche
+recule
+respire
+expire
+inspire
+avale
+crache
+mords
+lâche
+serre
+frappe
+cours
+fuis
+arrête
+tiens
+pousse
+tire
+lève-toi
+couche-toi
+ferme les yeux
+ouvre les yeux
+respire par le ventre
+le corps refuse
+le corps dit non
+le corps sait avant moi
+le corps se souvient
+le corps parle
+le corps crie
+le corps supplie
+le corps cède
+le corps tient
+le corps ment
+le corps ne ment jamais
+les tripes se retournent
+les tripes parlent
+les tripes se nouent
+les os vibrent
+la moelle tremble
+les nerfs lâchent
+les nerfs craquent
+les nerfs vibrent
+les muscles se tétanisent
+les muscles fondent
+les muscles brûlent
+un noeud dans la gorge
+un noeud dans le ventre
+un poids sur la poitrine
+un poids sur les épaules
+un trou dans le ventre
+un vide dans la poitrine
+un feu dans le ventre
+un froid dans le dos
+un couteau dans le coeur
+une boule dans la gorge
+une lame dans le ventre
+une main sur la gorge
+une chape de plomb
+une vague qui monte
+une vague qui emporte
+une décharge électrique
+un coup de poing au ventre
+un coup de couteau dans le dos
+un étau sur la poitrine
+des fourmis dans les mains
+des papillons dans le ventre
+des étoiles dans les yeux
+des larmes qui montent
+des larmes qui coulent
+des sanglots qui secouent
+des spasmes qui traversent
+des frissons qui parcourent
+des ondes qui irradient
+des crampes qui tordent
+le sol se dérobe
+le monde se brouille
+les murs se rapprochent
+le plafond descend
+l'air manque
+l'oxygène manque
+la lumière baisse
+le son s'éteint
+le temps s'arrête
+le temps s'accélère
+le temps n'existe plus
+je me dissous
+je me liquéfie
+je me pétrifie
+je me consume
+je m'éteins
+je m'effondre
+je me noie
+je m'envole
+je m'enfonce
+je me brise
+je me fissure
+je m'émiette
+je me désintègre
+je me vide
+je me remplis
+je me gonfle
+je me dilate
+je me contracte
+je me ferme
+je m'ouvre
+je me déploie
+je me replie
+je recule
+je m'enfuis
+je me fige
+je m'enracine
+je me cabre
+je me redresse
+je résiste
+je cède
+je tombe
+je me relève
+je tiens
+je lâche
+je craque
+je crie
+je me tais
+le souffle revient
+le coeur ralentit
+les mains s'ouvrent
+les épaules descendent
+le dos se redresse
+la mâchoire se desserre
+les poings s'ouvrent
+les yeux s'ouvrent
+le visage s'adoucit
+le front se lisse
+le ventre se dénoue
+la gorge se dénoue
+la poitrine se desserre
+les muscles se relâchent
+le corps se dépose
+le corps s'abandonne
+le corps accepte
+le corps respire
+les larmes tombent
+les larmes libèrent
+les larmes lavent
+un soupir profond
+un long soupir
+un souffle lent
+un battement calme
+une chaleur douce
+une chaleur qui monte
+un picotement
+un fourmillement
+un frémissement
+un tressaillement
+un relâchement
+un amollissement
+un abandon
+une reddition
+une dissolution
+une ouverture
+un déploiement
+une expansion
+une respiration profonde
+une respiration coupée
+une apnée
+un spasme
+un hoquet
+un sanglot sec
+un rire nerveux
+un rire qui monte
+un rire qui se brise
+un cri muet
+un cri étouffé
+un hurlement intérieur
+un silence assourdissant
+un bourdonnement
+un acouphène
+un vertige
+un tournis
+un malaise
+un évanouissement
+une syncope
+une absence
+un blanc
+un trou noir
+un court-circuit
+une surcharge
+un fusible qui saute
+un disjoncteur qui lâche
+mâcher dans le vide
+serrer les dents
+grincer des dents
+claquer des dents
+se mordre les lèvres
+se mordre la langue
+se ronger les ongles
+s'arracher les cheveux
+se gratter la peau
+se pincer pour vérifier
+fermer les poings
+ouvrir les mains
+croiser les bras
+se prendre la tête
+se tenir le ventre
+se tenir la poitrine
+se tenir la gorge
+se couvrir le visage
+se boucher les oreilles
