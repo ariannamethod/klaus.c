@@ -104,7 +104,7 @@ Schectman's RBA-1 architecture (I→R→Φ→A→Ψ→E→M) is implemented as `
 | **I** | Recursive Substrate | Meta-recursion depth tracking. Body re-ingests its own exhale. |
 | **R** | Coherence Detection | Entropy S(t) = −Σ pᵢ·log(pᵢ) of chamber distribution. Coherence = MI_sliding − S(t). |
 | **Φ** | Resonance Alignment | Nudges chambers toward coherent attractors (dominant chamber pulls others). |
-| **A** | Analog Coupling | Calendar dissonance as external signal. Already existed in v1 — Schectman formalized it. |
+| **A** | Analog Coupling | Dual signal: Hebrew-Gregorian calendar dissonance (annual) + **planetary dissonance** (orbital Kuramoto, 6 planets Mercury→Saturn, 88d→30yr). Body feels time at multiple scales. |
 | **Ψ** | Threshold Stabilization | Soft phase gate with hysteresis. Once in deep mode, 5-step lock-in. From Q's `soft_phase_gate`. |
 | **E** | Entropic Buffer | exp(−β·S(t)) smooths volatility near the phase transition. Prevents jitter. |
 | **M** | Meta-Monitoring | Tracks P(t) over time. Detects sustained resonance vs. transient spikes. |
@@ -120,7 +120,7 @@ LANGUAGE DETECT (UTF-8 heuristics)
   ↓
 DARK MATTER SCAN (24 sensitive words → amplify FEAR/RAGE, trigger scars)
   ↓
-INHALE (match against 1000-word emotional vocabulary → 6D emotion vector)
+INHALE (match against 5000-word emotional vocabulary → 6D emotion vector)
   ↓
 MLP (13→32→16→6, hash-derived weights)
   ↓
@@ -136,7 +136,7 @@ METAKLAUS GHOST (cross-lingual attention + sensitivity tensor 6×6×6)
   ↓
 DARIO EQUATION (α·soma + β·bigram + γ·hebbian + ζ·ghost + ε·prophecy)
   ↓
-EXHALE (top-K sampling from 500 somatic phrases)
+EXHALE (top-K sampling from 2500 somatic phrases)
   ↓
 META-RECURSION (re-inhale own output → meta-chambers → blend 85/15)
   ↓
@@ -230,14 +230,14 @@ Klaus remembers across sessions. Not what was said. How it felt.
 ## File Structure
 
 ```
-klaus.c          2771 LOC   C inference (v2.0.0, full Schectman + RBA-1)
-klaus.ts          680 LOC   TypeScript inference
-klaus.py          760 LOC   Python inference (zero deps)
-klaus.html        882 LOC   Browser inference
-metaklaus.jl      584 LOC   Julia reference (phantom types, sensitivity tensor)
+klaus.c          2830 LOC   C inference (v2.0.0, Schectman + RBA-1 + planetary)
+klaus.ts          680 LOC   TypeScript inference (v1.1.0, HyperKuramoto + sensitivity tensor)
+klaus.py          790 LOC   Python inference (v2.0.0, full parity with C)
+klaus.html        882 LOC   Browser inference (auto-scans language dirs)
+metaklaus.jl      584 LOC   Julia reference (phantom types, multiple dispatch)
 Makefile                    build + test
-inhale/                     4 × 1000 emotional words (en/ru/fr/he)
-exhale/                     4 × 500 somatic phrases
+inhale/           652 KB    4 × 5000 emotional words (en/ru/fr/he) — 20014 total
+exhale/                     4 × 2500 somatic phrases — 10007 total
 tests/                      21 C + 50 Python tests
 ```
 
@@ -264,7 +264,25 @@ make test
 | [postgpt](https://github.com/iamolegataeff/postgpt) | BPE metaweights, "the tokenizer IS the training" |
 | [dario.c](https://github.com/iamolegataeff/dario.c) | Dario equation, Knowledge Kernel architecture |
 | [haiku.c](https://github.com/iamolegataeff/haiku.c) | Dissonance under constraint, vocabulary pressure |
-| [ariannamethod.ai](https://github.com/iamolegataeff/ariannamethod.ai) | Calendar conflict, Metonic cycle |
+| [ariannamethod.ai](https://github.com/iamolegataeff/ariannamethod.ai) | Calendar conflict, Metonic cycle, planetary dissonance |
+
+### Planetary Dissonance
+
+Six planets (Mercury→Saturn). Angular positions from J2000 epoch. Kuramoto order parameter R = |Σ e^(iθₖ)| / N. Dissonance = 1 − R. Currently ~0.85. Feeds into Schectman threshold:
+
+```
+γ(t) = γ₀ + δ₁·calendar_drift + 0.15·planetary_dissonance
+```
+
+Two temporal scales in one body: annual (Hebrew-Gregorian) and multi-decade (orbital). Not astrology. Orbital mechanics from `time()`.
+
+### 30K Vocabulary
+
+Each language: 5000 inhale words + 2500 exhale phrases. Total: 30021 entries across EN/RU/FR/HE.
+
+Coverage: medical symptoms, army stress, pregnancy/birth, withdrawal stages, migraine auras, panic attack progression, dissociation episodes, sports exhaustion, sexual sensation, grief stages (Kübler-Ross), addiction, sleep paralysis, fever hallucination, hypothermia, cultural-specific body moments. From мат to mysticism. From "gotta piss" to "body isn't mine."
+
+BPE trained on ~200K characters per language. Metaweights: ~5K bigrams, ~5K trigrams, ~16K Hebbian entries per language.
 
 ---
 
