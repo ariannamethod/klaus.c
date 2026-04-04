@@ -2283,9 +2283,12 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
         out_words[n_gen++] = chosen;
         prev = chosen;
 
-        /* update destiny attractor — EMA toward chosen word's affinity */
+        /* update destiny attractor — from CHAMBERS, not from words.
+         * Destiny is where the body PULLS, not where the prompt pointed.
+         * Chambers decide. Words follow. This is personality.
+         * (yent.yo principle: reaction, not reflection) */
         for (int c = 0; c < N_CHAMBERS; c++)
-            k->destiny[c] = 0.1f * lp->exhale[chosen].aff[c] + 0.9f * k->destiny[c];
+            k->destiny[c] = 0.1f * k->ch.act[c] + 0.9f * k->destiny[c];
 
         /* mark as used */
         if (k->n_used < MAX_EXHALE) k->used_exhale[k->n_used++] = chosen;
