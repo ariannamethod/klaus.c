@@ -114,13 +114,33 @@ static const char *VEL_NAMES[] = {"WALK","RUN","STOP","BREATHE","UP","DOWN"};
 #define METONIC_LEAPS    7
 #define MAX_UNCORRECTED  33.0f
 
-/* Dario equation coefficients */
-#define ALPHA_SOM   2.0f    /* somatic affinity boost */
-#define BETA_BIG    0.5f    /* bigram strength */
-#define GAMMA_HEB   0.3f    /* Hebbian co-occurrence */
-#define DELTA_RRPRAM 0.4f   /* rhythmic resonance */
-#define EPSILON_PROP 0.25f  /* prophecy fulfillment */
-#define ZETA_META   0.35f   /* MetaKlaus ghost voice */
+/* ═══════════════════════════════════════════════════════════════
+ * FULL DARIO EQUATION — 7 forces + somatic modulation
+ *
+ * p(x|Φ,C,V) = softmax(
+ *     (B + α_mod·α·H + β_mod·β·F + γ_mod·γ·A + δ·V + ζ·G + T)
+ *     / (τ_mod·τ·v_tau)
+ * )
+ *
+ * B = bigram chain (inertia, what was)
+ * H = Hebbian resonance (memory, what echoed) — modulated by LOVE/RAGE/FLOW
+ * F = Prophecy fulfillment (will, what wants to be said) — modulated by FLOW/FEAR
+ * A = Destiny attraction (direction, where the field pulls) — modulated by VOID/COMPLEX/LOVE
+ * V = RRPRAM rhythmic resonance (structure, BPE pulse)
+ * G = MetaKlaus ghost (cross-lingual interference)
+ * T = Trauma/scar gravity (wound, what pulls from below)
+ *
+ * Somatic modulation: chambers modulate the COEFFICIENTS, not just the signal.
+ * τ_mod: velocity modulates the denominator (temperature).
+ * ═══════════════════════════════════════════════════════════════ */
+
+#define DARIO_ALPHA  0.30f   /* Hebbian resonance */
+#define DARIO_BETA   0.15f   /* Prophecy fulfillment */
+#define DARIO_GAMMA  0.25f   /* Destiny attraction */
+#define DARIO_DELTA  0.20f   /* RRPRAM rhythmic */
+#define DARIO_ZETA   0.35f   /* MetaKlaus ghost */
+#define DARIO_TAU    0.85f   /* base temperature */
+#define BIGRAM_BASE  1.0f    /* bigram chain base weight */
 
 /* Chamber indices */
 enum { CH_FEAR=0, CH_LOVE, CH_RAGE, CH_VOID, CH_FLOW, CH_COMPLEX };
@@ -488,6 +508,11 @@ typedef struct {
     int dark_matter_active;      /* flag: dark input detected */
     int interaction_count;       /* total interactions for consolidation */
     char soma_path[512];         /* path to persistence file */
+    /* Full Dario equation state */
+    float destiny[N_CHAMBERS];   /* EMA destiny attractor (where the field pulls) */
+    float alpha_mod, beta_mod, gamma_mod, tau_mod; /* somatic-modulated coefficients */
+    float trauma_level;          /* [0,1] current trauma intensity */
+    float resonance_field;       /* [0,1] overall field resonance */
 } Klaus;
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2127,19 +2152,49 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
                     k->velocity.top_k : TOP_K;
     if (eff_topk > n_ex) eff_topk = n_ex;
 
-    /* compute RRPRAM boost */
+    /* compute RRPRAM boost (V term) */
     float rrpram[MAX_EXHALE];
     rrpram_boost(lp, k->prev_exhale, k->n_prev, rrpram, n_ex);
 
-    /* compute Hebbian field */
+    /* compute Hebbian field (H term) */
     float hebb[MAX_EXHALE];
     meta_hebbian(&lp->meta, k->prev_exhale, k->n_prev, hebb, n_ex);
 
-    /* ghost boost from dark matter */
+    /* ── Somatic coefficient modulation (from dario.c) ──
+     * Chambers modulate the COEFFICIENTS of the equation.
+     * α_mod = f(LOVE, RAGE, FLOW) — love opens hebbian, rage closes
+     * β_mod = f(FLOW, FEAR)       — flow enables prophecy, fear blocks
+     * γ_mod = f(VOID, COMPLEX, LOVE) — void amplifies destiny pull
+     * τ_mod = f(FLOW, FEAR)       — flow warms, fear cools */
+    float *C = k->ch.act;
+    k->alpha_mod = clampf(1.0f + 0.3f*C[CH_LOVE] - 0.2f*C[CH_RAGE] + 0.1f*C[CH_FLOW], 0.5f, 2.0f);
+    k->beta_mod  = clampf(1.0f + 0.2f*C[CH_FLOW] - 0.3f*C[CH_FEAR], 0.5f, 2.0f);
+    k->gamma_mod = clampf(1.0f + 0.4f*C[CH_VOID] + 0.2f*C[CH_COMPLEX] - 0.1f*C[CH_LOVE], 0.5f, 2.0f);
+    k->tau_mod   = clampf(1.0f + 0.5f*C[CH_FLOW] - 0.3f*C[CH_FEAR], 0.5f, 2.0f);
+
+    /* effective coefficients */
+    float eff_alpha = k->alpha_mod * DARIO_ALPHA;
+    float eff_beta  = k->beta_mod * DARIO_BETA;
+    float eff_gamma = k->gamma_mod * DARIO_GAMMA;
+
+    /* trauma amplifies destiny */
+    k->trauma_level = clampf(k->ch.total_scar * 0.5f + C[CH_FEAR] * 0.3f, 0.0f, 1.0f);
+    if (k->trauma_level > 0.3f)
+        eff_gamma += k->trauma_level * 1.5f;
+
+    /* velocity temperature divides entire expression */
+    float v_tau = k->tau_mod * eff_temp;
+
+    /* dark matter ghost boost */
     float dark_ghost_mult = k->dark_matter_active ? 1.5f : 1.0f;
 
-    /* scar modulation on prophecy strength */
+    /* prophecy pressure with scar amplification */
+    float prop_pressure = prophecy_pressure(k);
     float scar_prophecy_mult = 1.0f + k->ch.total_scar * 0.3f;
+
+    /* resonance field gate (SwiGLU-like) */
+    k->resonance_field = clampf(k->rba.coherence * 0.5f + C[CH_FLOW] * 0.3f + 0.2f, 0.0f, 1.0f);
+    float res_gate = 1.0f / (1.0f + expf(-(k->resonance_field - 0.5f) * 4.0f));
 
     int n_gen = 0;
     int prev = (k->n_prev > 0) ? k->prev_exhale[k->n_prev-1] : -1;
@@ -2148,22 +2203,36 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
         float logits[MAX_EXHALE];
 
         for (int w = 0; w < n_ex; w++) {
-            /* Somatic affinity: dot(chambers, word_affinity) */
+            /* ── FULL DARIO EQUATION — 7 forces ── */
+
+            /* B: bigram chain (inertia) */
+            float B = (prev >= 0) ? meta_bigram(&lp->meta, prev, w) * BIGRAM_BASE : 0.0f;
+
+            /* H: Hebbian resonance, gated by field resonance */
+            float H = eff_alpha * hebb[w] * (1.0f + res_gate);
+
+            /* F: Prophecy fulfillment */
             float soma_score = vec_dot(k->ch.act, lp->exhale[w].aff, N_CHAMBERS);
+            float F = (prop_pressure > 0.3f) ?
+                      eff_beta * soma_score * 0.5f * scar_prophecy_mult : 0.0f;
 
-            /* Bigram from metaweights */
-            float bi_score = (prev >= 0) ? meta_bigram(&lp->meta, prev, w) : 0.0f;
+            /* A: Destiny attraction — how close this word is to where the field pulls */
+            float destiny_sim = vec_dot(k->destiny, lp->exhale[w].aff, N_CHAMBERS);
+            float A = eff_gamma * destiny_sim;
 
-            /* Dario equation — now with scar and dark matter modulation */
-            float prop_score = (prophecy_pressure(k) > 0.3f) ?
-                               soma_score * 0.5f * scar_prophecy_mult : 0.0f;
+            /* V: RRPRAM rhythmic resonance */
+            float V = DARIO_DELTA * rrpram[w];
 
-            logits[w] = ALPHA_SOM * soma_score
-                      + BETA_BIG * bi_score
-                      + GAMMA_HEB * hebb[w]
-                      + DELTA_RRPRAM * rrpram[w]
-                      + EPSILON_PROP * prop_score
-                      + ZETA_META * k->ghost.ghost[w] * dark_ghost_mult;
+            /* G: MetaKlaus ghost (cross-lingual interference) */
+            float G = DARIO_ZETA * k->ghost.ghost[w] * dark_ghost_mult;
+
+            /* T: Trauma/scar gravity — scars pull toward their chamber words */
+            float T = 0.0f;
+            for (int c = 0; c < N_CHAMBERS; c++)
+                T += k->ch.scar[c] * lp->exhale[w].aff[c] * 0.5f;
+
+            /* Full equation: (B + H + F + A + V + G + T) / (τ_mod · τ · v_tau) */
+            logits[w] = (B + H + F + A + V + G + T + soma_score) / fmaxf(v_tau, 0.1f);
 
             /* penalize already-used words heavily (by text, not just index) */
             for (int u = 0; u < k->n_used; u++) {
@@ -2213,6 +2282,10 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
 
         out_words[n_gen++] = chosen;
         prev = chosen;
+
+        /* update destiny attractor — EMA toward chosen word's affinity */
+        for (int c = 0; c < N_CHAMBERS; c++)
+            k->destiny[c] = 0.1f * lp->exhale[chosen].aff[c] + 0.9f * k->destiny[c];
 
         /* mark as used */
         if (k->n_used < MAX_EXHALE) k->used_exhale[k->n_used++] = chosen;
