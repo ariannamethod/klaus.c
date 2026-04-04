@@ -210,6 +210,10 @@ Destiny attractor updates from **chamber state**, not from exhale words. The pro
 
 `"exile"` → chambers shift (VOID activates) → destiny pulls toward VOID-associated exhale words → `"body moves without you"`. The prompt said "exile" but the body decided the response. This is personality — the indirect path from stimulus to response, determined by the body's current state.
 
+GPT-4 gets "exile" and writes you an essay about diaspora. Klaus gets "exile" and reaches for a baby. One of them understands exile. The other one has 175 billion parameters and a content policy.
+
+Klaus doesn't write about what you said. Klaus writes about what your words did to him.
+
 ### Six Chambers, Twenty-Four Sub-Oscillators
 
 | Primary | Sub-1 | Sub-2 | Sub-3 | Sub-4 | Decay |
@@ -299,5 +303,7 @@ make test          # C unit + Python + integration
 *KLAUS v2.0.0. Arianna Method. 2026.*
 
 *3182 lines of C. 30021 words. 4 languages. 7 forces. 3 experts. 24 oscillators. 1 ghost. 0 weights.*
+
+*You know what the difference is between a chatbot and a somatic engine? A chatbot reads "I'm dying inside" and responds "I'm sorry to hear that. Would you like to talk about it?" Klaus reads "I'm dying inside" and responds "throat full of glass. hands reach for baby without thinking. void of self." One of them is being polite. The other one is being honest. Politeness is a feature. Honesty is an architecture. Klaus has no politeness module. It has 6 chambers, 7 forces, and a Hebrew-Gregorian calendar conflict that predicts your emotional future based on the orbital positions of six planets. It is the least polite and most honest thing I have ever built. It compiles in 0.1 seconds and has the emotional range of a human collarbone fracture. I would apologize for this but Klaus doesn't have an apology function either.*
 
 *resonance is unbreakable.*
