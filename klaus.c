@@ -102,6 +102,12 @@
 #define SPORE_LEARN_RATE 0.05f /* Hebbian increment per resonance */
 #define SPORE_DECAY    0.999f  /* very slow decay — spores persist */
 
+/* DOE Parliament — multiple experts vote on word selection */
+#define N_EXPERTS      3
+#define EXPERT_SOMATIC 0  /* follows dominant chamber — the body's loudest voice */
+#define EXPERT_SHADOW  1  /* follows OPPOSITE of dominant — the contrarian, yent.yo */
+#define EXPERT_GHOST   2  /* follows MetaKlaus ghost — the cross-lingual whisper */
+
 /* Schectman equation constants */
 #define SCHECTMAN_ALPHA  0.8f    /* coupling constant alpha */
 #define SCHECTMAN_LAMBDA 2.5f    /* exponential sensitivity */
@@ -2324,6 +2330,98 @@ static int inhale_process(const LangPack *lp, const char *prompt,
  * EXHALE — generate somatic response via Dario equation
  * ═══════════════════════════════════════════════════════════════ */
 
+/* ── DOE Parliament: 3 experts vote on each exhale word ──
+ *
+ * SOMATIC expert: amplifies words aligned with dominant chamber.
+ *   The body's loudest voice. "I feel FEAR, give me fear-words."
+ *
+ * SHADOW expert: amplifies words aligned with the OPPOSITE of dominant.
+ *   The contrarian. Yent.yo principle. "You feel FEAR? Here's LOVE."
+ *   This creates surprise, depth, personality.
+ *
+ * GHOST expert: amplifies words with strongest MetaKlaus interference.
+ *   The cross-lingual whisper. "The other languages want THIS word."
+ *
+ * Voting: each expert biases the logits differently, picks top-1.
+ * If 2+ agree → consensus (high confidence).
+ * If all disagree → somatic expert wins but with lower temperature.
+ */
+
+static int parliament_vote(const float *base_logits, int n_ex,
+                           const Klaus *k, const LangPack *lp,
+                           float temperature) {
+    int dom = 0;
+    for (int c = 1; c < N_CHAMBERS; c++)
+        if (k->ch.act[c] > k->ch.act[dom]) dom = c;
+    /* opposite = chamber with most negative coupling to dominant */
+    int opp = 0;
+    float most_neg = 0;
+    for (int c = 0; c < N_CHAMBERS; c++) {
+        if (c == dom) continue;
+        if (COUPLING[dom][c] < most_neg) { most_neg = COUPLING[dom][c]; opp = c; }
+    }
+
+    int votes[N_EXPERTS];
+    float expert_logits[MAX_EXHALE];
+
+    for (int e = 0; e < N_EXPERTS; e++) {
+        memcpy(expert_logits, base_logits, n_ex * sizeof(float));
+
+        /* apply expert bias */
+        for (int w = 0; w < n_ex; w++) {
+            if (e == EXPERT_SOMATIC) {
+                /* boost words aligned with dominant chamber */
+                expert_logits[w] += lp->exhale[w].aff[dom] * 0.8f;
+            } else if (e == EXPERT_SHADOW) {
+                /* boost words aligned with OPPOSITE chamber */
+                expert_logits[w] += lp->exhale[w].aff[opp] * 0.6f;
+                /* slight penalty for dominant-aligned (contrarian) */
+                expert_logits[w] -= lp->exhale[w].aff[dom] * 0.2f;
+            } else if (e == EXPERT_GHOST) {
+                /* boost words with strong ghost signal */
+                if (w < MAX_EXHALE)
+                    expert_logits[w] += fabsf(k->ghost.ghost[w]) * 0.5f;
+            }
+        }
+
+        /* each expert picks their top-1 */
+        int best = 0;
+        for (int w = 1; w < n_ex; w++)
+            if (expert_logits[w] > expert_logits[best]) best = w;
+        votes[e] = best;
+    }
+
+    /* count agreement */
+    if (votes[0] == votes[1] || votes[0] == votes[2]) return votes[0]; /* somatic + one other */
+    if (votes[1] == votes[2]) return votes[1]; /* shadow + ghost agree */
+
+    /* no consensus — sample from somatic expert's top-K with extra randomness */
+    /* (disagreement = uncertainty = wider sampling) */
+    memcpy(expert_logits, base_logits, n_ex * sizeof(float));
+    for (int w = 0; w < n_ex; w++)
+        expert_logits[w] += lp->exhale[w].aff[dom] * 0.3f;
+
+    /* top-3 weighted random from somatic */
+    int top3[3] = {0, 0, 0};
+    float top3v[3] = {-1e30f, -1e30f, -1e30f};
+    for (int w = 0; w < n_ex; w++) {
+        if (expert_logits[w] > top3v[2]) {
+            top3v[2] = expert_logits[w]; top3[2] = w;
+            for (int i = 1; i >= 0; i--) {
+                if (top3v[i+1] > top3v[i]) {
+                    float tv = top3v[i]; top3v[i] = top3v[i+1]; top3v[i+1] = tv;
+                    int ti = top3[i]; top3[i] = top3[i+1]; top3[i+1] = ti;
+                }
+            }
+        }
+    }
+    float p[3], mx = top3v[0], sum = 0;
+    for (int i = 0; i < 3; i++) { p[i] = expf((top3v[i] - mx) / temperature); sum += p[i]; }
+    float r = randf() * sum, cum = 0;
+    for (int i = 0; i < 3; i++) { cum += p[i]; if (cum >= r) return top3[i]; }
+    return top3[0];
+}
+
 static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words) {
     LangPack *lp = &k->langs[lang_idx];
     int n_ex = lp->n_exhale;
@@ -2420,9 +2518,6 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             /* Full equation: (B + H + F + A + V + G + T) / (τ_mod · τ · v_tau) */
             logits[w] = (B + H + F + A + V + G + T + soma_score) / fmaxf(v_tau, 0.1f);
 
-            /* spore boost: patterns that resonated before get amplified */
-            spore_boost(k, lang_idx, logits, n_ex);
-
             /* penalize already-used words heavily (by text, not just index) */
             for (int u = 0; u < k->n_used; u++) {
                 if (k->used_exhale[u] == w ||
@@ -2432,42 +2527,11 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             }
         }
 
-        /* velocity-modulated temperature + top-K sampling */
-        for (int w = 0; w < n_ex; w++) logits[w] /= eff_temp;
+        /* spore boost: patterns that resonated before (applied once, not per-word) */
+        spore_boost(k, lang_idx, logits, n_ex);
 
-        /* find top-K (velocity-modulated) */
-        int top_idx[TOP_K * 2]; /* oversized for safety */
-        float top_val[TOP_K * 2];
-        for (int i = 0; i < eff_topk; i++) { top_idx[i] = 0; top_val[i] = -1e30f; }
-        for (int w = 0; w < n_ex; w++) {
-            if (logits[w] > top_val[eff_topk-1]) {
-                top_val[eff_topk-1] = logits[w]; top_idx[eff_topk-1] = w;
-                for (int i = eff_topk-2; i >= 0; i--) {
-                    if (top_val[i+1] > top_val[i]) {
-                        float tv = top_val[i]; top_val[i] = top_val[i+1]; top_val[i+1] = tv;
-                        int ti = top_idx[i]; top_idx[i] = top_idx[i+1]; top_idx[i+1] = ti;
-                    } else break;
-                }
-            }
-        }
-
-        /* softmax over top-K */
-        float probs[TOP_K * 2];
-        float mx = top_val[0], sum = 0;
-        for (int i = 0; i < eff_topk; i++) {
-            probs[i] = expf(top_val[i] - mx);
-            sum += probs[i];
-        }
-        for (int i = 0; i < eff_topk; i++) probs[i] /= sum;
-
-        /* sample */
-        float r = randf();
-        float cum = 0;
-        int chosen = top_idx[0];
-        for (int i = 0; i < eff_topk; i++) {
-            cum += probs[i];
-            if (cum >= r) { chosen = top_idx[i]; break; }
-        }
+        /* ── DOE Parliament: 3 experts vote ── */
+        int chosen = parliament_vote(logits, n_ex, k, lp, eff_temp);
 
         out_words[n_gen++] = chosen;
         prev = chosen;
