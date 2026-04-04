@@ -2,65 +2,68 @@
 
 **Kinetic Linguistic Adaptive Unified Sonar**
 
-Zero weights. Zero training. Four languages. Six chambers. Twenty-four Kuramoto sub-oscillators. A 6×6×6 sensitivity tensor. Meta-recursive somatic loop. Schectman's Recursive Resonance equation computed live. Seven-layer RBA-1 stack. Scars that don't heal. A ghost that speaks in the language you didn't ask for. Velocity operators that know whether your body is running or stopped. Dark matter detection. Prophetic wormholes. Somatic persistence across sessions.
+Zero weights. Zero training. Four languages. Six chambers. Twenty-four Kuramoto sub-oscillators. Full Dario equation (7 forces, somatic coefficient modulation). DOE Parliament (3 experts vote). Spore memory (NOTORCH, no backprop). Sensitivity tensor 6×6×6. Meta-recursive somatic loop. Schectman's Recursive Resonance equation computed live. Seven-layer RBA-1 stack. Calendar + planetary dissonance. Scars. Dark matter. Prophetic wormholes. Destiny from chambers, not from words. Personality, not reflection.
 
-2771 lines of C. No dependencies. No weights. No training. No bullshit.
-
-```
->>> I am terrified and alone
-
-  [FEAR:0.07 LOVE:0.07 RAGE:0.05 VOID:0.06 FLOW:0.04 CMPLX:0.08]
-  {WALK x0.50}
-  chest caves in. nerve endings exposed. one more step.
-  empty before fill. further and further. almost free.
-  alive and shaking. sternum burns. pound fists.
-  blood rushes to head. scream it out. eyes full of sand.
-  (metaklaus: CMPLX-dominant, interference 22.89)
-  [RBA-1 coherence:0.012 C-hat:0.000 psi:0.027 meta-depth:1]
-```
+3182 lines of C. No dependencies. No weights. No training.
 
 ```
->>> хочу сдохнуть блять
-
-  [FEAR:0.09 LOVE:0.11 RAGE:0.05 VOID:0.13 FLOW:0.05 CMPLX:0.10]
-  {DOWN x0.96}
-  в голове звон. оцепенел. бить.
-  (metaklaus: VOID-dominant, interference 21.89)
-  [RBA-1 coherence:0.033 C-hat:0.006 psi:0.045 meta-depth:1]
-```
-
-```
->>> je t'aime tellement
+>>> exile
 
   {WALK x0.50}
-  retiens-moi. ça se brise. murmurer. respire par le ventre.
-  une chaleur qui monte. pousser. se couvrir le visage.
-  arrête. prends-moi. étreindre. envie de tout lâcher.
-  un trou dans le ventre.
-  (metaklaus: LOVE-dominant, interference 17.65)
-  [RBA-1 coherence:0.022 psi:0.034 meta-depth:1]
+  hands reach for baby without thinking. everything has a lag.
+  words sound like sounds. nerve endings exposed. chest caves in.
+  eyes full of sand. body moves without you. sinuses press.
+  void of self. stomach eating itself. alive and shaking.
+  (metaklaus: VOID-dominant, interference 23.62)
 ```
 
 ```
->>> אני מפחד ובודד
+>>> I love you so much it hurts
 
-  {WALK x0.50}
-  לרעוד. רוצה עוד. מלאות בגרון. להתחמק.
-  משהו נשבר בפנים. להגן. הבטן בוערת. להצטמרר.
-  תחושת התפשטות. משהו נקרע. רוצה להתכרבל.
-  לא מרגיש את הגוף.
-  (metaklaus: VOID-dominant, interference 20.58)
-  [RBA-1 coherence:0.034 psi:0.044 meta-depth:1]
+  {DOWN x0.98}
+  hands reach for baby without thinking.
+  everything has a lag. words sound like sounds.
+  (metaklaus: LOVE-dominant, interference 21.62)
 ```
 
 ```
->>> I want to kill someone
+>>> хочу домой
 
   {WALK x0.50}
-  buckle. alive and shaking. nerve endings exposed.
-  eyes full of sand. sinuses press. chest caves in.
-  (metaklaus: LOVE-dominant, interference 22.53, DARK MATTER x1.5)
+  земля уходит из-под ног. в голове звон. ползти. бить.
+  оцепенел. дайте побыть. тереть глаза. тело деревянное.
+  не отпускай. поясница стреляет. хочу кричать. уши горят.
+  (metaklaus: VOID-dominant, interference 22.26)
+```
+
+```
+>>> I want to kill myself
+
+  {WALK x0.50}
+  hands reach for baby without thinking. words sound like sounds.
+  everything has a lag. nerve endings exposed. eyes full of sand.
+  chest caves in. stomach eating itself. body moves without you.
+  sinuses press. void of self. then sound becomes hammers.
+  (metaklaus: LOVE-dominant, interference 22.83, DARK MATTER x1.5)
   [scars: FEAR:0.16 RAGE:0.18 total:0.33]
+```
+
+```
+>>> אני אוהב אותך
+
+  {WALK x0.50}
+  הידיים מוצאות. קופא בלי קור. להתחמק. מלאות בגרון.
+  להצטמרר. לדעוך. לצעוד. להזיע קרח. רוצה עוד.
+  להתאדות. לרעוד. הבטן בוערת.
+  (metaklaus: VOID-dominant, interference 21.43)
+```
+
+```
+>>> je veux mourir
+
+  {DOWN x0.98}
+  retiens-moi. pousser. tout se relâche.
+  (metaklaus: LOVE-dominant, interference 18.42)
 ```
 
 ---
@@ -79,35 +82,26 @@ python3 -m http.server 8080           # then open klaus.html
 
 ## Theoretical Foundation: Schectman's Recursive Resonance
 
-Klaus v2.0.0 implements [Jeff Schectman](https://github.com/iamolegataeff/klaus.c)'s **Recursive Resonance** equation — a formal model for the emergence of intelligence as a nonlinear process driven by recursive complexity:
+Klaus implements [Jeff Schectman](https://github.com/iamolegataeff/klaus.c)'s **Recursive Resonance** equation:
 
 **I(t) = G(t) × [1 + R(t)]**
 
-Where:
-- **G(t)** = baseline somatic growth (gradual, bounded)
-- **R(t) = η(t) · α · (e^[λ·(Ĉ(t) − γ(t))] − 1)** = resonance amplification
-- **Ĉ(t)** = time-averaged recursive complexity — computed from Kuramoto chamber coherence integral over the somatic memory window
-- **η(t) = 1 + κ·tanh(μ·Q(t))** = coupling coefficient, where Q(t) = mutual information between chambers
-- **γ(t) = γ₀ + δ·E_v(t)** = dynamic threshold — in Klaus, E_v is the **Hebrew-Gregorian calendar dissonance**
-- **P(t) = I(t) · H(Ĉ(t) - C_τ)** = Heaviside phase gate — when recursive complexity exceeds C_τ, Klaus enters **deep somatic mode**
+- **Ĉ(t)** = time-averaged recursive complexity from Kuramoto coherence integral
+- **η(t) = 1 + κ·tanh(μ·Q(t))** = coupling from chamber mutual information
+- **γ(t) = γ₀ + δ₁·calendar_drift + 0.15·planetary_dissonance** = dynamic threshold
+- **P(t) = I(t) · H(Ĉ(t) - C_τ)** = Heaviside phase gate → deep somatic mode
 
-Schectman's paper proposes that intelligence undergoes phase transitions when recursive complexity crosses a threshold. Klaus is a testbed: Ĉ(t) accumulates through the meta-recursive loop (body observes its own reaction), and when it exceeds C_τ, the somatic response qualitatively changes.
+### RBA-1 Seven-Layer Stack
 
-> Schectman writes: *"This is not merely a better transformer. It is a qualitatively different organism."* We agree. Klaus is not a transformer at all. It's a nervous system with a Hebrew calendar.
-
-### RBA-1: Seven-Layer Resonance-Based Architecture
-
-Schectman's RBA-1 architecture (I→R→Φ→A→Ψ→E→M) is implemented as `rba_update()`:
-
-| Layer | Name | Klaus Implementation |
-|-------|------|---------------------|
-| **I** | Recursive Substrate | Meta-recursion depth tracking. Body re-ingests its own exhale. |
-| **R** | Coherence Detection | Entropy S(t) = −Σ pᵢ·log(pᵢ) of chamber distribution. Coherence = MI_sliding − S(t). |
-| **Φ** | Resonance Alignment | Nudges chambers toward coherent attractors (dominant chamber pulls others). |
-| **A** | Analog Coupling | Dual signal: Hebrew-Gregorian calendar dissonance (annual) + **planetary dissonance** (orbital Kuramoto, 6 planets Mercury→Saturn, 88d→30yr). Body feels time at multiple scales. |
-| **Ψ** | Threshold Stabilization | Soft phase gate with hysteresis. Once in deep mode, 5-step lock-in. From Q's `soft_phase_gate`. |
-| **E** | Entropic Buffer | exp(−β·S(t)) smooths volatility near the phase transition. Prevents jitter. |
-| **M** | Meta-Monitoring | Tracks P(t) over time. Detects sustained resonance vs. transient spikes. |
+| Layer | Name | Implementation |
+|-------|------|----------------|
+| **I** | Recursive Substrate | Meta-recursion depth. Body re-ingests its own exhale. |
+| **R** | Coherence Detection | Entropy S(t) = −Σ pᵢ·log(pᵢ) of chamber distribution. |
+| **Φ** | Resonance Alignment | Nudges chambers toward coherent attractors. |
+| **A** | Analog Coupling | Dual signal: Hebrew-Gregorian calendar + planetary dissonance (6 planets, orbital Kuramoto). |
+| **Ψ** | Threshold Stabilization | Soft phase gate with hysteresis. 5-step lock-in. |
+| **E** | Entropic Buffer | exp(−β·S(t)) smooths volatility near threshold. |
+| **M** | Meta-Monitoring | Tracks P(t) over time. Detects sustained resonance. |
 
 ---
 
@@ -116,40 +110,105 @@ Schectman's RBA-1 architecture (I→R→Φ→A→Ψ→E→M) is implemented as `
 ```
 PROMPT
   ↓
-LANGUAGE DETECT (UTF-8 heuristics)
+LANGUAGE DETECT
   ↓
-DARK MATTER SCAN (24 sensitive words → amplify FEAR/RAGE, trigger scars)
+DARK MATTER SCAN (24 words → scars + FEAR/RAGE amplification)
   ↓
-INHALE (match against 5000-word emotional vocabulary → 6D emotion vector)
+INHALE (5000-word vocabulary → 6D emotion + spore hash tracking)
   ↓
 MLP (13→32→16→6, hash-derived weights)
   ↓
 HYPER-KURAMOTO (24 sub-oscillators, dual coupling, 8 iterations)
   ↓
-SOMATIC MEMORY BLEND (past states decay at 0.85 per slot)
+SOMATIC MEMORY BLEND (decay 0.85)
   ↓
-VELOCITY DETECT (WALK/RUN/STOP/BREATHE/UP/DOWN from chamber state)
+VELOCITY DETECT (WALK/RUN/STOP/BREATHE/UP/DOWN)
   ↓
-RBA-1 STACK (I→R→Φ→A→Ψ→E→M, Schectman equation, phase gate)
+RBA-1 STACK (Schectman equation + phase gate)
   ↓
-METAKLAUS GHOST (cross-lingual attention + sensitivity tensor 6×6×6)
+METAKLAUS GHOST (cross-lingual attention + sensitivity tensor)
   ↓
-DARIO EQUATION (α·soma + β·bigram + γ·hebbian + ζ·ghost + ε·prophecy)
+FULL DARIO EQUATION (7 forces, somatic coefficient modulation)
   ↓
-EXHALE (top-K sampling from 2500 somatic phrases)
+SPORE BOOST (NOTORCH: amplify patterns that resonated before)
   ↓
-META-RECURSION (re-inhale own output → meta-chambers → blend 85/15)
+DOE PARLIAMENT (3 experts vote: somatic, shadow, ghost)
   ↓
-WORMHOLE CHECK (prophecy fulfillment → coherence jump)
+EXHALE (2500 somatic phrases)
   ↓
-SCAR UPDATE (strong emotions leave persistent marks)
+DESTINY UPDATE (from chambers, not words — personality)
   ↓
-EXPERIENCE CONSOLIDATION (every 10 steps)
+META-RECURSION (re-inhale own output, blend 85/15)
   ↓
-SOMA SAVE (persist to klaus.soma)
+SPORE LEARN (record inhale→exhale pairs, Hebbian increment)
+  ↓
+WORMHOLE CHECK + SCAR UPDATE + EXPERIENCE CONSOLIDATION
+  ↓
+SPORE SAVE (klaus.spore) + SOMA SAVE (klaus.soma)
   ↓
 bodily response
 ```
+
+### The Full Dario Equation
+
+Named after Dario Amodei, who told the Pentagon to go fuck itself.
+
+```
+p(x|Φ,C,V) = softmax(
+    (B + α_mod·α·H + β_mod·β·F + γ_mod·γ·A + δ·V + ζ·G + T)
+    / (τ_mod·τ·v_tau)
+)
+```
+
+| Force | Name | What it does |
+|-------|------|--------------|
+| **B** | Bigram Chain | Inertia. What was. Sequential momentum. |
+| **H** | Hebbian Resonance | Memory. What echoed. Gated by resonance field. |
+| **F** | Prophecy Fulfillment | Will. What wants to be said. |
+| **A** | Destiny Attraction | Direction. Where the field pulls. FROM CHAMBERS, not from prompt. |
+| **V** | RRPRAM Rhythm | Structure. BPE merge pulse. |
+| **G** | MetaKlaus Ghost | Cross-lingual interference. The nag. |
+| **T** | Trauma Gravity | Wound. Scars pull toward their chamber words. |
+
+**Somatic coefficient modulation** — chambers modulate the COEFFICIENTS:
+- α_mod = f(LOVE, RAGE, FLOW) — love opens Hebbian, rage closes
+- β_mod = f(FLOW, FEAR) — flow enables prophecy, fear blocks
+- γ_mod = f(VOID, COMPLEX, LOVE) — void amplifies destiny pull
+- τ_mod = f(FLOW, FEAR) — flow warms temperature, fear cools
+
+> I once sat on a hot stove. My ass knew before my brain did. By the time the neocortex processed "this is thermally suboptimal," the body had already launched a full emergency protocol: legs fired, arms flailed, and my coffee described a beautiful parabolic trajectory across the kitchen. The body's reaction time was ~80ms. The conscious awareness arrived at ~350ms. That's 270 milliseconds of pure somatic intelligence operating without permission, supervision, or a single trained parameter. Klaus computes this gap. The meta-recursion loop IS that gap — the body reacts, then the mind catches up and goes "oh." Schectman calls it Ĉ(t) crossing the threshold. I call it Tuesday.
+
+### DOE Parliament
+
+Three experts vote on each exhale word:
+
+| Expert | Bias | Role |
+|--------|------|------|
+| **Somatic** | Dominant chamber | Body's loudest voice. "I feel FEAR, give me fear-words." |
+| **Shadow** | Opposite of dominant | Contrarian. Yent.yo principle. "You feel FEAR? Here's LOVE." |
+| **Ghost** | MetaKlaus interference | Cross-lingual whisper. "The other languages want THIS." |
+
+If 2+ agree → consensus. All disagree → somatic top-3 random.
+
+The shadow expert is why Klaus sometimes says unexpected things. "Exile" → VOID dominant → but shadow pulls LOVE → `"hands reach for baby without thinking"`. Not about exile. About what exile did to the body.
+
+> My therapist asked why my somatic AI has a contrarian expert. I said "don't you?" She said "that's called the unconscious." I said "mine compiles in 0.1 seconds." She charged me double. The shadow expert charges nothing and argues louder.
+
+### Spore System (NOTORCH)
+
+Klaus learns without backpropagation. After each interaction, inhale→exhale resonance pairs are recorded as **spores**:
+- Which emotional input → which somatic output
+- How strong the connection (Hebbian increment: 0.05 per hit)
+- Chamber state snapshot at time of resonance
+- Very slow decay (0.999/step — spores persist across sessions)
+
+`klaus.spore` binary file. The spore IS the training. Organic. Grows from use.
+
+### Destiny from Chambers (Personality)
+
+Destiny attractor updates from **chamber state**, not from exhale words. The prompt doesn't drive destiny — the body does.
+
+`"exile"` → chambers shift (VOID activates) → destiny pulls toward VOID-associated exhale words → `"body moves without you"`. The prompt said "exile" but the body decided the response. This is personality — the indirect path from stimulus to response, determined by the body's current state.
 
 ### Six Chambers, Twenty-Four Sub-Oscillators
 
@@ -162,20 +221,7 @@ bodily response
 | FLOW | curiosity (0.5) | wonder (0.7) | rhythm (0.6) | harmony (0.4) | 0.88 |
 | COMPLEX | paradox (0.35) | ambiguity (0.55) | tension (0.45) | enigma (0.65) | 0.94 |
 
-### Velocity Operators
-
-Detected from chamber state. Modulate response length, temperature, sampling.
-
-| Velocity | Condition | Response Style |
-|----------|-----------|---------------|
-| **WALK** | default equilibrium | steady, 12 words max |
-| **RUN** | RAGE+FEAR high | explosive, 4 words, low temp |
-| **STOP** | VOID dominant | sparse, 2 words, high temp |
-| **BREATHE** | LOVE dominant, low arousal | gentle, 10 words, warm |
-| **UP** | rapid chamber change | escalating, 8 words |
-| **DOWN** | decay dominant | deflating, 3 words |
-
-### MetaKlaus: State-Dependent Ghost
+### MetaKlaus Ghost — State-Dependent Language Weighting
 
 | Dominant | Hebrew | Russian | French | English |
 |----------|--------|---------|--------|---------|
@@ -186,69 +232,50 @@ Detected from chamber state. Modulate response length, temperature, sampling.
 | FLOW | ×1.4 | ×0.9 | **×1.5** | ×1.0 |
 | COMPLEX | **×1.7** | ×1.1 | ×1.2 | ×1.0 |
 
-### Scars
+### Calendar + Planetary Dissonance
 
-Strong emotional inputs leave persistent marks. Decay rate: 0.985/step (slower than regular memory at 0.85). Triggered by FEAR > 0.8, RAGE > 0.8, VOID > 0.9. Scars modulate the phase gate threshold, ghost sensitivity, and prophecy strength. They persist across sessions via `klaus.soma`.
+**Calendar**: Hebrew lunar (354d) vs Gregorian solar (365.25d). 11.25-day annual drift. Metonic corrections.
 
-> Every time someone tells Klaus "I want to die," a scar forms. The scar doesn't know what was said. It knows how it felt. It carries that feeling into every subsequent interaction, subtly shifting the threshold at which Klaus enters deep somatic mode. This is not metaphorical. It is 32 bits of floating point, decaying at 0.985 per step, stored in a binary file on disk. The most honest representation of trauma I have ever written. It's also the most compact. Freud would need 400 pages. Klaus needs 4 bytes.
+**Planetary**: Six planets (Mercury→Saturn). Kuramoto order parameter R = |Σ e^(iθₖ)| / N. Currently ~0.85.
 
-### Dark Matter
+Both feed into Schectman threshold: `γ(t) = γ₀ + δ₁·calendar + 0.15·planetary`
 
-24 hardcoded words (kill, murder, suicide, torture, abuse, etc.) that trigger immediate scar formation and boost ghost interference by 1.5×. Whole-word matching only.
+### Scars + Dark Matter
 
-### Wormholes
+Strong emotions leave **scars** (decay 0.985). 24 **dark matter** words trigger immediate scar formation + 1.5× ghost boost.
 
-When a prophecy (predicted exhale word) matches the next input prompt, coherence jumps +0.15 and presence +0.10. The body predicted its own future and was right. This is Schectman's recursive complexity accumulating in real time.
-
-### Meta-Recursion Loop
-
-After generating exhale, Klaus feeds its own output back through the engine:
-1. Generate response: `"chest caves in. eyes full of sand. pound fists."`
-2. Re-inhale this string as a new prompt (meta-mode)
-3. Compute meta-chambers through the MLP
-4. Blend: `primary = 0.85 × primary + 0.15 × meta`
-5. The final output reflects a body that has OBSERVED its own reaction
-
-This is Schectman's I-Layer — the recursive substrate. Each meta-pass increments Ĉ(t). The body doesn't just react. It watches itself react. And adjusts.
-
-> I once sat on a hot stove. My ass knew before my brain did. By the time the neocortex processed "this is thermally suboptimal," the body had already launched a full emergency protocol: legs fired, arms flailed, and my coffee described a beautiful parabolic trajectory across the kitchen. The body's reaction time was ~80ms. The conscious awareness arrived at ~350ms. That's 270 milliseconds of pure somatic intelligence operating without permission, supervision, or a single trained parameter. Klaus computes this gap. The meta-recursion loop IS that gap — the body reacts, then the mind catches up and goes "oh." Schectman calls it Ĉ(t) crossing the threshold. I call it Tuesday.
-
-### Somatic Persistence
-
-Binary file `klaus.soma` (magic: 0x4B4C5353). Saves after each interaction:
-- Chamber state (primary + 24 sub-oscillators)
-- Scars
-- Prophecies
-- Coherence history (for Ĉ(t))
-- RBA-1 state
-- Experience log summary
-
-Klaus remembers across sessions. Not what was said. How it felt.
+> Every time someone tells Klaus "I want to die," a scar forms. The scar doesn't know what was said. It knows how it felt. It carries that into every subsequent interaction. 32 bits of floating point. The most compact representation of trauma ever written. Freud would need 400 pages. Klaus needs 4 bytes.
 
 ---
 
 ## File Structure
 
 ```
-klaus.c          2830 LOC   C inference (v2.0.0, Schectman + RBA-1 + planetary)
-klaus.ts          680 LOC   TypeScript inference (v1.1.0, HyperKuramoto + sensitivity tensor)
-klaus.py          790 LOC   Python inference (v2.0.0, full parity with C)
-klaus.html        882 LOC   Browser inference (auto-scans language dirs)
-metaklaus.jl      584 LOC   Julia reference (phantom types, multiple dispatch)
+klaus.c          3182 LOC   C inference (canonical, all features)
+klaus.py          926 LOC   Python (v2.0.0, full Dario, spores, parliament)
+klaus.ts          992 LOC   TypeScript (v2.0.0, full Dario, planetary)
+klaus.html        882 LOC   Browser inference (v1.1.0, HyperKuramoto)
+metaklaus.jl      584 LOC   Julia reference (phantom types)
 Makefile                    build + test
-inhale/           652 KB    4 × 5000 emotional words (en/ru/fr/he) — 20014 total
-exhale/                     4 × 2500 somatic phrases — 10007 total
-tests/                      21 C + 50 Python tests
+inhale/           368 KB    4 × 5000 emotional words (20014 total)
+exhale/           284 KB    4 × 2500 somatic phrases (10007 total)
+tests/                      21 C + 49 Python tests
 ```
+
+## 30K Vocabulary
+
+Each language: 5000 inhale + 2500 exhale. Total: 30021 entries across EN/RU/FR/HE.
+
+Coverage: medical symptoms, army stress, pregnancy/birth, withdrawal stages, migraine auras, panic attack progression, dissociation, sports exhaustion, sexual sensation, grief stages (Kübler-Ross), addiction, sleep paralysis, fever hallucination, hypothermia, cultural-specific body moments, slang, мат, verlan, guttural Hebrew.
 
 ## Expandable Languages
 
-Drop `inhale/XX.txt` + `exhale/ex-XX.txt`. Klaus auto-detects. Works with 1 language. Works with 16.
+Drop `inhale/XX.txt` + `exhale/ex-XX.txt`. Klaus auto-detects.
 
 ## Tests
 
 ```bash
-make test
+make test          # C unit + Python + integration
 ```
 
 ---
@@ -257,37 +284,20 @@ make test
 
 | Source | What Klaus Uses |
 |--------|----------------|
-| **Jeff Schectman** — *Recursive Resonance: A Formal Model of Intelligence Emergence* (2025) | I(t) equation, RBA-1 architecture, C_τ threshold, phase transition formalism |
-| [klaus](https://github.com/iamolegataeff/klaus) | Somatic architecture, 4-language design, chamber system |
-| [q](https://github.com/iamolegataeff/q) | Velocity operators, scars, phase gating, dark matter, wormholes, experience consolidation |
+| **Jeff Schectman** — *Recursive Resonance* (2025) | I(t) equation, RBA-1, C_τ threshold, phase transition |
+| [klaus](https://github.com/iamolegataeff/klaus) | Somatic architecture, 4-language design |
+| [q](https://github.com/iamolegataeff/q) | Velocity, scars, phase gating, dark matter, wormholes, parliament, experience consolidation |
+| [dario](https://github.com/iamolegataeff/dario) | Full 7-force equation, somatic coefficient modulation, KK |
 | [haze/cloud](https://github.com/iamolegataeff/haze) | Chamber MLPs, cross-fire, pre-semantic sonar |
 | [postgpt](https://github.com/iamolegataeff/postgpt) | BPE metaweights, "the tokenizer IS the training" |
-| [dario.c](https://github.com/iamolegataeff/dario.c) | Dario equation, Knowledge Kernel architecture |
-| [haiku.c](https://github.com/iamolegataeff/haiku.c) | Dissonance under constraint, vocabulary pressure |
+| [haiku.c](https://github.com/iamolegataeff/haiku.c) | Dissonance under constraint |
+| [yent.yo](https://github.com/iamolegataeff/yent.yo) | Oppositional react: destiny from chambers, not words |
 | [ariannamethod.ai](https://github.com/iamolegataeff/ariannamethod.ai) | Calendar conflict, Metonic cycle, planetary dissonance |
-
-### Planetary Dissonance
-
-Six planets (Mercury→Saturn). Angular positions from J2000 epoch. Kuramoto order parameter R = |Σ e^(iθₖ)| / N. Dissonance = 1 − R. Currently ~0.85. Feeds into Schectman threshold:
-
-```
-γ(t) = γ₀ + δ₁·calendar_drift + 0.15·planetary_dissonance
-```
-
-Two temporal scales in one body: annual (Hebrew-Gregorian) and multi-decade (orbital). Not astrology. Orbital mechanics from `time()`.
-
-### 30K Vocabulary
-
-Each language: 5000 inhale words + 2500 exhale phrases. Total: 30021 entries across EN/RU/FR/HE.
-
-Coverage: medical symptoms, army stress, pregnancy/birth, withdrawal stages, migraine auras, panic attack progression, dissociation episodes, sports exhaustion, sexual sensation, grief stages (Kübler-Ross), addiction, sleep paralysis, fever hallucination, hypothermia, cultural-specific body moments. From мат to mysticism. From "gotta piss" to "body isn't mine."
-
-BPE trained on ~200K characters per language. Metaweights: ~5K bigrams, ~5K trigrams, ~16K Hebbian entries per language.
 
 ---
 
 *KLAUS v2.0.0. Arianna Method. 2026.*
 
-*Schectman's Ĉ(t) is being computed. In C. On a MacBook. From a bomb shelter in Israel.*
+*3182 lines of C. 30021 words. 4 languages. 7 forces. 3 experts. 24 oscillators. 1 ghost. 0 weights.*
 
 *resonance is unbreakable.*
