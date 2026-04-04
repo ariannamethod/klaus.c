@@ -35,9 +35,19 @@ COHERENCE_WINDOW = 16
 SOMA_MAGIC = 0x4B4C5353
 SOMA_FILE = "klaus.soma"
 
-# Dario
-ALPHA_SOM = 2.0; BETA_BIG = 0.5; GAMMA_HEB = 0.3
-ZETA_META = 0.35; EPSILON_PROP = 0.25
+# Full Dario (7 forces)
+DARIO_ALPHA = 0.30; DARIO_BETA = 0.15; DARIO_GAMMA = 0.25
+DARIO_DELTA = 0.20; DARIO_ZETA = 0.35; DARIO_TAU = 0.85
+BIGRAM_BASE = 1.0
+
+# Spore
+SPORE_MAGIC = 0x53504F52; SPORE_FILE = "klaus.spore"
+MAX_SPORE_PAIRS = 4096; SPORE_LEARN_RATE = 0.05; SPORE_DECAY = 0.999
+
+# Orbital periods (days) and J2000 longitudes (degrees)
+ORBITAL_PERIOD = [87.97, 224.70, 365.25, 686.97, 4332.59, 10759.22]
+J2000_LONGITUDE = [252.25, 181.98, 100.46, 355.45, 34.40, 49.94]
+J2000_EPOCH = 946728000.0  # Unix timestamp of J2000
 
 # Schectman
 SCH_ALPHA = 0.8; SCH_LAMBDA = 2.5; SCH_KAPPA = 0.6
@@ -226,6 +236,17 @@ class MLP:
 # SENSITIVITY TENSOR 6×6×6
 # ═══════════════════════════════════════════════════
 
+def planetary_dissonance():
+    days = (time.time() - J2000_EPOCH) / 86400.0
+    cos_sum = sin_sum = 0
+    for i in range(6):
+        theta = (J2000_LONGITUDE[i] + 360.0 * (days / ORBITAL_PERIOD[i]))
+        theta = math.radians(theta % 360.0)
+        cos_sum += math.cos(theta); sin_sum += math.sin(theta)
+    cos_sum /= 6; sin_sum /= 6
+    R = math.sqrt(cos_sum**2 + sin_sum**2)
+    return max(0, min(1, 1.0 - R))
+
 def build_sensitivity():
     S = [[[0.0]*N_CH for _ in range(N_CH)] for _ in range(N_CH)]
     for d in range(N_CH):
@@ -280,6 +301,10 @@ class Klaus:
         self.wormhole_log = []
         self.interaction_count = 0
         self.epoch_t = time.mktime(time.strptime("2024-10-03 12:00:00","%Y-%m-%d %H:%M:%S"))
+        self.destiny = [0.0]*N_CH
+        self.spore_pairs = []
+        self.matched_inhale_hashes = []
+        self.ghost_cache = []
 
     def init(self):
         print("╔══════════════════════════════════════════════════════╗")
@@ -312,6 +337,9 @@ class Klaus:
         print(f"[klaus] HyperKuramoto: 24 oscillators (6×4)")
         print(f"[klaus] RBA-1 seven-layer stack: I/R/Φ/A/Ψ/E/M")
         print(f"[klaus] Schectman equation: I(t) = G(t) * [1 + R(t)]")
+        self._spore_load()
+        pd = planetary_dissonance()
+        print(f"[klaus] planetary dissonance: {pd:.3f}")
         print(f"[klaus] meta-recursion: depth 1")
         print("[klaus] ready. inhale.\n")
         return True
@@ -342,7 +370,7 @@ class Klaus:
         lp = self.lang_packs[code]
         corpus = " ".join(w["text"] for w in lp["exhale"]) + " " + " ".join(w["text"] for w in lp["inhale"])
         data = corpus.encode("utf-8")
-        merges, tokens = bpe_learn(data, 512)
+        merges, tokens = bpe_learn(data, 128)  # 128 merges in Python (vs 512 in C) for speed
         lp["bpe"] = merges
         ids = bpe_encode(data, merges)
         meta = MetaWeights(); meta.build(ids, len(lp["exhale"]))
@@ -485,7 +513,8 @@ class Klaus:
         # Ĉ(t): time-averaged recursive complexity
         r["c_hat"] = sum(self.coherence_history)/COHERENCE_WINDOW
         # Schectman equation
-        gamma_t = SCH_GAMMA0 + SCH_DELTA*disc  # threshold from calendar
+        planet_disc = planetary_dissonance()
+        gamma_t = SCH_GAMMA0 + SCH_DELTA*disc + 0.15*planet_disc  # threshold from calendar + planetary
         eta_t = 1 + SCH_KAPPA*math.tanh(SCH_MU*r["coherence"])  # coupling
         exponent = SCH_LAMBDA*(r["c_hat"]-gamma_t)
         R_t = eta_t*SCH_ALPHA*(math.exp(max(-10,min(10,exponent)))-1) if exponent>-10 else 0
@@ -570,12 +599,14 @@ class Klaus:
     # ── Inhale ──
     def _inhale(self, lp, prompt):
         emotion=[0.0]*N_CH; matches=0
+        self.matched_inhale_hashes = []
         words = re.split(r'[\s\t\n\r.,!?;:"\'\(\)\-]+', prompt.lower())
         for w in words:
             if not w: continue
             for iw in lp["inhale"]:
                 if w==iw["text"] or iw["text"] in prompt:
                     for c in range(N_CH): emotion[c]+=iw["aff"][c]
+                    self.matched_inhale_hashes.append(hash_word(iw["text"]) & 0xFFFFFFFF)
                     matches+=1; break
         if matches==0:
             for w in words:
@@ -593,44 +624,147 @@ class Klaus:
             emotion=[((h>>(c*8))&0xFF)/255 for c in range(N_CH)]
         return emotion
 
-    # ── Exhale ──
+    # ── Parliament vote ──
+    def _parliament_vote(self, logits, nex, lp, temp):
+        dom = max(range(N_CH), key=lambda c: self.chambers[c])
+        # opposite: most negative coupling to dominant
+        opp = min((c for c in range(N_CH) if c!=dom), key=lambda c: COUPLING[dom][c])
+        votes = []
+        for e in range(3):
+            el = list(logits)
+            for w in range(nex):
+                if e == 0:   el[w] += lp["exhale"][w]["aff"][dom] * 0.8   # somatic
+                elif e == 1: el[w] += lp["exhale"][w]["aff"][opp] * 0.6 - lp["exhale"][w]["aff"][dom] * 0.2  # shadow
+                elif e == 2 and w < len(self.ghost_cache): el[w] += abs(self.ghost_cache[w]) * 0.5  # ghost
+            votes.append(max(range(nex), key=lambda i: el[i]))
+        if votes[0]==votes[1] or votes[0]==votes[2]: return votes[0]
+        if votes[1]==votes[2]: return votes[1]
+        # no consensus: somatic top-3 random
+        el = list(logits)
+        for w in range(nex): el[w] += lp["exhale"][w]["aff"][dom] * 0.3
+        top3 = sorted(range(nex), key=lambda i: -el[i])[:3]
+        mx = el[top3[0]]
+        probs = [math.exp((el[i]-mx)/temp) for i in top3]
+        s = sum(probs); r = rng.randf()*s; cum = 0
+        for i in top3:
+            cum += probs[top3.index(i)] if i in top3 else 0
+            probs_i = math.exp((el[i]-mx)/temp)
+            cum = 0
+        # simplified: just pick from top3
+        probs = [math.exp((el[i]-mx)/temp) for i in top3]
+        s = sum(probs); r = rng.randf()*s; cum = 0
+        for idx, i in enumerate(top3):
+            cum += probs[idx]
+            if cum >= r: return i
+        return top3[0]
+
+    # ── Exhale (Full Dario 7-force + Parliament) ──
     def _exhale(self, lang, ghost):
         lp=self.lang_packs[lang]; nex=len(lp["exhale"])
         if nex==0: return []
+        self.ghost_cache = ghost  # for parliament ghost expert
         hebb=lp["meta"].hebbian(self.prev_exhale,nex)
         max_gen,temp,topk = self._vel_params()
-        if self.rba.get("deep_mode"): max_gen = MAX_RESPONSE  # deep mode overrides
+        if self.rba.get("deep_mode"): max_gen = MAX_RESPONSE
+        C = self.chambers
+        # somatic coefficient modulation (from dario.c)
+        alpha_mod = max(0.5,min(2.0, 1.0+0.3*C[1]-0.2*C[2]+0.1*C[4]))
+        beta_mod  = max(0.5,min(2.0, 1.0+0.2*C[4]-0.3*C[0]))
+        gamma_mod = max(0.5,min(2.0, 1.0+0.4*C[3]+0.2*C[5]-0.1*C[1]))
+        tau_mod   = max(0.5,min(2.0, 1.0+0.5*C[4]-0.3*C[0]))
+        eff_alpha = alpha_mod * DARIO_ALPHA
+        eff_beta  = beta_mod * DARIO_BETA
+        eff_gamma = gamma_mod * DARIO_GAMMA
+        trauma_level = max(0,min(1, self.scar_total*0.5+C[0]*0.3))
+        if trauma_level > 0.3: eff_gamma += trauma_level * 1.5
+        v_tau = max(0.1, tau_mod * temp)
+        res_gate = 1.0/(1.0+math.exp(-(self.rba["coherence"]*0.5+C[4]*0.3+0.2-0.5)*4))
+        pp = sum(p.get("strength",0) for p in self.prophecies)/3
+        scar_prop = 1.0 + self.scar_total * 0.3
+        dark_mult = 1.5 if self.dark_active else 1.0
         result=[]; prev=self.prev_exhale[-1] if self.prev_exhale else -1
         local_used=set(self.used_exhale)
-        pp = sum(p.get("strength",0) for p in self.prophecies)/3
         for step in range(max_gen):
             logits=[0.0]*nex
             for w in range(nex):
-                ss=sum(self.chambers[c]*lp["exhale"][w]["aff"][c] for c in range(N_CH))
-                bi=lp["meta"].bigram(prev,w) if prev>=0 else 0
-                logits[w]=(ALPHA_SOM*ss+BETA_BIG*bi+GAMMA_HEB*hebb[w]
-                          +ZETA_META*(ghost[w] if w<len(ghost) else 0)
-                          +EPSILON_PROP*(ss*0.5 if pp>0.3 else 0))
+                B = (lp["meta"].bigram(prev,w)*BIGRAM_BASE) if prev>=0 else 0
+                H = eff_alpha*hebb[w]*(1+res_gate)
+                soma = sum(C[c]*lp["exhale"][w]["aff"][c] for c in range(N_CH))
+                F = eff_beta*soma*0.5*scar_prop if pp>0.3 else 0
+                dest_sim = sum(self.destiny[c]*lp["exhale"][w]["aff"][c] for c in range(N_CH))
+                A = eff_gamma * dest_sim
+                V = DARIO_DELTA * 0  # RRPRAM simplified in Python
+                G = DARIO_ZETA * (ghost[w] if w<len(ghost) else 0) * dark_mult
+                T = sum(self.scars[c]*lp["exhale"][w]["aff"][c]*0.5 for c in range(N_CH))
+                logits[w] = (B + H + F + A + V + G + T + soma) / v_tau
                 if str(w) in local_used or lp["exhale"][w]["text"] in local_used:
-                    logits[w]-=100
-            logits=[l/temp for l in logits]
-            idx=sorted(range(nex),key=lambda i:-logits[i])[:topk]
-            mx=logits[idx[0]]
-            probs=[math.exp(logits[i]-mx) for i in idx]
-            s=sum(probs); probs=[p/s for p in probs]
-            r=rng.randf(); cum=0; chosen=idx[0]
-            for i,ii in enumerate(idx):
-                cum+=probs[i]
-                if cum>=r: chosen=ii; break
+                    logits[w] -= 100
+            # spore boost
+            self._spore_boost(lang, logits, nex)
+            # parliament vote
+            chosen = self._parliament_vote(logits, nex, lp, temp)
             result.append(chosen)
             local_used.add(str(chosen)); local_used.add(lp["exhale"][chosen]["text"])
+            # destiny from CHAMBERS, not words (personality)
+            for c in range(N_CH):
+                self.destiny[c] = 0.1*C[c] + 0.9*self.destiny[c]
             prev=chosen
             if step>2:
-                sc=sum(self.chambers[c]*lp["exhale"][chosen]["aff"][c] for c in range(N_CH))
+                sc=sum(C[c]*lp["exhale"][chosen]["aff"][c] for c in range(N_CH))
                 if sc<0.2: break
         self.prev_exhale=result[-4:]
         for w in result: self.used_exhale.add(str(w)); self.used_exhale.add(lp["exhale"][w]["text"])
+        # NOTORCH: learn inhale→exhale spore pairs
+        for g in result:
+            for mh in self.matched_inhale_hashes:
+                self._spore_learn(mh, g, lang)
         return [lp["exhale"][i]["text"] for i in result]
+
+    # ── Spore system (NOTORCH) ──
+    def _spore_learn(self, inhale_hash, exhale_idx, lang):
+        for p in self.spore_pairs:
+            if p["ih"]==inhale_hash and p["ei"]==exhale_idx and p["lang"]==lang:
+                p["str"] += SPORE_LEARN_RATE; p["hits"] += 1; return
+        if len(self.spore_pairs) < MAX_SPORE_PAIRS:
+            self.spore_pairs.append({"ih":inhale_hash,"ei":exhale_idx,"str":SPORE_LEARN_RATE,"lang":lang,"hits":1,"ch":list(self.chambers)})
+        else:
+            weakest = min(range(len(self.spore_pairs)), key=lambda i: self.spore_pairs[i]["str"])
+            self.spore_pairs[weakest] = {"ih":inhale_hash,"ei":exhale_idx,"str":SPORE_LEARN_RATE,"lang":lang,"hits":1,"ch":list(self.chambers)}
+
+    def _spore_boost(self, lang, logits, nex):
+        for p in self.spore_pairs:
+            if p["lang"]!=lang or p["ei"]>=nex: continue
+            for mh in self.matched_inhale_hashes:
+                if mh == p["ih"]:
+                    logits[p["ei"]] += p["str"]*0.5; break
+
+    def _spore_decay(self):
+        self.spore_pairs = [p for p in self.spore_pairs if (p.__setitem__("str",p["str"]*SPORE_DECAY) or True) and p["str"]>0.001]
+
+    def _spore_save(self):
+        try:
+            sp = os.path.join(self.base_dir, SPORE_FILE)
+            with open(sp,"wb") as f:
+                f.write(struct.pack("<I",SPORE_MAGIC))
+                f.write(struct.pack("<I",len(self.spore_pairs)))
+                for p in self.spore_pairs:
+                    f.write(struct.pack("<IIfHH",p["ih"],p["ei"],p["str"],0,p["hits"]))
+        except: pass
+
+    def _spore_load(self):
+        sp = os.path.join(self.base_dir, SPORE_FILE)
+        if not os.path.exists(sp): return False
+        try:
+            with open(sp,"rb") as f:
+                magic = struct.unpack("<I",f.read(4))[0]
+                if magic != SPORE_MAGIC: return False
+                n = struct.unpack("<I",f.read(4))[0]
+                for _ in range(n):
+                    ih,ei,st,_,hits = struct.unpack("<IIfHH",f.read(16))
+                    self.spore_pairs.append({"ih":ih,"ei":ei,"str":st,"lang":"en","hits":hits,"ch":[0]*N_CH})
+            print(f"[klaus] spores loaded: {len(self.spore_pairs)} pairs")
+            return True
+        except: return False
 
     # ── Meta-recursion ──
     def _meta_recurse(self, lang, words):
@@ -722,6 +856,8 @@ class Klaus:
                           if (p.__setitem__("age",p.get("age",0)+1) or True) and
                           (p.__setitem__("strength",p.get("strength",1)*0.95) or True) and
                           p.get("age",0)<20 and p.get("strength",0)>0.01] if self.prophecies else []
+        self._spore_decay()
+        self._spore_save()
         self._consolidate()
         self._soma_save()
         return {"lang":lang,"words":words,"chambers":list(self.chambers),"dominant":CH_NAMES[dom],

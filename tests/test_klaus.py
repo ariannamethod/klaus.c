@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from klaus import (
     hash_word, word_similarity, compute_affinity, RNG, bpe_learn, bpe_encode,
-    MetaWeights, MLP, Klaus, N_CHAMBERS, CH_DECAY, COUPLING,
+    MetaWeights, MLP, Klaus, N_CH, CH_DECAY, COUPLING,
     ANNUAL_DRIFT, GREGORIAN_YEAR, METONIC_LEAP, MAX_UNCORRECTED
 )
 
@@ -85,10 +85,9 @@ def test_rng():
 # ═══════ BPE ═══════
 def test_bpe():
     data = b"aaabbbccc"
-    merges, vs, tokens = bpe_learn(data, 5)
+    merges, tokens = bpe_learn(data, 5)
     test("bpe learns merges", len(merges) > 0)
     test("bpe compresses", len(tokens) < len(data))
-    test("bpe vocab grows", vs > 256)
 
     # identity: no merges = bytes
     encoded = bpe_encode(b"hello", [])
@@ -179,10 +178,10 @@ def test_calendar():
 def test_lang_detect():
     k = Klaus.__new__(Klaus)
     k.lang_packs = {"en": {}, "ru": {}, "fr": {}, "he": {}}
-    test("detect EN", k._detect_language("I am afraid") == "en")
-    test("detect RU", k._detect_language("мне страшно") == "ru")
-    test("detect FR", k._detect_language("je suis triste") == "fr")
-    test("detect HE", k._detect_language("אני מפחד") == "he")
+    test("detect EN", k._detect_lang("I am afraid") == "en")
+    test("detect RU", k._detect_lang("мне страшно") == "ru")
+    test("detect FR", k._detect_lang("je suis triste") == "fr")
+    test("detect HE", k._detect_lang("אני מפחד") == "he")
 
 # ═══════ Prophecy ═══════
 def test_prophecy():
