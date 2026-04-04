@@ -25,7 +25,7 @@ import * as readline from "readline";
 // CONFIG
 // ═══════════════════════════════════════════════════
 
-const KLAUS_VERSION = "1.1.0";
+const KLAUS_VERSION = "2.0.0";
 const N_CH = 6;
 const N_SUB = 4;
 const CH_NAMES = ["FEAR", "LOVE", "RAGE", "VOID", "FLOW", "CMPLX"] as const;
@@ -36,11 +36,14 @@ const MAX_RESPONSE = 12;
 const GEN_TEMP = 0.75;
 const TOP_K = 20;
 
-const ALPHA_SOM = 2.0;
-const BETA_BIG = 0.5;
-const GAMMA_HEB = 0.3;
-const ZETA_META = 0.35;
-const EPSILON_PROP = 0.25;
+// Full Dario 7-force
+const DARIO_ALPHA = 0.30, DARIO_BETA = 0.15, DARIO_GAMMA = 0.25;
+const DARIO_DELTA = 0.20, DARIO_ZETA = 0.35, BIGRAM_BASE = 1.0;
+
+// Planetary
+const ORBITAL_PERIOD = [87.97,224.70,365.25,686.97,4332.59,10759.22];
+const J2000_LONGITUDE = [252.25,181.98,100.46,355.45,34.40,49.94];
+const J2000_EPOCH_MS = new Date(2000,0,1,12,0,0).getTime();
 
 const ANNUAL_DRIFT = 11.25;
 const GREGORIAN_YEAR = 365.25;
@@ -544,6 +547,17 @@ function detectLanguage(text: string, langs: Map<string, LangPack>): string {
 // CALENDAR
 // ═══════════════════════════════════════════════════
 
+function planetaryDissonance(): number {
+  const days = (Date.now() - J2000_EPOCH_MS) / 86400000;
+  let cosSum = 0, sinSum = 0;
+  for (let i = 0; i < 6; i++) {
+    const theta = ((J2000_LONGITUDE[i] + 360 * (days / ORBITAL_PERIOD[i])) % 360) * Math.PI / 180;
+    cosSum += Math.cos(theta); sinSum += Math.sin(theta);
+  }
+  cosSum /= 6; sinSum /= 6;
+  return Math.max(0, Math.min(1, 1 - Math.sqrt(cosSum*cosSum + sinSum*sinSum)));
+}
+
 function calendarDissonance(): number {
   const days = (Date.now() - EPOCH_MS) / 86400000;
   const years = days / GREGORIAN_YEAR;
@@ -702,9 +716,14 @@ function exhaleGenerate(
       let somaScore = 0;
       for (let c = 0; c < N_CH; c++) somaScore += ch.act[c] * lp.exhale[w].aff[c];
       const biScore = prev >= 0 ? metaBigram(lp.meta, prev, w) : 0;
-      logits[w] = (ALPHA_SOM * somaScore + BETA_BIG * biScore + GAMMA_HEB * hebb[w]
-        + ZETA_META * (ghost[w] || 0)
-        + EPSILON_PROP * (propPressure > 0.3 ? somaScore * 0.5 : 0));
+      // Full Dario 7-force
+      const amod = Math.max(0.5,Math.min(2, 1+0.3*ch.act[1]-0.2*ch.act[2]+0.1*ch.act[4]));
+      const tmod = Math.max(0.5,Math.min(2, 1+0.5*ch.act[4]-0.3*ch.act[0]));
+      const vt = Math.max(0.1, tmod * GEN_TEMP);
+      const B = biScore * BIGRAM_BASE;
+      const H = amod * DARIO_ALPHA * hebb[w];
+      const G = DARIO_ZETA * (ghost[w] || 0);
+      logits[w] = (B + H + G + somaScore) / vt;
       if (localUsed.has(String(w)) || localUsed.has(lp.exhale[w].text)) logits[w] -= 100;
     }
     for (let w = 0; w < nEx; w++) logits[w] /= GEN_TEMP;
