@@ -95,6 +95,13 @@
 #define MAX_WORMHOLE_LOG 32
 #define META_BLEND     0.15f  /* meta-recursion blending weight */
 
+/* Spore system — persistent pattern memory (NOTORCH) */
+#define SPORE_MAGIC    0x53504F52  /* "SPOR" */
+#define SPORE_FILE     "klaus.spore"
+#define MAX_SPORE_PAIRS 4096   /* max remembered inhale→exhale resonance pairs */
+#define SPORE_LEARN_RATE 0.05f /* Hebbian increment per resonance */
+#define SPORE_DECAY    0.999f  /* very slow decay — spores persist */
+
 /* Schectman equation constants */
 #define SCHECTMAN_ALPHA  0.8f    /* coupling constant alpha */
 #define SCHECTMAN_LAMBDA 2.5f    /* exponential sensitivity */
@@ -453,6 +460,40 @@ typedef struct {
     uint32_t coherence_window;
 } SomaHeader;
 
+/* ═══════════════════════════════════════════════════════════════
+ * SPORE SYSTEM — persistent pattern memory (NOTORCH)
+ *
+ * A spore records which inhale→exhale links resonated.
+ * Not what was said. Which CONNECTIONS fired.
+ * Accumulated Hebbian: no backprop, pure co-occurrence increment.
+ *
+ * Between sessions, Klaus remembers not conversations but PATTERNS.
+ * Which emotional inputs led to which somatic outputs.
+ * The spore IS the training. Organic. Grows from use.
+ *
+ * Also stores: chamber residue (what mood Klaus gravitates toward),
+ * tension pair counts (which chamber pairs co-activate most).
+ * ═══════════════════════════════════════════════════════════════ */
+
+typedef struct {
+    uint32_t inhale_hash;   /* hash of inhale word that triggered */
+    uint32_t exhale_idx;    /* index of exhale word that resonated */
+    float strength;         /* accumulated resonance strength */
+    float chamber_snapshot[N_CHAMBERS]; /* chamber state when this pair fired */
+    uint16_t lang_id;       /* which language */
+    uint16_t hit_count;     /* how many times this pair fired */
+} SporePair;
+
+typedef struct {
+    SporePair pairs[MAX_SPORE_PAIRS];
+    int n_pairs;
+    float chamber_residue[N_CHAMBERS]; /* running average of all chamber states */
+    float tension_matrix[N_CHAMBERS][N_CHAMBERS]; /* co-activation counts */
+    int total_interactions;
+    /* online Hebbian delta — accumulated since last save */
+    float hebbian_delta[MAX_EXHALE]; /* per-exhale-word accumulated boost */
+} SporeMemory;
+
 /* Dark matter word entry */
 typedef struct {
     const char *word;
@@ -513,6 +554,10 @@ typedef struct {
     float alpha_mod, beta_mod, gamma_mod, tau_mod; /* somatic-modulated coefficients */
     float trauma_level;          /* [0,1] current trauma intensity */
     float resonance_field;       /* [0,1] overall field resonance */
+    /* Spore system */
+    SporeMemory spores;          /* persistent pattern memory */
+    int matched_inhale[32];      /* inhale word hashes from current prompt */
+    int n_matched_inhale;
 } Klaus;
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1953,6 +1998,147 @@ static void experience_consolidate(Klaus *k) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+ * SPORE FUNCTIONS — NOTORCH learning + persistence
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Record an inhale→exhale resonance pair */
+static void spore_learn(Klaus *k, uint32_t inhale_hash, int exhale_idx,
+                        int lang_id) {
+    SporeMemory *sp = &k->spores;
+
+    /* look for existing pair */
+    for (int i = 0; i < sp->n_pairs; i++) {
+        if (sp->pairs[i].inhale_hash == inhale_hash &&
+            sp->pairs[i].exhale_idx == (uint32_t)exhale_idx &&
+            sp->pairs[i].lang_id == (uint16_t)lang_id) {
+            /* strengthen existing connection — pure Hebbian */
+            sp->pairs[i].strength += SPORE_LEARN_RATE;
+            sp->pairs[i].hit_count++;
+            /* update chamber snapshot (running avg) */
+            for (int c = 0; c < N_CHAMBERS; c++)
+                sp->pairs[i].chamber_snapshot[c] =
+                    0.8f * sp->pairs[i].chamber_snapshot[c] + 0.2f * k->ch.act[c];
+            return;
+        }
+    }
+
+    /* new pair */
+    if (sp->n_pairs < MAX_SPORE_PAIRS) {
+        SporePair *p = &sp->pairs[sp->n_pairs++];
+        p->inhale_hash = inhale_hash;
+        p->exhale_idx = (uint32_t)exhale_idx;
+        p->strength = SPORE_LEARN_RATE;
+        p->lang_id = (uint16_t)lang_id;
+        p->hit_count = 1;
+        memcpy(p->chamber_snapshot, k->ch.act, N_CHAMBERS * sizeof(float));
+    } else {
+        /* evict weakest */
+        int weakest = 0;
+        for (int i = 1; i < sp->n_pairs; i++)
+            if (sp->pairs[i].strength < sp->pairs[weakest].strength) weakest = i;
+        SporePair *p = &sp->pairs[weakest];
+        p->inhale_hash = inhale_hash;
+        p->exhale_idx = (uint32_t)exhale_idx;
+        p->strength = SPORE_LEARN_RATE;
+        p->lang_id = (uint16_t)lang_id;
+        p->hit_count = 1;
+        memcpy(p->chamber_snapshot, k->ch.act, N_CHAMBERS * sizeof(float));
+    }
+}
+
+/* Update chamber residue and tension matrix */
+static void spore_update_residue(Klaus *k) {
+    SporeMemory *sp = &k->spores;
+    sp->total_interactions++;
+    float alpha = 1.0f / (float)(sp->total_interactions + 1);
+    /* running average of chamber states */
+    for (int c = 0; c < N_CHAMBERS; c++)
+        sp->chamber_residue[c] = (1.0f - alpha) * sp->chamber_residue[c] + alpha * k->ch.act[c];
+    /* tension matrix: which chambers co-activate */
+    for (int i = 0; i < N_CHAMBERS; i++)
+        for (int j = i + 1; j < N_CHAMBERS; j++)
+            sp->tension_matrix[i][j] += k->ch.act[i] * k->ch.act[j] * 0.01f;
+}
+
+/* Apply spore-accumulated Hebbian boost to exhale logits */
+static void spore_boost(const Klaus *k, int lang_idx, float *logits, int n_ex) {
+    const SporeMemory *sp = &k->spores;
+    for (int i = 0; i < sp->n_pairs; i++) {
+        if (sp->pairs[i].lang_id != (uint16_t)lang_idx) continue;
+        int eidx = (int)sp->pairs[i].exhale_idx;
+        if (eidx >= n_ex) continue;
+        /* check if any current inhale word matches this spore's inhale */
+        for (int m = 0; m < k->n_matched_inhale; m++) {
+            if ((uint32_t)k->matched_inhale[m] == sp->pairs[i].inhale_hash) {
+                /* this pair resonated before — boost it */
+                logits[eidx] += sp->pairs[i].strength * 0.5f;
+                break;
+            }
+        }
+    }
+}
+
+/* Decay all spore strengths (very slow) */
+static void spore_decay(Klaus *k) {
+    SporeMemory *sp = &k->spores;
+    int w = 0;
+    for (int i = 0; i < sp->n_pairs; i++) {
+        sp->pairs[i].strength *= SPORE_DECAY;
+        if (sp->pairs[i].strength > 0.001f)
+            sp->pairs[w++] = sp->pairs[i];
+    }
+    sp->n_pairs = w;
+}
+
+/* Save spores to disk */
+static void spore_save(const Klaus *k) {
+    char path[512];
+    snprintf(path, sizeof(path), "%s/%s",
+             k->soma_path[0] ? k->soma_path : ".", SPORE_FILE);
+    /* use base dir from soma_path */
+    char dir[512];
+    snprintf(dir, sizeof(dir), "%s", k->soma_path);
+    char *last_slash = strrchr(dir, '/');
+    if (last_slash) { *last_slash = '\0'; snprintf(path, sizeof(path), "%s/%s", dir, SPORE_FILE); }
+    else snprintf(path, sizeof(path), "%s", SPORE_FILE);
+
+    FILE *f = fopen(path, "wb");
+    if (!f) return;
+    uint32_t magic = SPORE_MAGIC;
+    fwrite(&magic, 4, 1, f);
+    fwrite(&k->spores.n_pairs, 4, 1, f);
+    fwrite(&k->spores.total_interactions, 4, 1, f);
+    fwrite(k->spores.chamber_residue, sizeof(float), N_CHAMBERS, f);
+    fwrite(k->spores.tension_matrix, sizeof(float), N_CHAMBERS * N_CHAMBERS, f);
+    for (int i = 0; i < k->spores.n_pairs; i++) {
+        fwrite(&k->spores.pairs[i], sizeof(SporePair), 1, f);
+    }
+    fclose(f);
+}
+
+/* Load spores from disk */
+static int spore_load(Klaus *k) {
+    char path[512];
+    snprintf(path, sizeof(path), "%s", SPORE_FILE);
+
+    FILE *f = fopen(path, "rb");
+    if (!f) return 0;
+    uint32_t magic;
+    if (fread(&magic, 4, 1, f) != 1 || magic != SPORE_MAGIC) { fclose(f); return 0; }
+    fread(&k->spores.n_pairs, 4, 1, f);
+    fread(&k->spores.total_interactions, 4, 1, f);
+    fread(k->spores.chamber_residue, sizeof(float), N_CHAMBERS, f);
+    fread(k->spores.tension_matrix, sizeof(float), N_CHAMBERS * N_CHAMBERS, f);
+    for (int i = 0; i < k->spores.n_pairs; i++) {
+        fread(&k->spores.pairs[i], sizeof(SporePair), 1, f);
+    }
+    fclose(f);
+    printf("[klaus] spores loaded: %d pairs, %d total interactions\n",
+           k->spores.n_pairs, k->spores.total_interactions);
+    return 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
  * LEVEL 3: SOMATIC PERSISTENCE — save/load binary state
  * Magic: 0x4B4C5353 ("KLSS")
  * ═══════════════════════════════════════════════════════════════ */
@@ -2234,6 +2420,9 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             /* Full equation: (B + H + F + A + V + G + T) / (τ_mod · τ · v_tau) */
             logits[w] = (B + H + F + A + V + G + T + soma_score) / fmaxf(v_tau, 0.1f);
 
+            /* spore boost: patterns that resonated before get amplified */
+            spore_boost(k, lang_idx, logits, n_ex);
+
             /* penalize already-used words heavily (by text, not just index) */
             for (int u = 0; u < k->n_used; u++) {
                 if (k->used_exhale[u] == w ||
@@ -2321,6 +2510,13 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
     k->n_prev = n_gen < 4 ? n_gen : 4;
     for (int i = 0; i < k->n_prev; i++)
         k->prev_exhale[i] = out_words[n_gen - k->n_prev + i];
+
+    /* NOTORCH: learn inhale→exhale resonance pairs into spores */
+    for (int g = 0; g < n_gen; g++) {
+        for (int m = 0; m < k->n_matched_inhale; m++) {
+            spore_learn(k, (uint32_t)k->matched_inhale[m], out_words[g], lang_idx);
+        }
+    }
 
     return n_gen;
 }
@@ -2447,6 +2643,12 @@ static int klaus_init(Klaus *k, const char *base_dir) {
     } else {
         printf("[klaus] fresh soma — no prior memory.\n");
     }
+    /* try to load spores — persistent pattern memory */
+    if (spore_load(k)) {
+        printf("[klaus] SPORES LOADED — patterns remembered.\n");
+    } else {
+        printf("[klaus] no spores — learning from scratch.\n");
+    }
 
     printf("[klaus] ready. inhale.\n\n");
     return 1;
@@ -2502,6 +2704,11 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
     float emotion[N_CHAMBERS];
     int matched_indices[64];
     int n_matched = inhale_process(lp, prompt, emotion, matched_indices, 64);
+
+    /* 2a-spore. Store matched inhale hashes for spore learning */
+    k->n_matched_inhale = n_matched < 32 ? n_matched : 32;
+    for (int i = 0; i < k->n_matched_inhale; i++)
+        k->matched_inhale[i] = (int)hash_word(lp->inhale[matched_indices[i]].text);
 
     /* 2b. Dark matter amplification of emotion */
     if (k->dark_matter_active) {
@@ -2679,7 +2886,12 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
     resp.phase_gate = psi_phase_gate(k);
     resp.sustained_resonance = k->rba.sustained_resonance;
 
-    /* 13. Save somatic state to disk */
+    /* 13. Spore update: residue + decay + save */
+    spore_update_residue(k);
+    spore_decay(k);
+    spore_save(k);
+
+    /* 14. Save somatic state to disk */
     soma_save(k);
 
     return resp;
