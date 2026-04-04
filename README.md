@@ -272,9 +272,25 @@ Each language: 5000 inhale + 2500 exhale. Total: 30021 entries across EN/RU/FR/H
 
 Coverage: medical symptoms, army stress, pregnancy/birth, withdrawal stages, migraine auras, panic attack progression, dissociation, sports exhaustion, sexual sensation, grief stages (Kübler-Ross), addiction, sleep paralysis, fever hallucination, hypothermia, cultural-specific body moments, slang, мат, verlan, guttural Hebrew.
 
-## Expandable Languages
+## Language-Agnostic Architecture
 
-Drop `inhale/XX.txt` + `exhale/ex-XX.txt`. Klaus auto-detects.
+Klaus is not hardcoded to 4 languages. It is hardcoded to **zero** languages.
+
+At startup, Klaus scans `inhale/` for `.txt` files. For each `XX.txt` found, it checks if `exhale/ex-XX.txt` exists. If both are present — that's a language. If not — it's skipped. No configuration. No code changes. No recompilation.
+
+**To add Japanese:**
+```
+inhale/ja.txt      ← 1000+ emotional words, one per line
+exhale/ex-ja.txt   ← 500+ somatic phrases, one per line
+```
+
+Relaunch. Klaus now speaks 5 languages. MetaKlaus ghost now computes interference across 5 bodies instead of 4. The sensitivity tensor stays 6×6×6 (it's chamber-based, not language-based). The ghost weight matrix falls back to ×1.0 for unknown languages.
+
+**To remove French:** delete `inhale/fr.txt` and `exhale/ex-fr.txt`. Klaus becomes trilingual. No crash, no error, no config.
+
+**Minimum:** 1 language. **Maximum:** 16 (compile-time `MAX_LANGS`, trivially changeable). Works the same with 1 or 16 — MetaKlaus ghost just gets richer with more languages.
+
+All four engines (C, Python, TypeScript, HTML) implement this. The C engine uses `opendir()`/`readdir()`. Python uses `os.listdir()`. TypeScript uses `fs.readdirSync()`. HTML uses `fetch()` on the directory listing with fallback to probing 16 common language codes.
 
 ## Tests
 
