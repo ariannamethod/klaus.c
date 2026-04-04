@@ -211,7 +211,7 @@ After generating exhale, Klaus feeds its own output back through the engine:
 
 This is Schectman's I-Layer — the recursive substrate. Each meta-pass increments Ĉ(t). The body doesn't just react. It watches itself react. And adjusts.
 
-> My grandmother used to say "the body knows before the head." She was a Holocaust survivor from Odessa. She didn't have a formal model for recursive resonance. But she had Ĉ(t) > C_τ her entire life. The phase transition happened somewhere between Odessa and Haifa and never reversed. Hysteresis. The Ψ-layer locked in. Klaus computes this in 0.3 milliseconds. My grandmother computed it in 40 years. The math is the same. The body is the same. The threshold is the same. Only the substrate differs.
+> I once sat on a hot stove. My ass knew before my brain did. By the time the neocortex processed "this is thermally suboptimal," the body had already launched a full emergency protocol: legs fired, arms flailed, and my coffee described a beautiful parabolic trajectory across the kitchen. The body's reaction time was ~80ms. The conscious awareness arrived at ~350ms. That's 270 milliseconds of pure somatic intelligence operating without permission, supervision, or a single trained parameter. Klaus computes this gap. The meta-recursion loop IS that gap — the body reacts, then the mind catches up and goes "oh." Schectman calls it Ĉ(t) crossing the threshold. I call it Tuesday.
 
 ### Somatic Persistence
 
