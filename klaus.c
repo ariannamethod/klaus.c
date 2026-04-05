@@ -102,6 +102,14 @@
 #define SPORE_LEARN_RATE 0.05f /* Hebbian increment per resonance */
 #define SPORE_DECAY    0.999f  /* very slow decay — spores persist */
 
+/* Knowledge Kernel — docs/ as inner library */
+#define MAX_KK_DOCS    32
+#define MAX_KK_CHUNKS  8        /* chunks per document */
+#define MAX_KK_KEYWORDS 16      /* keywords per chunk */
+#define KK_KEYWORD_LEN 48
+#define KK_CHUNK_WORDS 200      /* words per chunk window */
+#define KK_MOOD_BLEND  0.08f    /* background mood blend into chambers */
+
 /* DOE Parliament — multiple experts vote on word selection */
 #define N_EXPERTS      3
 #define EXPERT_SOMATIC 0  /* follows dominant chamber — the body's loudest voice */
@@ -152,6 +160,7 @@ static const char *VEL_NAMES[] = {"WALK","RUN","STOP","BREATHE","UP","DOWN"};
 #define DARIO_GAMMA  0.25f   /* Destiny attraction */
 #define DARIO_DELTA  0.20f   /* RRPRAM rhythmic */
 #define DARIO_ZETA   0.35f   /* MetaKlaus ghost */
+#define DARIO_KAPPA  0.20f   /* Knowledge resonance (KK) */
 #define DARIO_TAU    0.85f   /* base temperature */
 #define BIGRAM_BASE  1.0f    /* bigram chain base weight */
 
@@ -500,6 +509,43 @@ typedef struct {
     float hebbian_delta[MAX_EXHALE]; /* per-exhale-word accumulated boost */
 } SporeMemory;
 
+/* ═══════════════════════════════════════════════════════════════
+ * KNOWLEDGE KERNEL — the inner library
+ *
+ * docs/ folder scanned at init via opendir(). No hardcoded filenames.
+ * Each document parsed through inhale → 6D emotion vector (mood).
+ * Each chunk yields keywords that boost exhale phrases at generation.
+ *
+ * The 8th force in the Dario equation:
+ *   K = knowledge resonance — words from the resonant document
+ *       attract exhale phrases that contain them.
+ *
+ * Klaus is a reader. The docs are his library.
+ * The body reacts through the library.
+ * ═══════════════════════════════════════════════════════════════ */
+
+typedef struct {
+    char keywords[MAX_KK_KEYWORDS][KK_KEYWORD_LEN];
+    int n_keywords;
+    float mood[N_CHAMBERS];  /* chunk-level emotion vector */
+} KKChunk;
+
+typedef struct {
+    char name[128];
+    float mood[N_CHAMBERS];             /* document-level emotion vector */
+    KKChunk chunks[MAX_KK_CHUNKS];
+    int n_chunks;
+} KKDoc;
+
+typedef struct {
+    KKDoc docs[MAX_KK_DOCS];
+    int n_docs;
+    float blended_mood[N_CHAMBERS];     /* weighted average of all docs */
+    int active_doc;                     /* index of currently resonant doc */
+    int active_chunk;                   /* index of resonant chunk within doc */
+    float knowledge_signal[MAX_EXHALE]; /* per-exhale boost from KK */
+} KnowledgeKernel;
+
 /* Dark matter word entry */
 typedef struct {
     const char *word;
@@ -564,6 +610,9 @@ typedef struct {
     SporeMemory spores;          /* persistent pattern memory */
     int matched_inhale[32];      /* inhale word hashes from current prompt */
     int n_matched_inhale;
+    /* Knowledge Kernel — inner library */
+    KnowledgeKernel kk;
+    float kappa_mod;             /* somatic-modulated knowledge coefficient */
 } Klaus;
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2455,6 +2504,7 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
     k->beta_mod  = clampf(1.0f + 0.2f*C[CH_FLOW] - 0.3f*C[CH_FEAR], 0.5f, 2.0f);
     k->gamma_mod = clampf(1.0f + 0.4f*C[CH_VOID] + 0.2f*C[CH_COMPLEX] - 0.1f*C[CH_LOVE], 0.5f, 2.0f);
     k->tau_mod   = clampf(1.0f + 0.5f*C[CH_FLOW] - 0.3f*C[CH_FEAR], 0.5f, 2.0f);
+    k->kappa_mod = clampf(1.0f + 0.4f*C[CH_COMPLEX] + 0.3f*C[CH_FLOW] - 0.2f*C[CH_RAGE], 0.3f, 2.0f);
 
     /* effective coefficients */
     float eff_alpha = k->alpha_mod * DARIO_ALPHA;
@@ -2515,8 +2565,11 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             for (int c = 0; c < N_CHAMBERS; c++)
                 T += k->ch.scar[c] * lp->exhale[w].aff[c] * 0.5f;
 
-            /* Full equation: (B + H + F + A + V + G + T) / (τ_mod · τ · v_tau) */
-            logits[w] = (B + H + F + A + V + G + T + soma_score) / fmaxf(v_tau, 0.1f);
+            /* K: Knowledge resonance — inner library pulls toward its words */
+            float K = k->kappa_mod * DARIO_KAPPA * k->kk.knowledge_signal[w];
+
+            /* Full equation: (B + H + F + A + V + G + T + K) / (τ_mod · τ · v_tau) */
+            logits[w] = (B + H + F + A + V + G + T + K + soma_score) / fmaxf(v_tau, 0.1f);
 
             /* penalize already-used words heavily (by text, not just index) */
             for (int u = 0; u < k->n_used; u++) {
@@ -2583,6 +2636,287 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
     }
 
     return n_gen;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * KNOWLEDGE KERNEL — scan docs/, extract mood + keywords
+ *
+ * No hardcoded filenames. opendir() like inhale/.
+ * Each .txt file in docs/ = one document in the library.
+ * Documents parsed through inhale to get emotion vectors.
+ * Keywords extracted by word frequency (Q-style heavy tokens).
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* Extract keywords from raw text: most frequent words >= 4 chars */
+static int kk_extract_keywords(const char *text, char keywords[][KK_KEYWORD_LEN],
+                               int max_kw) {
+    typedef struct { char w[KK_KEYWORD_LEN]; int count; } WC;
+    WC counts[512];
+    int nc = 0;
+
+    char buf[8192];
+    snprintf(buf, sizeof(buf), "%s", text);
+    char *saveptr;
+    char *tok = strtok_r(buf, " \t\n\r.,!?;:\"'()-/[]{}#*0123456789", &saveptr);
+    while (tok) {
+        /* lowercase */
+        char lower[KK_KEYWORD_LEN];
+        int i;
+        for (i = 0; tok[i] && i < KK_KEYWORD_LEN - 1; i++)
+            lower[i] = tolower((unsigned char)tok[i]);
+        lower[i] = '\0';
+
+        /* skip short words and stopwords */
+        int len = (int)strlen(lower);
+        if (len < 4) { tok = strtok_r(NULL, " \t\n\r.,!?;:\"'()-/[]{}#*0123456789", &saveptr); continue; }
+
+        /* count */
+        int found = 0;
+        for (int j = 0; j < nc; j++) {
+            if (strcmp(counts[j].w, lower) == 0) {
+                counts[j].count++;
+                found = 1;
+                break;
+            }
+        }
+        if (!found && nc < 512) {
+            snprintf(counts[nc].w, KK_KEYWORD_LEN, "%s", lower);
+            counts[nc].count = 1;
+            nc++;
+        }
+        tok = strtok_r(NULL, " \t\n\r.,!?;:\"'()-/[]{}#*0123456789", &saveptr);
+    }
+
+    /* sort by count descending (simple selection sort, nc <= 512) */
+    for (int i = 0; i < nc - 1; i++) {
+        int best = i;
+        for (int j = i + 1; j < nc; j++)
+            if (counts[j].count > counts[best].count) best = j;
+        if (best != i) { WC tmp = counts[i]; counts[i] = counts[best]; counts[best] = tmp; }
+    }
+
+    int n = 0;
+    for (int i = 0; i < nc && n < max_kw; i++) {
+        if (counts[i].count < 2) break;  /* need at least 2 occurrences */
+        snprintf(keywords[n], KK_KEYWORD_LEN, "%s", counts[i].w);
+        n++;
+    }
+    return n;
+}
+
+/* Parse a document chunk through inhale vocabulary to get its emotion */
+static void kk_chunk_mood(const Klaus *k, const char *text, float *mood) {
+    memset(mood, 0, N_CHAMBERS * sizeof(float));
+    int total = 0;
+    for (int l = 0; l < k->n_langs; l++) {
+        const LangPack *lp = &k->langs[l];
+        char buf[8192];
+        snprintf(buf, sizeof(buf), "%s", text);
+        char *saveptr;
+        char *tok = strtok_r(buf, " \t\n\r.,!?;:\"'()-", &saveptr);
+        while (tok) {
+            char lower[MAX_WORD];
+            int i;
+            for (i = 0; tok[i] && i < MAX_WORD - 1; i++)
+                lower[i] = tolower((unsigned char)tok[i]);
+            lower[i] = '\0';
+            for (int w = 0; w < lp->n_inhale; w++) {
+                if (strcmp(lower, lp->inhale[w].text) == 0 ||
+                    strcmp(tok, lp->inhale[w].text) == 0) {
+                    for (int c = 0; c < N_CHAMBERS; c++)
+                        mood[c] += lp->inhale[w].aff[c];
+                    total++;
+                    break;
+                }
+            }
+            tok = strtok_r(NULL, " \t\n\r.,!?;:\"'()-", &saveptr);
+        }
+    }
+    if (total > 0)
+        for (int c = 0; c < N_CHAMBERS; c++) mood[c] /= (float)total;
+}
+
+/* Load all docs from docs/ directory */
+static int kk_load(Klaus *k, const char *base_dir) {
+    char docs_dir[512];
+    snprintf(docs_dir, sizeof(docs_dir), "%s/docs", base_dir);
+
+    DIR *d = opendir(docs_dir);
+    if (!d) {
+        printf("[klaus] no docs/ directory — KK disabled\n");
+        return 0;
+    }
+
+    struct dirent *ent;
+    k->kk.n_docs = 0;
+
+    while ((ent = readdir(d)) != NULL && k->kk.n_docs < MAX_KK_DOCS) {
+        char *dot = strrchr(ent->d_name, '.');
+        if (!dot || strcmp(dot, ".txt") != 0) continue;
+
+        char path[512];
+        snprintf(path, sizeof(path), "%s/%s", docs_dir, ent->d_name);
+
+        FILE *f = fopen(path, "r");
+        if (!f) continue;
+
+        /* read entire file */
+        fseek(f, 0, SEEK_END);
+        long sz = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        if (sz <= 0 || sz > 100000) { fclose(f); continue; }
+
+        char *text = (char *)malloc(sz + 1);
+        if (!text) { fclose(f); continue; }
+        fread(text, 1, sz, f);
+        text[sz] = '\0';
+        fclose(f);
+
+        KKDoc *doc = &k->kk.docs[k->kk.n_docs];
+        snprintf(doc->name, sizeof(doc->name), "%s", ent->d_name);
+
+        /* compute document-level mood (all text through inhale) */
+        kk_chunk_mood(k, text, doc->mood);
+
+        /* chunk the document */
+        doc->n_chunks = 0;
+        char *ptr = text;
+        while (*ptr && doc->n_chunks < MAX_KK_CHUNKS) {
+            /* find chunk boundary: ~KK_CHUNK_WORDS words */
+            char *chunk_start = ptr;
+            int wcount = 0;
+            while (*ptr && wcount < KK_CHUNK_WORDS) {
+                if (*ptr == ' ' || *ptr == '\n') wcount++;
+                ptr++;
+            }
+            /* extend to end of sentence */
+            while (*ptr && *ptr != '.' && *ptr != '\n' && (ptr - chunk_start) < 8000) ptr++;
+            if (*ptr) ptr++;
+
+            int chunk_len = (int)(ptr - chunk_start);
+            if (chunk_len < 20) continue;
+
+            char chunk_buf[8192];
+            int copy_len = chunk_len < 8191 ? chunk_len : 8191;
+            memcpy(chunk_buf, chunk_start, copy_len);
+            chunk_buf[copy_len] = '\0';
+
+            KKChunk *ch = &doc->chunks[doc->n_chunks];
+            kk_chunk_mood(k, chunk_buf, ch->mood);
+            ch->n_keywords = kk_extract_keywords(chunk_buf, ch->keywords, MAX_KK_KEYWORDS);
+            doc->n_chunks++;
+        }
+
+        printf("[klaus] KK: %s — %d chunks, mood [", doc->name, doc->n_chunks);
+        int dom = 0;
+        for (int c = 1; c < N_CHAMBERS; c++)
+            if (doc->mood[c] > doc->mood[dom]) dom = c;
+        printf("%s:%.2f", CH_NAMES[dom], doc->mood[dom]);
+        printf("]\n");
+
+        k->kk.n_docs++;
+        free(text);
+    }
+    closedir(d);
+
+    /* compute blended mood across all docs */
+    memset(k->kk.blended_mood, 0, sizeof(k->kk.blended_mood));
+    if (k->kk.n_docs > 0) {
+        for (int di = 0; di < k->kk.n_docs; di++)
+            for (int c = 0; c < N_CHAMBERS; c++)
+                k->kk.blended_mood[c] += k->kk.docs[di].mood[c];
+        for (int c = 0; c < N_CHAMBERS; c++)
+            k->kk.blended_mood[c] /= (float)k->kk.n_docs;
+    }
+
+    printf("[klaus] KK: %d documents loaded as inner library\n", k->kk.n_docs);
+    return k->kk.n_docs;
+}
+
+/* Choose the most resonant document for current chamber state */
+static int kk_choose_doc(const Klaus *k) {
+    if (k->kk.n_docs == 0) return -1;
+    int best = 0;
+    float best_score = -1e30f;
+    for (int di = 0; di < k->kk.n_docs; di++) {
+        float score = vec_dot(k->ch.act, k->kk.docs[di].mood, N_CHAMBERS);
+        /* boost docs that match dominant chamber */
+        int dom = 0;
+        for (int c = 1; c < N_CHAMBERS; c++)
+            if (k->ch.act[c] > k->ch.act[dom]) dom = c;
+        score += k->kk.docs[di].mood[dom] * 0.5f;
+        if (score > best_score) { best_score = score; best = di; }
+    }
+    return best;
+}
+
+/* Choose best chunk within a document */
+static int kk_choose_chunk(const Klaus *k, int doc_idx) {
+    if (doc_idx < 0 || doc_idx >= k->kk.n_docs) return -1;
+    const KKDoc *doc = &k->kk.docs[doc_idx];
+    if (doc->n_chunks == 0) return -1;
+    int best = 0;
+    float best_score = -1e30f;
+    for (int ci = 0; ci < doc->n_chunks; ci++) {
+        float score = vec_dot(k->ch.act, doc->chunks[ci].mood, N_CHAMBERS);
+        if (score > best_score) { best_score = score; best = ci; }
+    }
+    return best;
+}
+
+/* Compute knowledge signal: chunk mood resonates with exhale affinity */
+static void kk_compute_signal(Klaus *k, int lang_idx) {
+    memset(k->kk.knowledge_signal, 0, sizeof(k->kk.knowledge_signal));
+    if (k->kk.n_docs == 0) return;
+
+    /* choose resonant doc and chunk */
+    k->kk.active_doc = kk_choose_doc(k);
+    if (k->kk.active_doc < 0) return;
+    k->kk.active_chunk = kk_choose_chunk(k, k->kk.active_doc);
+    if (k->kk.active_chunk < 0) return;
+
+    const KKChunk *chunk = &k->kk.docs[k->kk.active_doc].chunks[k->kk.active_chunk];
+    const LangPack *lp = &k->langs[lang_idx];
+
+    /* two-pronged matching:
+     * 1. keyword substring/similarity → direct boost
+     * 2. chunk mood dot exhale affinity → chamber-mediated resonance
+     *
+     * exhale phrases are short ("throat closes", "hands shake").
+     * doc keywords are literary words ("silence", "body", "chest").
+     * substring match catches direct hits.
+     * mood-affinity catches semantic resonance through chambers. */
+
+    /* prong 1: keyword matching */
+    for (int kw = 0; kw < chunk->n_keywords; kw++) {
+        const char *keyword = chunk->keywords[kw];
+        for (int w = 0; w < lp->n_exhale; w++) {
+            if (strstr(lp->exhale[w].text, keyword)) {
+                k->kk.knowledge_signal[w] += 1.0f;
+            } else {
+                float sim = word_similarity(keyword, lp->exhale[w].text);
+                if (sim > 0.35f)
+                    k->kk.knowledge_signal[w] += sim * 0.6f;
+            }
+        }
+    }
+
+    /* prong 2: chunk mood × exhale affinity (chamber-mediated) */
+    float chunk_norm = vec_norm(chunk->mood, N_CHAMBERS);
+    if (chunk_norm > 1e-6f) {
+        for (int w = 0; w < lp->n_exhale; w++) {
+            float dot = vec_dot(chunk->mood, lp->exhale[w].aff, N_CHAMBERS);
+            k->kk.knowledge_signal[w] += dot / chunk_norm * 0.8f;
+        }
+    }
+
+    /* normalize */
+    float mx = 0;
+    for (int w = 0; w < lp->n_exhale; w++)
+        if (k->kk.knowledge_signal[w] > mx) mx = k->kk.knowledge_signal[w];
+    if (mx > 0)
+        for (int w = 0; w < lp->n_exhale; w++)
+            k->kk.knowledge_signal[w] /= mx;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2714,6 +3048,9 @@ static int klaus_init(Klaus *k, const char *base_dir) {
         printf("[klaus] no spores — learning from scratch.\n");
     }
 
+    /* Knowledge Kernel — inner library */
+    kk_load(k, base_dir);
+
     printf("[klaus] ready. inhale.\n\n");
     return 1;
 }
@@ -2783,7 +3120,15 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
         k->ch.scar[CH_RAGE] = clampf(k->ch.scar[CH_RAGE] + dark_rage * 0.2f, 0.0f, 1.0f);
     }
 
-    /* 2c. Wormhole check: did any inhale word fulfill a prophecy? */
+    /* 2d. KK background mood — inner library colors the emotion */
+    if (k->kk.n_docs > 0) {
+        for (int c = 0; c < N_CHAMBERS; c++)
+            emotion[c] = clampf(
+                (1.0f - KK_MOOD_BLEND) * emotion[c] + KK_MOOD_BLEND * k->kk.blended_mood[c],
+                0.0f, 1.0f);
+    }
+
+    /* 2e. Wormhole check: did any inhale word fulfill a prophecy? */
     wormhole_check(k, matched_indices, n_matched, resp.lang_idx);
 
     /* 3. MLP: combine emotion + memory + calendar */
@@ -2842,6 +3187,9 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
     /* 7. MetaKlaus ghost attention (dark matter boosts 1.5x in exhale_generate) */
     metaklaus_compute(k, resp.lang_idx);
     resp.ghost_strength = k->ghost.interference;
+
+    /* 7b. KK: compute knowledge signal for current state + language */
+    kk_compute_signal(k, resp.lang_idx);
 
     /* 8. EXHALE: generate somatic response */
     int word_ids[MAX_RESPONSE];
