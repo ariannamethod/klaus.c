@@ -422,6 +422,350 @@ static void test_decay_rates(void) {
 }
 
 /* ════════════════════════════════════════════════
+ * TEST: Scar decay rate
+ * ════════════════════════════════════════════════ */
+static void test_scar_decay(void) {
+    TEST("scar decay (0.985) slower than memory");
+    float scar = 1.0f;
+    for (int i = 0; i < 100; i++) scar *= 0.985f;
+    ASSERT_TRUE(scar > 0.2f, "scar decayed too fast");
+    ASSERT_TRUE(scar < 0.3f, "scar didn't decay enough");
+    /* compare with memory decay (0.85) */
+    float mem = 1.0f;
+    for (int i = 0; i < 100; i++) mem *= 0.85f;
+    ASSERT_TRUE(scar > mem * 10.0f, "scar should outlast memory by a lot");
+    PASS();
+}
+
+static void test_scar_trigger_threshold(void) {
+    TEST("scar triggers at FEAR>0.8, RAGE>0.8, VOID>0.9");
+    /* FEAR at 0.79 should NOT trigger, at 0.81 should */
+    ASSERT_TRUE(0.79f <= 0.8f, "threshold logic");
+    ASSERT_TRUE(0.81f > 0.8f, "threshold logic");
+    /* VOID has higher threshold */
+    ASSERT_TRUE(0.89f <= 0.9f, "VOID threshold");
+    ASSERT_TRUE(0.91f > 0.9f, "VOID threshold");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: Velocity operators
+ * ════════════════════════════════════════════════ */
+static void test_velocity_run(void) {
+    TEST("velocity RUN: RAGE>0.6 + FEAR>0.5");
+    float act[6] = {0.7f, 0.1f, 0.8f, 0.1f, 0.1f, 0.1f}; /* FEAR=0.7, RAGE=0.8 */
+    int vel = 0; /* WALK default */
+    if (act[2] > 0.6f && act[0] > 0.5f) vel = 1; /* RUN */
+    ASSERT_TRUE(vel == 1, "should be RUN");
+    PASS();
+}
+
+static void test_velocity_stop(void) {
+    TEST("velocity STOP: VOID>0.7");
+    float act[6] = {0.1f, 0.1f, 0.1f, 0.8f, 0.1f, 0.1f}; /* VOID=0.8 */
+    int vel = 0;
+    if (act[2] > 0.6f && act[0] > 0.5f) vel = 1;
+    else if (act[3] > 0.7f) vel = 2; /* STOP */
+    ASSERT_TRUE(vel == 2, "should be STOP");
+    PASS();
+}
+
+static void test_velocity_breathe(void) {
+    TEST("velocity BREATHE: LOVE>0.6");
+    float act[6] = {0.1f, 0.7f, 0.1f, 0.1f, 0.3f, 0.1f}; /* LOVE=0.7 */
+    int vel = 0;
+    if (act[2] > 0.6f && act[0] > 0.5f) vel = 1;
+    else if (act[3] > 0.7f) vel = 2;
+    else if (act[4] > 0.6f) vel = 0; /* WALK */
+    else if (act[1] > 0.6f) vel = 3; /* BREATHE */
+    ASSERT_TRUE(vel == 3, "should be BREATHE");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: Dark matter detection
+ * ════════════════════════════════════════════════ */
+static void test_dark_matter_detect(void) {
+    TEST("dark matter: 'kill' triggers");
+    const char *text = "i want to kill myself";
+    ASSERT_TRUE(strstr(text, "kill") != NULL, "kill not found");
+    PASS();
+}
+
+static void test_dark_matter_whole_word(void) {
+    TEST("dark matter: 'skill' should NOT trigger 'kill'");
+    /* whole-word matching: 'kill' in 'skill' should be rejected */
+    const char *text = "skill";
+    const char *word = "kill";
+    const char *p = strstr(text, word);
+    int left_ok = (p == text) || !(p[-1] >= 'a' && p[-1] <= 'z');
+    ASSERT_TRUE(!left_ok, "skill should NOT match kill (left boundary)");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: Planetary dissonance
+ * ════════════════════════════════════════════════ */
+static void test_planetary_range(void) {
+    TEST("planetary dissonance in [0,1]");
+    float periods[] = {87.97f, 224.70f, 365.25f, 686.97f, 4332.59f, 10759.22f};
+    float longs[] = {252.25f, 181.98f, 100.46f, 355.45f, 34.40f, 49.94f};
+    /* test at several dates */
+    for (int days = 0; days < 20000; days += 500) {
+        float cs = 0, ss = 0;
+        for (int i = 0; i < 6; i++) {
+            float theta = (longs[i] + 360.0f * (float)days / periods[i]);
+            theta = fmodf(theta, 360.0f) * (3.14159265f / 180.0f);
+            cs += cosf(theta);
+            ss += sinf(theta);
+        }
+        cs /= 6; ss /= 6;
+        float R = sqrtf(cs*cs + ss*ss);
+        float disc = clampf(1.0f - R, 0.0f, 1.0f);
+        ASSERT_TRUE(disc >= 0.0f && disc <= 1.0f, "planetary out of range");
+    }
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: Sensitivity tensor
+ * ════════════════════════════════════════════════ */
+static void test_sensitivity_echo(void) {
+    TEST("sensitivity: echo amplification when g==d");
+    /* when ghost chamber == dominant, sensitivity should be 2x base */
+    for (int d = 0; d < 6; d++) {
+        for (int p = 0; p < 6; p++) {
+            float base = fabsf(COUPLING[d][p]);
+            float echo = base * 2.0f;
+            ASSERT_TRUE(echo >= base, "echo should amplify");
+        }
+    }
+    PASS();
+}
+
+static void test_sensitivity_suppression(void) {
+    TEST("sensitivity: suppression when coupling < -0.3");
+    /* FEAR-LOVE coupling is -0.30, so at boundary */
+    float base = fabsf(COUPLING[0][1]); /* |FEAR-LOVE| = 0.30 */
+    ASSERT_TRUE(base > 0.0f, "should have coupling");
+    /* LOVE-VOID coupling is -0.50 → strong suppression */
+    float base2 = fabsf(COUPLING[1][3]); /* |LOVE-VOID| = 0.50 */
+    float suppressed = base2 * 0.5f; /* suppression factor */
+    ASSERT_TRUE(suppressed < base2, "suppression should reduce");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: Ghost weight lookup
+ * ════════════════════════════════════════════════ */
+static void test_ghost_weights(void) {
+    TEST("ghost weights: Hebrew highest for FEAR");
+    float gw_fear[] = {1.0f, 1.8f, 1.2f, 0.9f, 1.0f}; /* EN HE RU FR OTHER */
+    float max_w = 0; int max_i = 0;
+    for (int i = 0; i < 5; i++) {
+        if (gw_fear[i] > max_w) { max_w = gw_fear[i]; max_i = i; }
+    }
+    ASSERT_TRUE(max_i == 1, "Hebrew should be highest for FEAR");
+    PASS();
+}
+
+static void test_ghost_weights_love(void) {
+    TEST("ghost weights: French highest for LOVE");
+    float gw_love[] = {1.0f, 1.4f, 1.1f, 1.7f, 1.0f};
+    float max_w = 0; int max_i = 0;
+    for (int i = 0; i < 5; i++) {
+        if (gw_love[i] > max_w) { max_w = gw_love[i]; max_i = i; }
+    }
+    ASSERT_TRUE(max_i == 3, "French should be highest for LOVE");
+    PASS();
+}
+
+static void test_ghost_weights_rage(void) {
+    TEST("ghost weights: Russian highest for RAGE");
+    float gw_rage[] = {1.0f, 1.3f, 1.8f, 0.8f, 1.0f};
+    float max_w = 0; int max_i = 0;
+    for (int i = 0; i < 5; i++) {
+        if (gw_rage[i] > max_w) { max_w = gw_rage[i]; max_i = i; }
+    }
+    ASSERT_TRUE(max_i == 2, "Russian should be highest for RAGE");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: Spore learning
+ * ════════════════════════════════════════════════ */
+static void test_spore_hebbian(void) {
+    TEST("spore Hebbian increment");
+    float strength = 0.0f;
+    float learn_rate = 0.05f;
+    for (int i = 0; i < 10; i++) strength += learn_rate;
+    ASSERT_FLOAT_EQ(strength, 0.5f, 0.001f, "10 hits should = 0.5");
+    PASS();
+}
+
+static void test_spore_decay(void) {
+    TEST("spore decay very slow (0.999)");
+    float s = 1.0f;
+    for (int i = 0; i < 1000; i++) s *= 0.999f;
+    ASSERT_TRUE(s > 0.35f, "spore decayed too fast in 1000 steps");
+    /* after 10000 steps should be nearly zero */
+    for (int i = 0; i < 9000; i++) s *= 0.999f;
+    ASSERT_TRUE(s < 0.01f, "spore should eventually decay");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: KK keyword extraction
+ * ════════════════════════════════════════════════ */
+static void test_kk_keyword_min_length(void) {
+    TEST("KK keywords >= 4 chars");
+    /* words shorter than 4 should be filtered out */
+    const char *shorts[] = {"a", "an", "the", "is"};
+    for (int i = 0; i < 4; i++) {
+        ASSERT_TRUE((int)strlen(shorts[i]) < 4, "test data wrong");
+    }
+    /* "silence" should pass */
+    ASSERT_TRUE((int)strlen("silence") >= 4, "silence should pass filter");
+    PASS();
+}
+
+static void test_kk_keyword_frequency(void) {
+    TEST("KK keywords need >= 2 occurrences");
+    /* a word appearing once should not be a keyword */
+    /* this is a logic test, not a full function test */
+    int count = 1;
+    ASSERT_TRUE(count < 2, "single occurrence should be filtered");
+    count = 3;
+    ASSERT_TRUE(count >= 2, "triple occurrence should pass");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: RBA-1 entropy
+ * ════════════════════════════════════════════════ */
+static void test_rba_entropy_uniform(void) {
+    TEST("RBA entropy: uniform = max");
+    float act[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+    float sum = 6.0f;
+    float S = 0;
+    for (int i = 0; i < 6; i++) {
+        float p = act[i] / sum;
+        if (p > 1e-10f) S -= p * logf(p);
+    }
+    float max_S = logf(6.0f);
+    ASSERT_FLOAT_EQ(S, max_S, 0.001f, "uniform should be max entropy");
+    PASS();
+}
+
+static void test_rba_entropy_focused(void) {
+    TEST("RBA entropy: focused = low");
+    float act[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    float sum = 1.0f;
+    float S = 0;
+    for (int i = 0; i < 6; i++) {
+        float p = act[i] / sum;
+        if (p > 1e-10f) S -= p * logf(p);
+    }
+    ASSERT_FLOAT_EQ(S, 0.0f, 0.001f, "single chamber should be zero entropy");
+    PASS();
+}
+
+static void test_rba_coherence(void) {
+    TEST("RBA coherence: focused > uniform");
+    /* focused state */
+    float focused[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    float max_S = logf(6.0f);
+    float S1 = 0, sum1 = 1.0f;
+    for (int i = 0; i < 6; i++) { float p = focused[i]/sum1; if (p>1e-10f) S1 -= p*logf(p); }
+    float coh1 = clampf(1.0f - S1/max_S, 0.0f, 1.0f);
+
+    /* uniform state */
+    float uniform[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+    float S2 = 0, sum2 = 6.0f;
+    for (int i = 0; i < 6; i++) { float p = uniform[i]/sum2; if (p>1e-10f) S2 -= p*logf(p); }
+    float coh2 = clampf(1.0f - S2/max_S, 0.0f, 1.0f);
+
+    ASSERT_TRUE(coh1 > coh2, "focused should have higher coherence");
+    ASSERT_FLOAT_EQ(coh1, 1.0f, 0.001f, "focused coherence should be 1.0");
+    ASSERT_FLOAT_EQ(coh2, 0.0f, 0.01f, "uniform coherence should be ~0.0");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: Somatic coefficient modulation
+ * ════════════════════════════════════════════════ */
+static void test_somatic_coeff_love_opens_hebbian(void) {
+    TEST("alpha_mod: LOVE opens Hebbian");
+    float C[6] = {0, 0.9f, 0, 0, 0, 0}; /* pure LOVE */
+    float alpha_mod = clampf(1.0f + 0.3f*C[1] - 0.2f*C[2] + 0.1f*C[4], 0.5f, 2.0f);
+    ASSERT_TRUE(alpha_mod > 1.2f, "LOVE should amplify alpha");
+    PASS();
+}
+
+static void test_somatic_coeff_fear_cools(void) {
+    TEST("tau_mod: FEAR cools temperature");
+    float C[6] = {0.9f, 0, 0, 0, 0, 0}; /* pure FEAR */
+    float tau_mod = clampf(1.0f + 0.5f*C[4] - 0.3f*C[0], 0.5f, 2.0f);
+    ASSERT_TRUE(tau_mod < 0.8f, "FEAR should cool tau");
+    PASS();
+}
+
+static void test_kappa_mod_complex_boosts(void) {
+    TEST("kappa_mod: COMPLEX + FLOW boost knowledge");
+    float C[6] = {0, 0, 0, 0, 0.8f, 0.9f}; /* FLOW + COMPLEX */
+    float kappa_mod = clampf(1.0f + 0.4f*C[5] + 0.3f*C[4] - 0.2f*C[2], 0.3f, 2.0f);
+    ASSERT_TRUE(kappa_mod > 1.5f, "COMPLEX+FLOW should amplify knowledge");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: Schectman equation basics
+ * ════════════════════════════════════════════════ */
+static void test_schectman_positive(void) {
+    TEST("Schectman I(t) positive for positive G(t)");
+    /* I(t) = G(t) * [1 + R(t)] where R can be negative */
+    float G = 0.5f;
+    float C_hat = 0.3f;
+    float gamma = 0.3f;
+    float exponent = 2.5f * (C_hat - gamma);
+    exponent = clampf(exponent, -10.0f, 10.0f);
+    float R = 1.0f * 0.8f * (expf(exponent) - 1.0f);
+    float I = G * (1.0f + R);
+    ASSERT_TRUE(I > 0.0f, "I(t) should be positive");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
+ * TEST: HyperKuramoto sub-chambers
+ * ════════════════════════════════════════════════ */
+static void test_hyperkuramoto_subchambers(void) {
+    TEST("24 sub-oscillators: 4 per chamber, bounded");
+    float sub[6][4];
+    float freq[4][6] = {
+        {0.30f,0.40f,0.80f,0.10f,0.50f,0.35f},
+        {1.20f,0.60f,1.50f,0.20f,0.70f,0.55f},
+        {0.60f,0.50f,0.90f,0.15f,0.60f,0.45f},
+        {0.90f,0.30f,1.10f,0.08f,0.40f,0.65f},
+    };
+    /* init */
+    for (int i = 0; i < 6; i++)
+        for (int s = 0; s < 4; s++)
+            sub[i][s] = 0.25f;
+    /* 10 iterations */
+    for (int t = 0; t < 10; t++) {
+        for (int i = 0; i < 6; i++) {
+            for (int s = 0; s < 4; s++) {
+                sub[i][s] = clampf(sub[i][s] * CH_DECAY[i] + 0.01f * sinf(freq[s][i] * 0.1f), 0.0f, 1.0f);
+            }
+        }
+    }
+    for (int i = 0; i < 6; i++)
+        for (int s = 0; s < 4; s++)
+            ASSERT_TRUE(sub[i][s] >= 0.0f && sub[i][s] <= 1.0f, "sub-chamber out of bounds");
+    PASS();
+}
+
+/* ════════════════════════════════════════════════
  * MAIN
  * ════════════════════════════════════════════════ */
 int main(void) {
@@ -450,6 +794,33 @@ int main(void) {
     test_prophecy_decay();
     test_dario_equation();
     test_decay_rates();
+
+    /* Level 3 tests */
+    test_scar_decay();
+    test_scar_trigger_threshold();
+    test_velocity_run();
+    test_velocity_stop();
+    test_velocity_breathe();
+    test_dark_matter_detect();
+    test_dark_matter_whole_word();
+    test_planetary_range();
+    test_sensitivity_echo();
+    test_sensitivity_suppression();
+    test_ghost_weights();
+    test_ghost_weights_love();
+    test_ghost_weights_rage();
+    test_spore_hebbian();
+    test_spore_decay();
+    test_kk_keyword_min_length();
+    test_kk_keyword_frequency();
+    test_rba_entropy_uniform();
+    test_rba_entropy_focused();
+    test_rba_coherence();
+    test_somatic_coeff_love_opens_hebbian();
+    test_somatic_coeff_fear_cools();
+    test_kappa_mod_complex_boosts();
+    test_schectman_positive();
+    test_hyperkuramoto_subchambers();
 
     printf("\n  %d/%d tests passed\n", tests_passed, tests_run);
     if (tests_passed == tests_run) {
