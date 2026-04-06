@@ -589,7 +589,7 @@ static float clampf(float x, float lo, float hi) {
 static float swish(float x) { return x / (1.0f + expf(-x)); }
 static float sigmoid(float x) { return 1.0f / (1.0f + expf(-x)); }
 
-static void softmax(float *x, int n) {
+__attribute__((unused)) static void softmax(float *x, int n) {
     float mx = x[0];
     for (int i = 1; i < n; i++) if (x[i] > mx) mx = x[i];
     float s = 0.0f;
@@ -1005,14 +1005,14 @@ static void meta_hebbian(const MetaW *mw, const int *ctx, int cl,
 
 static int detect_language(const Klaus *k, const char *text) {
     const unsigned char *p = (const unsigned char *)text;
-    int cyrillic = 0, hebrew = 0, accented = 0, ascii = 0;
+    int cyrillic = 0, hebrew = 0, accented = 0;
 
     while (*p) {
         if (p[0] >= 0xD0 && p[0] <= 0xD3 && p[1] >= 0x80) { cyrillic++; p += 2; }
         else if (p[0] == 0xD7 && p[1] >= 0x80) { hebrew++; p += 2; }
         else if (p[0] == 0xC3 && p[1]) { accented++; p += 2; }
         else if (*p >= 0x80) { p++; while (*p && (*p & 0xC0) == 0x80) p++; }
-        else { ascii++; p++; }
+        else { p++; }
     }
 
     /* find matching language pack */

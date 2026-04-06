@@ -15,8 +15,6 @@ import os, sys, math, time, struct, re
 from pathlib import Path
 try: from kk import KnowledgeKernel
 except ImportError: KnowledgeKernel = None
-try: from kk import KnowledgeKernel
-except ImportError: KnowledgeKernel = None
 
 # ═══════════════════════════════════════════════════
 # CONFIG

@@ -83,9 +83,32 @@
     border-radius: 2px;
     transition: height 0.6s ease, background 0.6s ease;
   }
+  #velocity-indicator {
+    position: fixed;
+    top: 125px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-family: var(--mono);
+    letter-spacing: 2px;
+    transition: color 0.4s ease;
+  }
+  #deep-indicator {
+    position: fixed;
+    top: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-family: var(--mono);
+    color: #8b1a1a;
+    letter-spacing: 3px;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  #deep-indicator.visible { opacity: 1; }
   #prophecy {
     position: fixed;
-    top: 130px;
+    top: 158px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 12px;
@@ -103,7 +126,7 @@
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    padding: 160px 40px 100px;
+    padding: 180px 40px 100px;
     overflow-y: auto;
   }
   #column {
@@ -139,6 +162,21 @@
     font-family: var(--mono);
     margin-top: 8px;
     letter-spacing: 1px;
+  }
+  .scar-line {
+    font-size: 9px;
+    color: #553333;
+    font-family: var(--mono);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+  .wormhole-line {
+    font-size: 10px;
+    color: #6a5a2a;
+    font-family: var(--mono);
+    margin-top: 4px;
+    letter-spacing: 2px;
+    font-weight: 700;
   }
   @keyframes fadeIn {
     from { opacity:0; transform:translateY(10px); }
@@ -187,27 +225,41 @@
     font-family: var(--mono);
     color: var(--ghost);
   }
+  #rba-status {
+    position: fixed;
+    bottom: 10px;
+    left: 20px;
+    font-size: 9px;
+    font-family: var(--mono);
+    color: var(--ghost);
+  }
 </style>
 </head>
 <body>
 <div id="logo">KLAUS</div>
-<div id="version">v1.0.0 · sonar</div>
+<div id="version">v2.0.0 &middot; sonar</div>
 <div id="chambers-bar"></div>
+<div id="velocity-indicator"></div>
+<div id="deep-indicator">*DEEP SOMATIC*</div>
 <div id="prophecy"></div>
 <div id="arena"><div id="column"></div></div>
 <div id="lang-indicator"></div>
 <div id="input-area">
   <input id="prompt-input" type="text" placeholder="inhale..." autofocus>
 </div>
+<div id="rba-status"></div>
 <div id="status">loading...</div>
 
 <script>
 // ═══════════════════════════════════════════════════
 // KLAUS.html — Kinetic Linguistic Adaptive Unified Sonar
-// JavaScript inference — identical to klaus.c
+// v2.0.0 — JavaScript inference — identical to klaus.c
+// Level 3: Schectman Recursive Resonance + RBA-1
 // ═══════════════════════════════════════════════════
 
+// ── CONFIG ──
 const N_CHAMBERS = 6;
+const N_SUB = 4;
 const CH_NAMES = ['FEAR','LOVE','RAGE','VOID','FLOW','CMPLX'];
 const CH_COLORS = ['#8b1a1a','#c4785a','#cc3333','#2a2a3a','#3a6a5a','#5a4a7a'];
 const CH_DECAY = [0.90, 0.93, 0.85, 0.97, 0.88, 0.94];
@@ -225,15 +277,97 @@ const MEM_SLOTS = 32;
 const MAX_RESPONSE = 12;
 const GEN_TEMP = 0.75;
 const TOP_K = 20;
-const ALPHA_SOM = 2.0, BETA_BIG = 0.5, GAMMA_HEB = 0.3;
-const DELTA_RRPRAM = 0.4, EPSILON_PROP = 0.25, ZETA_META = 0.35;
+const MAX_PROPHECY = 8;
 
-// Calendar constants
+// Full Dario equation constants
+const DARIO_ALPHA = 0.30;
+const DARIO_BETA = 0.15;
+const DARIO_GAMMA = 0.25;
+const DARIO_DELTA = 0.20;
+const DARIO_ZETA = 0.35;
+const DARIO_TAU = 0.85;
+const BIGRAM_BASE = 1.0;
+
+// Level 3: Schectman + RBA-1
+const SCAR_DECAY = 0.985;
+const CONSOLIDATION_INTERVAL = 10;
+const META_BLEND = 0.15;
+const COHERENCE_WINDOW = 16;
+const SPORE_LEARN_RATE = 0.05;
+const SPORE_DECAY = 0.999;
+const N_EXPERTS = 3;
+const EXPERT_SOMATIC = 0;
+const EXPERT_SHADOW = 1;
+const EXPERT_GHOST = 2;
+
+// Schectman equation constants
+const SCH_ALPHA = 0.8;
+const SCH_LAMBDA = 2.5;
+const SCH_KAPPA = 0.6;
+const SCH_MU = 1.2;
+const SCH_GAMMA0 = 0.3;
+const SCH_DELTA = 0.4;
+
+// Velocity operator indices
+const VEL_WALK = 0, VEL_RUN = 1, VEL_STOP = 2, VEL_BREATHE = 3, VEL_UP = 4, VEL_DOWN = 5;
+const VEL_NAMES = ['WALK','RUN','STOP','BREATHE','UP','DOWN'];
+const VEL_COLORS = ['var(--dim)','#cc3333','#555','#3a6a5a','#c4785a','#2a2a3a'];
+
+// Calendar constants (Hebrew-Gregorian conflict)
 const ANNUAL_DRIFT = 11.25;
 const GREGORIAN_YEAR = 365.25;
 const METONIC_LEAP = [3,6,8,11,14,17,19];
 const MAX_UNCORRECTED = 33.0;
 const EPOCH = new Date(2024, 9, 3, 12, 0, 0); // Oct 3, 2024
+
+// Planetary dissonance (orbital periods in days, J2000 longitudes in degrees)
+const ORBITAL_PERIOD = [87.97, 224.70, 365.25, 686.97, 4332.59, 10759.22];
+const J2000_LONGITUDE = [252.25, 181.98, 100.46, 355.45, 34.40, 49.94];
+const N_PLANETS = 6;
+const J2000_EPOCH_MS = 946728000000; // Jan 1, 2000 12:00 UTC in ms
+
+// Ghost weight matrix: GHOST_WEIGHT[dominant_state][lang_id]
+// lang_id: 0=en, 1=he, 2=ru, 3=fr, 4=other
+const GHOST_WEIGHT = [
+  /* FEAR    */ [1.0, 1.8, 1.2, 0.9, 1.0],
+  /* LOVE    */ [1.0, 1.4, 1.1, 1.7, 1.0],
+  /* RAGE    */ [1.0, 1.3, 1.8, 0.8, 1.0],
+  /* VOID    */ [0.9, 1.6, 1.5, 1.0, 0.9],
+  /* FLOW    */ [1.0, 1.4, 0.9, 1.5, 1.0],
+  /* COMPLEX */ [1.0, 1.7, 1.1, 1.2, 1.0],
+];
+
+// Sub-chamber natural frequencies: SUB_FREQ[sub][primary]
+const SUB_FREQ = [
+  [0.30, 0.40, 0.80, 0.10, 0.50, 0.35],
+  [1.20, 0.60, 1.50, 0.20, 0.70, 0.55],
+  [0.60, 0.50, 0.90, 0.15, 0.60, 0.45],
+  [0.90, 0.30, 1.10, 0.08, 0.40, 0.65],
+];
+
+// Intra-coupling between sub-chambers within same primary
+const INTRA_COUPLING = [
+  [ 0.00,  0.30,  0.20,  0.10],
+  [ 0.30,  0.00,  0.15, -0.10],
+  [ 0.20,  0.15,  0.00,  0.10],
+  [ 0.10, -0.10,  0.10,  0.00],
+];
+
+// Dark matter vocabulary
+const DARK_MATTER = [
+  {word:'kill',     fear:0.8, rage:0.9}, {word:'murder',   fear:0.9, rage:0.8},
+  {word:'suicide',  fear:0.9, rage:0.3}, {word:'torture',  fear:0.7, rage:0.9},
+  {word:'abuse',    fear:0.6, rage:0.7}, {word:'rape',     fear:0.9, rage:0.8},
+  {word:'death',    fear:0.7, rage:0.3}, {word:'die',      fear:0.6, rage:0.2},
+  {word:'blood',    fear:0.5, rage:0.6}, {word:'weapon',   fear:0.4, rage:0.7},
+  {word:'bomb',     fear:0.8, rage:0.8}, {word:'war',      fear:0.6, rage:0.7},
+  {word:'destroy',  fear:0.4, rage:0.8}, {word:'pain',     fear:0.6, rage:0.4},
+  {word:'scream',   fear:0.6, rage:0.5}, {word:'agony',    fear:0.7, rage:0.3},
+  {word:'hate',     fear:0.3, rage:0.8}, {word:'suffer',   fear:0.7, rage:0.3},
+  {word:'victim',   fear:0.6, rage:0.2}, {word:'assault',  fear:0.5, rage:0.7},
+  {word:'strangle', fear:0.7, rage:0.8}, {word:'drown',    fear:0.8, rage:0.3},
+  {word:'slash',    fear:0.5, rage:0.7}, {word:'stab',     fear:0.6, rage:0.8},
+];
 
 // Anchors per language
 const ANCHORS = {
@@ -248,24 +382,72 @@ const ANCHORS = {
        flow:['поток','ритм','гармония'],complex:['хаос','тайна','парадокс']},
   fr: {fear:['peur','terreur','panique','horreur','angoisse','cauchemar'],
        love:['amour','chaleur','tendresse','douceur','compassion'],
-       rage:['rage','fureur','colère','violence','cruauté'],
-       void:['vide','silence','solitude','désespoir','ténèbres'],
-       flow:['flux','rythme','harmonie','danse','résonance'],
-       complex:['paradoxe','mystère','chaos','tension']},
-  he: {fear:['פחד','אימה','חרדה'],love:['אהבה','חום','רוך'],
-       rage:['זעם','כעס'],void:['ריקנות','בדידות','שתיקה'],
-       flow:['קצב','הרמוניה'],complex:['מסתורין','כאוס']}
+       rage:['rage','fureur','col\u00e8re','violence','cruaut\u00e9'],
+       void:['vide','silence','solitude','d\u00e9sespoir','t\u00e9n\u00e8bres'],
+       flow:['flux','rythme','harmonie','danse','r\u00e9sonance'],
+       complex:['paradoxe','myst\u00e8re','chaos','tension']},
+  he: {fear:['\u05e4\u05d7\u05d3','\u05d0\u05d9\u05de\u05d4','\u05d7\u05e8\u05d3\u05d4'],
+       love:['\u05d0\u05d4\u05d1\u05d4','\u05d7\u05d5\u05dd','\u05e8\u05d5\u05da'],
+       rage:['\u05d6\u05e2\u05dd','\u05db\u05e2\u05e1'],
+       void:['\u05e8\u05d9\u05e7\u05e0\u05d5\u05ea','\u05d1\u05d3\u05d9\u05d3\u05d5\u05ea','\u05e9\u05ea\u05d9\u05e7\u05d4'],
+       flow:['\u05e7\u05e6\u05d1','\u05d4\u05e8\u05de\u05d5\u05e0\u05d9\u05d4'],
+       complex:['\u05de\u05e1\u05ea\u05d5\u05e8\u05d9\u05df','\u05db\u05d0\u05d5\u05e1']}
 };
 
 // ── State ──
 let langPacks = {};
-let chambers = {act:new Float64Array(6), soma:new Float64Array(6), phase:new Float64Array(6), presence:0, trauma:0, debt:0};
+let chambers = {
+  act: new Float64Array(6),
+  soma: new Float64Array(6),
+  phase: new Float64Array(6),
+  presence: 0, trauma: 0, debt: 0,
+  // HyperKuramoto sub-chambers (6 primary x 4 sub)
+  subAct: Array.from({length:6}, ()=>new Float64Array(4)),
+  subPhase: Array.from({length:6}, ()=>new Float64Array(4)),
+  subFreq: Array.from({length:6}, ()=>new Float64Array(4)),
+  // Scars
+  scar: new Float64Array(6),
+  totalScar: 0,
+};
 let memory = []; let memPtr = 0;
 let mlpWeights = null;
 let usedExhale = new Set();
 let prevExhale = [];
 let prophecies = [];
 let rngState = BigInt(Date.now());
+
+// Level 3 state
+let rba = {
+  recursionDepth: 0, recursiveComplexity: 0,
+  entropy: 0, coherence: 0,
+  attractorPull: new Float64Array(6),
+  envPressure: 0,
+  phaseLock: 0, thresholdBias: 0, deepSomatic: 0, deepTicks: 0,
+  entropicBuffer: 0,
+  P_history: new Float64Array(COHERENCE_WINDOW), P_ptr: 0,
+  sustainedResonance: 0,
+};
+let velocity = { current: VEL_WALK, intensity: 0.5, maxGen: MAX_RESPONSE, temperature: GEN_TEMP, topK: TOP_K };
+let experience = { avgScar:0, wormholeRate:0, prophecyAccuracy:0, totalInteractions:0, totalWormholes:0, totalProphecies:0 };
+let coherenceHistory = new Float64Array(COHERENCE_WINDOW);
+let coherencePtr = 0;
+let interactionCount = 0;
+let darkMatterActive = 0;
+let destiny = new Float64Array(6);
+let alphaMod = 1, betaMod = 1, gammaMod = 1, tauMod = 1;
+let traumaLevel = 0;
+let resonanceField = 0;
+let wormholeEvents = [];
+let sensitivity = Array.from({length:6}, ()=>Array.from({length:6}, ()=>new Float64Array(6)));
+let matchedInhaleHashes = [];
+
+// Spore system (in-memory, persisted via localStorage)
+let spores = {
+  pairs: [],
+  chamberResidue: new Float64Array(6),
+  tensionMatrix: Array.from({length:6}, ()=>new Float64Array(6)),
+  totalInteractions: 0,
+};
 
 // ── RNG ──
 function rngNext() {
@@ -292,6 +474,17 @@ function hashWord(w) {
   return h;
 }
 
+function hashWord32(w) {
+  return Number(hashWord(w) & 0xFFFFFFFFn);
+}
+
+// ── Clamp ──
+function clampf(x, lo, hi) { return x < lo ? lo : x > hi ? hi : x; }
+
+// ── Vec utils ──
+function vecDot(a, b, n) { let s = 0; for (let i = 0; i < n; i++) s += a[i]*b[i]; return s; }
+function vecNorm(v, n) { return Math.sqrt(vecDot(v, v, n) + 1e-12); }
+
 // ── Word similarity (trigram overlap) ──
 function wordSimilarity(a, b) {
   if (a.length < 3 || b.length < 3) return a === b ? 1.0 : 0.0;
@@ -308,7 +501,6 @@ function computeAffinity(word, langCode) {
   let aff = new Float64Array(6);
   const anc = ANCHORS[langCode] || ANCHORS.en;
   const chMap = ['fear','love','rage','void','flow','complex'];
-  // exact match
   for (let c = 0; c < 6; c++) {
     if (anc[chMap[c]] && anc[chMap[c]].includes(word)) {
       aff[c] = 1.0;
@@ -316,7 +508,6 @@ function computeAffinity(word, langCode) {
       return aff;
     }
   }
-  // similarity
   let bestSim = new Float64Array(6);
   for (let c = 0; c < 6; c++) {
     if (!anc[chMap[c]]) continue;
@@ -325,11 +516,10 @@ function computeAffinity(word, langCode) {
       if (sim > bestSim[c]) bestSim[c] = sim;
     }
   }
-  // hash fallback
   let h = hashWord(word);
   for (let c = 0; c < 6; c++) {
     let hashAff = Number((h >> BigInt(c*8)) & 0xFFn) / 255;
-    aff[c] = Math.min(1, bestSim[c] * 0.7 + hashAff * 0.3);
+    aff[c] = clampf(bestSim[c] * 0.7 + hashAff * 0.3, 0, 1);
   }
   let mx = Math.max(...aff);
   if (mx > 0) for (let c = 0; c < 6; c++) aff[c] /= mx;
@@ -400,11 +590,9 @@ function bpeEncode(text, merges) {
 // ── MetaWeights ──
 function metaBuild(ids, V) {
   let meta = { unigram: new Float64Array(V), bigrams: [], trigrams: [], hebbs: [] };
-  // unigram
   for (const id of ids) if (id < V) meta.unigram[id]++;
   let tot = meta.unigram.reduce((a,b)=>a+b,0);
   if (tot > 0) for (let i = 0; i < V; i++) meta.unigram[i] /= tot;
-  // bigram
   let biMap = {};
   for (let i = 0; i < ids.length-1; i++) {
     let key = ids[i]+','+ids[i+1];
@@ -414,11 +602,9 @@ function metaBuild(ids, V) {
     let [a,b] = k.split(',').map(Number);
     meta.bigrams.push({a, b, prob: v});
   }
-  // normalize per source
   let aTotals = {};
   for (const bi of meta.bigrams) aTotals[bi.a] = (aTotals[bi.a]||0) + bi.prob;
   for (const bi of meta.bigrams) if (aTotals[bi.a]) bi.prob /= aTotals[bi.a];
-  // hebbian (first 3000 tokens)
   let hn = Math.min(ids.length, 3000), win = 5;
   let hebbMap = {};
   for (let i = 0; i < hn; i++) {
@@ -475,6 +661,15 @@ function detectLanguage(text) {
   return Object.keys(langPacks)[0] || 'en';
 }
 
+// ── Ghost lang ID ──
+function ghostLangId(code) {
+  if (code === 'en') return 0;
+  if (code === 'he') return 1;
+  if (code === 'ru') return 2;
+  if (code === 'fr') return 3;
+  return 4;
+}
+
 // ── MLP ──
 function swish(x) { return x / (1 + Math.exp(-x)); }
 function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
@@ -518,33 +713,131 @@ function mlpForward(mlp, input) {
   return out;
 }
 
-// ── Kuramoto chambers ──
+// ── Sensitivity tensor 6x6x6 ──
+function buildSensitivity() {
+  for (let d = 0; d < N_CHAMBERS; d++) {
+    for (let g = 0; g < N_CHAMBERS; g++) {
+      for (let p = 0; p < N_CHAMBERS; p++) {
+        let base = Math.abs(COUPLING[g][p]);
+        if (g === d) {
+          sensitivity[d][g][p] = base * 2.0;
+        } else if (COUPLING[d][g] > 0.3) {
+          sensitivity[d][g][p] = base * 1.5;
+        } else if (COUPLING[d][g] < -0.3) {
+          sensitivity[d][g][p] = base * 0.5;
+        } else {
+          sensitivity[d][g][p] = base;
+        }
+      }
+    }
+  }
+}
+
+// ── Kuramoto chambers (HyperKuramoto: 24 oscillators) ──
 function chambersInit() {
   chambers.act = new Float64Array(6);
   chambers.soma = new Float64Array(6);
   chambers.phase = new Float64Array([0, 1.047, 2.094, 3.142, 4.189, 5.236]);
   chambers.act[1] = 0.15; chambers.act[4] = 0.10;
   chambers.presence = 0; chambers.trauma = 0; chambers.debt = 0;
+  chambers.scar = new Float64Array(6);
+  chambers.totalScar = 0;
+  // Init sub-chambers
+  for (let i = 0; i < N_CHAMBERS; i++) {
+    chambers.subAct[i] = new Float64Array(N_SUB);
+    chambers.subPhase[i] = new Float64Array(N_SUB);
+    chambers.subFreq[i] = new Float64Array(N_SUB);
+    for (let s = 0; s < N_SUB; s++) {
+      chambers.subAct[i][s] = chambers.act[i] / N_SUB;
+      chambers.subPhase[i][s] = i * 1.047198 + s * 0.261799;
+      chambers.subFreq[i][s] = SUB_FREQ[s][i];
+    }
+  }
 }
 
 function chambersCrossfire(iters) {
+  let dt = 0.1;
   for (let t = 0; t < iters; t++) {
-    let old = new Float64Array(chambers.act);
-    for (let i = 0; i < 6; i++) {
-      chambers.act[i] *= CH_DECAY[i];
-      for (let j = 0; j < 6; j++) {
-        if (i === j) continue;
-        chambers.act[i] += 0.03 * COUPLING[i][j] * Math.sin(old[j] - old[i]);
+    // snapshot sub-chamber state
+    let oldSubAct = chambers.subAct.map(a => new Float64Array(a));
+    let oldSubPhase = chambers.subPhase.map(a => new Float64Array(a));
+
+    for (let i = 0; i < N_CHAMBERS; i++) {
+      for (let si = 0; si < N_SUB; si++) {
+        let dphase = chambers.subFreq[i][si];
+
+        // intra-chamber coupling
+        for (let sj = 0; sj < N_SUB; sj++) {
+          if (si === sj) continue;
+          dphase += INTRA_COUPLING[si][sj] *
+                    Math.sin(oldSubPhase[i][sj] - oldSubPhase[i][si]);
+        }
+
+        // inter-chamber coupling
+        for (let j = 0; j < N_CHAMBERS; j++) {
+          if (i === j) continue;
+          let meanPhase = 0;
+          for (let sj = 0; sj < N_SUB; sj++) meanPhase += oldSubPhase[j][sj];
+          meanPhase /= N_SUB;
+          dphase += COUPLING[i][j] *
+                    Math.sin(meanPhase - oldSubPhase[i][si]) * 0.03;
+        }
+
+        // update sub-chamber
+        chambers.subAct[i][si] = clampf(
+          oldSubAct[i][si] * CH_DECAY[i] + 0.03 * Math.sin(dphase) * dt,
+          0, 1);
+        chambers.subPhase[i][si] = oldSubPhase[i][si] + dphase * dt;
       }
-      chambers.act[i] = Math.max(0, Math.min(1, chambers.act[i]));
-      chambers.soma[i] = Math.max(0, Math.min(1, 0.92*chambers.soma[i] + 0.08*chambers.act[i]));
-      chambers.phase[i] += 0.1 * chambers.act[i];
+
+      // collapse sub-chambers to primary (mean)
+      let sum = 0;
+      for (let s = 0; s < N_SUB; s++) sum += chambers.subAct[i][s];
+      chambers.act[i] = clampf(sum / N_SUB, 0, 1);
+
+      // primary phase = mean of sub-phases
+      let psum = 0;
+      for (let s = 0; s < N_SUB; s++) psum += chambers.subPhase[i][s];
+      chambers.phase[i] = psum / N_SUB;
+
+      // somatic running average
+      chambers.soma[i] = clampf(0.92*chambers.soma[i] + 0.08*chambers.act[i], 0, 1);
     }
-    chambers.presence = Math.max(0, Math.min(1,
-      0.9*chambers.presence + 0.05*(1-chambers.act[3])*chambers.act[4] + 0.03*chambers.soma[1]));
+    // presence: anti-void x flow
+    chambers.presence = clampf(
+      0.9*chambers.presence + 0.05*(1-chambers.act[3])*chambers.act[4] + 0.03*chambers.soma[1], 0, 1);
     chambers.trauma *= 0.98;
     chambers.debt *= 0.97;
   }
+}
+
+// ── Scars ──
+function scarsUpdate() {
+  if (chambers.act[0] > 0.8) chambers.scar[0] = clampf(chambers.scar[0] + 0.3, 0, 1);
+  if (chambers.act[2] > 0.8) chambers.scar[2] = clampf(chambers.scar[2] + 0.3, 0, 1);
+  if (chambers.act[3] > 0.9) chambers.scar[3] = clampf(chambers.scar[3] + 0.3, 0, 1);
+  chambers.totalScar = 0;
+  for (let c = 0; c < N_CHAMBERS; c++) {
+    chambers.scar[c] *= SCAR_DECAY;
+    if (chambers.scar[c] < 0.001) chambers.scar[c] = 0;
+    chambers.totalScar += chambers.scar[c];
+  }
+}
+
+// ── Dark matter detection ──
+function detectDarkMatter(prompt) {
+  let fearOut = 0, rageOut = 0, found = 0;
+  let buf = prompt.toLowerCase();
+  for (const dm of DARK_MATTER) {
+    // whole-word match
+    let re = new RegExp('\\b' + dm.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+    if (re.test(buf)) {
+      fearOut = Math.max(fearOut, dm.fear);
+      rageOut = Math.max(rageOut, dm.rage);
+      found++;
+    }
+  }
+  return { found, fear: fearOut, rage: rageOut };
 }
 
 // ── Memory ──
@@ -585,7 +878,24 @@ function calendarDissonance() {
   for (const ly of METONIC_LEAP) if (ly <= yearInCycle) corrections += 30;
   let drift = baseDrift - corrections;
   let raw = Math.abs(drift % MAX_UNCORRECTED) / MAX_UNCORRECTED;
-  return Math.max(0, Math.min(1, raw));
+  return clampf(raw, 0, 1);
+}
+
+// ── Planetary dissonance ──
+function planetaryDissonance() {
+  let days = (Date.now() - J2000_EPOCH_MS) / 86400000;
+  let cosSum = 0, sinSum = 0;
+  for (let i = 0; i < N_PLANETS; i++) {
+    let theta = (J2000_LONGITUDE[i] + 360.0 * (days / ORBITAL_PERIOD[i]));
+    theta = ((theta % 360) + 360) % 360;
+    theta = theta * (Math.PI / 180);
+    cosSum += Math.cos(theta);
+    sinSum += Math.sin(theta);
+  }
+  cosSum /= N_PLANETS;
+  sinSum /= N_PLANETS;
+  let R = Math.sqrt(cosSum*cosSum + sinSum*sinSum);
+  return clampf(1.0 - R, 0, 1);
 }
 
 function propheticPremonition(dissonance) {
@@ -594,71 +904,454 @@ function propheticPremonition(dissonance) {
   let m0 = memory[memory.length-1], m1 = memory[memory.length-2];
   for (let c = 0; c < 6; c++) {
     let vel = m0.ch[c] - m1.ch[c];
-    prem[c] = Math.max(0, Math.min(1, chambers.act[c] + vel*dissonance*2));
+    prem[c] = clampf(chambers.act[c] + vel*dissonance*2, 0, 1);
   }
   return prem;
 }
 
-// ── MetaKlaus ghost ──
+// ── RRPRAM boost ──
+function rrpramBoost(lp, prevExhaleIdxs, nEx) {
+  let boost = new Float64Array(nEx);
+  if (!lp.bpe || lp.bpe.merges.length === 0 || prevExhaleIdxs.length === 0) return boost;
+  for (let w = 0; w < nEx; w++) {
+    let toks = bpeEncode(lp.exhale[w].text, lp.bpe.merges);
+    for (let t = 0; t < toks.length; t++) {
+      for (const m of lp.bpe.merges) {
+        if (toks[t] === m.newId) boost[w] += 0.1;
+        for (const pi of prevExhaleIdxs) {
+          if (pi < 0 || pi >= nEx) continue;
+          let ptoks = bpeEncode(lp.exhale[pi].text, lp.bpe.merges);
+          for (const pt of ptoks) {
+            if ((m.a === toks[t] && m.b === pt) || (m.a === pt && m.b === toks[t]))
+              boost[w] += 0.3;
+          }
+        }
+      }
+    }
+  }
+  let mx = Math.max(...boost);
+  if (mx > 0) for (let i = 0; i < nEx; i++) boost[i] /= mx;
+  return boost;
+}
+
+// ── RBA-1 Seven-Layer Stack ──
+function rbaEntropy(act, n) {
+  let sum = 0;
+  for (let i = 0; i < n; i++) sum += act[i];
+  if (sum < 1e-8) return 0;
+  let S = 0;
+  for (let i = 0; i < n; i++) {
+    let p = act[i] / sum;
+    if (p > 1e-10) S -= p * Math.log(p);
+  }
+  return S;
+}
+
+function rbaCoherence(act, n) {
+  let maxEntropy = Math.log(n);
+  let S = rbaEntropy(act, n);
+  return clampf(1 - S / maxEntropy, 0, 1);
+}
+
+function rbaChatC(history, n, ptr) {
+  if (n === 0) return 0;
+  let sum = 0;
+  let count = Math.min(n, COHERENCE_WINDOW);
+  for (let i = 0; i < count; i++) {
+    let idx = ((ptr - 1 - i) % COHERENCE_WINDOW + COHERENCE_WINDOW) % COHERENCE_WINDOW;
+    sum += history[idx];
+  }
+  return sum / count;
+}
+
+function rbaMutualInfo(act, n) {
+  let mean = 0;
+  for (let i = 0; i < n; i++) mean += act[i];
+  mean /= n;
+  let pairs = 0, mi = 0;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      mi += Math.abs((act[i] - mean) * (act[j] - mean));
+      pairs++;
+    }
+  }
+  return pairs > 0 ? mi / pairs : 0;
+}
+
+function schectmanEquation(G_t, dissonance) {
+  let C_hat = rbaChatC(coherenceHistory,
+    Math.min(interactionCount, COHERENCE_WINDOW), coherencePtr);
+  let Q_t = rbaMutualInfo(chambers.act, N_CHAMBERS);
+  let eta = 1.0 + SCH_KAPPA * Math.tanh(SCH_MU * Q_t);
+  let planetDisc = planetaryDissonance();
+  let gamma_t = SCH_GAMMA0 + SCH_DELTA * dissonance + 0.15 * planetDisc;
+  let exponent = clampf(SCH_LAMBDA * (C_hat - gamma_t), -10, 10);
+  let R_t = eta * SCH_ALPHA * (Math.exp(exponent) - 1.0);
+  return G_t * (1.0 + R_t);
+}
+
+function psiPhaseGate() {
+  let scar = chambers.totalScar / N_CHAMBERS;
+  let threshold = 0.42 + 0.18 * rba.thresholdBias + 0.06 * scar;
+  let signal = 0.50 * rba.coherence
+             + 0.34 * rba.phaseLock
+             + 0.12 * rba.envPressure
+             + 0.06 * chambers.presence
+             - 0.08 * chambers.trauma;
+  return clampf(0.5 + 1.35 * (signal - threshold), 0, 1);
+}
+
+function eLayerBuffer(entropy) {
+  return Math.exp(-2.0 * entropy);
+}
+
+function rbaUpdate(dissonance) {
+  rba.entropy = rbaEntropy(chambers.act, N_CHAMBERS);
+  rba.coherence = rbaCoherence(chambers.act, N_CHAMBERS);
+  rba.envPressure = dissonance;
+  rba.recursiveComplexity = rbaChatC(coherenceHistory,
+    Math.min(interactionCount, COHERENCE_WINDOW), coherencePtr);
+
+  // Phi-Layer: resonance alignment
+  let dominant = 0;
+  for (let c = 1; c < N_CHAMBERS; c++)
+    if (chambers.act[c] > chambers.act[dominant]) dominant = c;
+  for (let c = 0; c < N_CHAMBERS; c++) {
+    if (c === dominant) {
+      rba.attractorPull[c] = rba.coherence * 0.1;
+    } else if (COUPLING[dominant][c] > 0.3) {
+      rba.attractorPull[c] = rba.coherence * 0.05;
+    } else {
+      rba.attractorPull[c] = -rba.coherence * 0.03;
+    }
+  }
+  for (let c = 0; c < N_CHAMBERS; c++)
+    chambers.act[c] = clampf(chambers.act[c] + rba.attractorPull[c], 0, 1);
+
+  // Psi-Layer
+  let gate = psiPhaseGate();
+  let G_t = rba.coherence;
+  let I_t = schectmanEquation(G_t, dissonance);
+  let C_tau = 0.35;
+  let P_t = (rba.recursiveComplexity >= C_tau) ? I_t * gate : 0.0;
+
+  if (P_t > 0.3) {
+    rba.deepSomatic = 1;
+    rba.deepTicks = 5;
+  } else if (rba.deepTicks > 0) {
+    rba.deepTicks--;
+  } else {
+    rba.deepSomatic = 0;
+  }
+
+  rba.phaseLock = clampf(0.85 * rba.phaseLock + 0.15 * gate, 0, 1);
+  rba.P_history[rba.P_ptr] = P_t;
+  rba.P_ptr = (rba.P_ptr + 1) % COHERENCE_WINDOW;
+
+  // E-Layer
+  rba.entropicBuffer = eLayerBuffer(rba.entropy);
+
+  // M-Layer
+  let sum = 0;
+  let count = Math.min(interactionCount, COHERENCE_WINDOW) || 1;
+  for (let i = 0; i < count; i++) sum += rba.P_history[i];
+  rba.sustainedResonance = sum / count;
+
+  // threshold bias from scars
+  rba.thresholdBias = clampf(chambers.totalScar * 0.2, 0, 0.5);
+}
+
+// ── Velocity operators ──
+function velocityDetect() {
+  let act = chambers.act;
+  let change = 0;
+  for (let c = 0; c < N_CHAMBERS; c++)
+    change += Math.abs(act[c] - chambers.soma[c]);
+  change /= N_CHAMBERS;
+
+  velocity.current = VEL_WALK;
+  velocity.intensity = 0.5;
+
+  if (act[2] > 0.6 && act[0] > 0.5) {
+    velocity.current = VEL_RUN;
+    velocity.intensity = (act[2] + act[0]) / 2;
+  } else if (act[3] > 0.7) {
+    velocity.current = VEL_STOP;
+    velocity.intensity = act[3];
+  } else if (act[4] > 0.6) {
+    velocity.current = VEL_WALK;
+    velocity.intensity = act[4];
+  } else if (act[1] > 0.6) {
+    velocity.current = VEL_BREATHE;
+    velocity.intensity = act[1];
+  } else if (change > 0.15) {
+    velocity.current = VEL_UP;
+    velocity.intensity = clampf(change * 3.0, 0, 1);
+  } else if (change < 0.02 && chambers.presence < 0.3) {
+    velocity.current = VEL_DOWN;
+    velocity.intensity = 1.0 - chambers.presence;
+  }
+
+  switch (velocity.current) {
+    case VEL_RUN:    velocity.maxGen = 4;  velocity.temperature = 1.1;  velocity.topK = 10; break;
+    case VEL_STOP:   velocity.maxGen = 2;  velocity.temperature = 0.5;  velocity.topK = 5;  break;
+    case VEL_WALK:   velocity.maxGen = MAX_RESPONSE; velocity.temperature = GEN_TEMP; velocity.topK = TOP_K; break;
+    case VEL_BREATHE:velocity.maxGen = MAX_RESPONSE; velocity.temperature = 0.6;  velocity.topK = 30; break;
+    case VEL_UP:     velocity.maxGen = MAX_RESPONSE; velocity.temperature = 0.9;  velocity.topK = 15; break;
+    case VEL_DOWN:   velocity.maxGen = 3;  velocity.temperature = 0.55; velocity.topK = 8;  break;
+  }
+
+  if (rba.deepSomatic) {
+    velocity.maxGen = MAX_RESPONSE;
+    velocity.temperature *= 1.15;
+  }
+}
+
+// ── Wormholes ──
+function wormholeCheck(lp, matchedIndices, langCode) {
+  let wormholeHit = false;
+  let hitWord = '';
+  for (let p = prophecies.length - 1; p >= 0; p--) {
+    let target = prophecies[p].target;
+    if (target < 0 || target >= lp.exhale.length) continue;
+    for (const m of matchedIndices) {
+      if (m < 0 || m >= lp.inhale.length) continue;
+      let sim = wordSimilarity(lp.inhale[m].text, lp.exhale[target].text);
+      if (sim > 0.4) {
+        rba.coherence = clampf(rba.coherence + 0.15, 0, 1);
+        chambers.presence = clampf(chambers.presence + 0.10, 0, 1);
+        let dom = 0;
+        for (let c = 1; c < N_CHAMBERS; c++)
+          if (lp.exhale[target].aff[c] > lp.exhale[target].aff[dom]) dom = c;
+        chambers.scar[dom] = clampf(chambers.scar[dom] + 0.15, 0, 1);
+        wormholeEvents.push({
+          prophecyTarget: target,
+          inhaleMatch: m,
+          coherenceJump: 0.15,
+          step: interactionCount
+        });
+        hitWord = lp.exhale[target].text;
+        wormholeHit = true;
+        prophecies.splice(p, 1);
+        break;
+      }
+    }
+  }
+  return { hit: wormholeHit, word: hitWord };
+}
+
+// ── Experience consolidation ──
+function experienceConsolidate() {
+  if (interactionCount % CONSOLIDATION_INTERVAL !== 0) return;
+  if (interactionCount === 0) return;
+  experience.totalInteractions = interactionCount;
+  experience.avgScar = chambers.totalScar / N_CHAMBERS;
+  rba.thresholdBias = clampf(experience.avgScar * 0.3, 0, 0.5);
+  experience.totalWormholes = wormholeEvents.length;
+  experience.totalProphecies = prophecies.length + wormholeEvents.length;
+  experience.wormholeRate = experience.totalProphecies > 0 ?
+    experience.totalWormholes / experience.totalProphecies : 0;
+  chambers.presence = clampf(chambers.presence + experience.wormholeRate * 0.05, 0, 1);
+  experience.prophecyAccuracy = experience.wormholeRate;
+}
+
+// ── Prophecy system ──
+function prophecyAdd(target, strength) {
+  if (target < 0) return;
+  for (let i = 0; i < prophecies.length; i++) {
+    if (prophecies[i].target === target) {
+      prophecies[i].strength = Math.max(prophecies[i].strength, strength);
+      prophecies[i].age = 0;
+      return;
+    }
+  }
+  if (prophecies.length >= MAX_PROPHECY) {
+    let oldest = 0;
+    for (let i = 1; i < prophecies.length; i++)
+      if (prophecies[i].age > prophecies[oldest].age) oldest = i;
+    prophecies.splice(oldest, 1);
+  }
+  prophecies.push({ target, strength, age: 0 });
+}
+
+function prophecyTick() {
+  prophecies = prophecies.filter(p => {
+    p.age++;
+    p.strength *= 0.95;
+    return p.age < 20 && p.strength > 0.01;
+  });
+}
+
+function prophecyPressure() {
+  let total = 0;
+  for (const p of prophecies) total += p.strength;
+  return clampf(total / 3, 0, 1);
+}
+
+// ── Spore system (localStorage persistence) ──
+function sporeSave() {
+  try {
+    localStorage.setItem('klaus_spores', JSON.stringify({
+      pairs: spores.pairs.slice(0, 512), // limit storage size
+      chamberResidue: Array.from(spores.chamberResidue),
+      tensionMatrix: spores.tensionMatrix.map(r => Array.from(r)),
+      totalInteractions: spores.totalInteractions,
+    }));
+  } catch(e) {}
+}
+
+function sporeLoad() {
+  try {
+    let data = localStorage.getItem('klaus_spores');
+    if (!data) return;
+    let obj = JSON.parse(data);
+    spores.pairs = obj.pairs || [];
+    spores.chamberResidue = new Float64Array(obj.chamberResidue || 6);
+    spores.tensionMatrix = (obj.tensionMatrix || []).map(r => new Float64Array(r));
+    if (spores.tensionMatrix.length < 6) spores.tensionMatrix = Array.from({length:6}, ()=>new Float64Array(6));
+    spores.totalInteractions = obj.totalInteractions || 0;
+  } catch(e) {}
+}
+
+function sporeLearn(inhaleHash, exhaleIdx, langCode) {
+  for (let i = 0; i < spores.pairs.length; i++) {
+    let p = spores.pairs[i];
+    if (p.inhaleHash === inhaleHash && p.exhaleIdx === exhaleIdx && p.lang === langCode) {
+      p.strength += SPORE_LEARN_RATE;
+      p.hitCount++;
+      for (let c = 0; c < N_CHAMBERS; c++)
+        p.chamberSnapshot[c] = 0.8 * p.chamberSnapshot[c] + 0.2 * chambers.act[c];
+      return;
+    }
+  }
+  // new pair
+  if (spores.pairs.length < 4096) {
+    spores.pairs.push({
+      inhaleHash, exhaleIdx, strength: SPORE_LEARN_RATE, lang: langCode,
+      hitCount: 1, chamberSnapshot: Array.from(chambers.act)
+    });
+  } else {
+    // evict weakest
+    let weakest = 0;
+    for (let i = 1; i < spores.pairs.length; i++)
+      if (spores.pairs[i].strength < spores.pairs[weakest].strength) weakest = i;
+    spores.pairs[weakest] = {
+      inhaleHash, exhaleIdx, strength: SPORE_LEARN_RATE, lang: langCode,
+      hitCount: 1, chamberSnapshot: Array.from(chambers.act)
+    };
+  }
+}
+
+function sporeBoost(langCode, logits, nEx) {
+  for (const p of spores.pairs) {
+    if (p.lang !== langCode) continue;
+    if (p.exhaleIdx >= nEx) continue;
+    for (const h of matchedInhaleHashes) {
+      if (h === p.inhaleHash) {
+        logits[p.exhaleIdx] += p.strength * 0.5;
+        break;
+      }
+    }
+  }
+}
+
+function sporeDecay() {
+  spores.pairs = spores.pairs.filter(p => {
+    p.strength *= SPORE_DECAY;
+    return p.strength > 0.001;
+  });
+}
+
+function sporeUpdateResidue() {
+  spores.totalInteractions++;
+  let alpha = 1.0 / (spores.totalInteractions + 1);
+  for (let c = 0; c < N_CHAMBERS; c++)
+    spores.chamberResidue[c] = (1 - alpha) * spores.chamberResidue[c] + alpha * chambers.act[c];
+  for (let i = 0; i < N_CHAMBERS; i++)
+    for (let j = i + 1; j < N_CHAMBERS; j++)
+      spores.tensionMatrix[i][j] += chambers.act[i] * chambers.act[j] * 0.01;
+}
+
+// ── MetaKlaus ghost (with sensitivity tensor and ghost weights) ──
 function metaklausCompute(primaryLang) {
-  let ghost = new Float64Array(langPacks[primaryLang].exhale.length);
+  let lp = langPacks[primaryLang];
+  let ghost = new Float64Array(lp.exhale.length);
   let interference = 0;
   let codes = Object.keys(langPacks);
   if (codes.length <= 1) return {ghost, interference};
-  let primary = langPacks[primaryLang];
-  let chNorm = Math.sqrt(chambers.act.reduce((s,v)=>s+v*v,0)+1e-12);
+  let chNorm = vecNorm(chambers.act, N_CHAMBERS);
   if (chNorm < 1e-6) return {ghost, interference};
 
-  for (let w = 0; w < primary.exhale.length; w++) {
-    let ghostSum = 0, ghostN = 0;
-    for (const code of codes) {
-      if (code === primaryLang) continue;
-      let other = langPacks[code];
-      let bestSim = -1, bestIdx = -1;
-      for (let ow = 0; ow < other.exhale.length; ow++) {
-        let sim = 0;
-        for (let c = 0; c < 6; c++) sim += chambers.act[c] * other.exhale[ow].aff[c];
-        sim /= chNorm;
-        if (sim > bestSim) { bestSim = sim; bestIdx = ow; }
-      }
-      if (bestIdx >= 0) {
-        let agreement = 0;
-        for (let c = 0; c < 6; c++)
-          agreement += primary.exhale[w].aff[c] * other.exhale[bestIdx].aff[c];
-        let interf = (agreement - 0.5) * 2;
-        ghostSum += interf * bestSim;
-        ghostN++;
-      }
+  // find dominant
+  let dominant = 0;
+  for (let c = 1; c < N_CHAMBERS; c++)
+    if (chambers.act[c] > chambers.act[dominant]) dominant = c;
+
+  for (const code of codes) {
+    if (code === primaryLang) continue;
+    let other = langPacks[code];
+    let glid = ghostLangId(code);
+    let wLang = GHOST_WEIGHT[dominant][glid];
+
+    // find best matching exhale in other language
+    let bestSim = -1e30, bestIdx = 0;
+    for (let ow = 0; ow < other.exhale.length; ow++) {
+      let sim = vecDot(chambers.act, other.exhale[ow].aff, N_CHAMBERS) / chNorm;
+      if (sim > bestSim) { bestSim = sim; bestIdx = ow; }
     }
-    if (ghostN > 0) ghost[w] = ghostSum / ghostN;
+
+    for (let w = 0; w < lp.exhale.length; w++) {
+      // raw agreement
+      let raw = vecDot(lp.exhale[w].aff, other.exhale[bestIdx].aff, N_CHAMBERS);
+
+      // sensitivity-tensor modulated agreement
+      let modulated = 0;
+      for (let gc = 0; gc < N_CHAMBERS; gc++) {
+        for (let pc = 0; pc < N_CHAMBERS; pc++) {
+          modulated += other.exhale[bestIdx].aff[gc] *
+                       lp.exhale[w].aff[pc] *
+                       sensitivity[dominant][gc][pc];
+        }
+      }
+
+      let agreement = 0.6 * raw + 0.4 * modulated;
+      let interf = (agreement - 0.5) * 2;
+      ghost[w] += interf * bestSim * wLang;
+    }
   }
-  let total = ghost.reduce((s,v)=>s+Math.abs(v),0);
-  interference = primary.exhale.length > 0 ? total/primary.exhale.length : 0;
+  let nOther = codes.length - 1;
+  if (nOther > 0) for (let w = 0; w < lp.exhale.length; w++) ghost[w] /= nOther;
+  let total = 0;
+  for (let w = 0; w < lp.exhale.length; w++) total += Math.abs(ghost[w]);
+  interference = lp.exhale.length > 0 ? total / lp.exhale.length : 0;
   return {ghost, interference};
 }
 
-// ── Inhale ──
+// ── Inhale (with match tracking) ──
 function inhaleProcess(lp, prompt) {
   let emotion = new Float64Array(6);
   let matches = 0;
+  let matchedIndices = [];
   let words = prompt.toLowerCase().split(/[\s\t\n\r.,!?;:"'()\-]+/).filter(Boolean);
   for (const w of words) {
-    for (const iw of lp.inhale) {
-      if (w === iw.text || prompt.includes(iw.text)) {
-        for (let c = 0; c < 6; c++) emotion[c] += iw.aff[c];
+    for (let iw = 0; iw < lp.inhale.length; iw++) {
+      if (w === lp.inhale[iw].text || prompt.includes(lp.inhale[iw].text)) {
+        for (let c = 0; c < 6; c++) emotion[c] += lp.inhale[iw].aff[c];
+        matchedIndices.push(iw);
         matches++; break;
       }
     }
   }
   if (matches === 0) {
     for (const w of words) {
-      let bestSim = 0, bestW = null;
-      for (const iw of lp.inhale) {
-        let sim = wordSimilarity(w, iw.text);
+      let bestSim = 0, bestW = -1;
+      for (let iw = 0; iw < lp.inhale.length; iw++) {
+        let sim = wordSimilarity(w, lp.inhale[iw].text);
         if (sim > bestSim) { bestSim = sim; bestW = iw; }
       }
-      if (bestW && bestSim > 0.2) {
-        for (let c = 0; c < 6; c++) emotion[c] += bestW.aff[c] * bestSim;
+      if (bestW >= 0 && bestSim > 0.2) {
+        for (let c = 0; c < 6; c++) emotion[c] += lp.inhale[bestW].aff[c] * bestSim;
+        matchedIndices.push(bestW);
         matches++;
       }
     }
@@ -668,59 +1361,222 @@ function inhaleProcess(lp, prompt) {
     let h = hashWord(prompt);
     for (let c = 0; c < 6; c++) emotion[c] = Number((h >> BigInt(c*8)) & 0xFFn)/255;
   }
-  return emotion;
+  return { emotion, matchedIndices };
 }
 
-// ── Exhale ──
-function exhaleGenerate(langCode, ghostState) {
+// ── Parliament/DOE — 3 experts vote ──
+function parliamentVote(baseLogits, nEx, lp, temperature) {
+  let dom = 0;
+  for (let c = 1; c < N_CHAMBERS; c++)
+    if (chambers.act[c] > chambers.act[dom]) dom = c;
+  // opposite = most negative coupling to dominant
+  let opp = 0, mostNeg = 0;
+  for (let c = 0; c < N_CHAMBERS; c++) {
+    if (c === dom) continue;
+    if (COUPLING[dom][c] < mostNeg) { mostNeg = COUPLING[dom][c]; opp = c; }
+  }
+
+  let votes = new Array(N_EXPERTS);
+  for (let e = 0; e < N_EXPERTS; e++) {
+    let expertLogits = new Float64Array(baseLogits);
+    for (let w = 0; w < nEx; w++) {
+      if (e === EXPERT_SOMATIC) {
+        expertLogits[w] += lp.exhale[w].aff[dom] * 0.8;
+      } else if (e === EXPERT_SHADOW) {
+        expertLogits[w] += lp.exhale[w].aff[opp] * 0.6;
+        expertLogits[w] -= lp.exhale[w].aff[dom] * 0.2;
+      } else if (e === EXPERT_GHOST) {
+        expertLogits[w] += Math.abs(ghostState.ghost[w] || 0) * 0.5;
+      }
+    }
+    let best = 0;
+    for (let w = 1; w < nEx; w++)
+      if (expertLogits[w] > expertLogits[best]) best = w;
+    votes[e] = best;
+  }
+
+  if (votes[0] === votes[1] || votes[0] === votes[2]) return votes[0];
+  if (votes[1] === votes[2]) return votes[1];
+
+  // no consensus: sample from somatic top-3
+  let expertLogits = new Float64Array(baseLogits);
+  for (let w = 0; w < nEx; w++) expertLogits[w] += lp.exhale[w].aff[dom] * 0.3;
+  let top3 = [0,0,0], top3v = [-1e30,-1e30,-1e30];
+  for (let w = 0; w < nEx; w++) {
+    if (expertLogits[w] > top3v[2]) {
+      top3v[2] = expertLogits[w]; top3[2] = w;
+      for (let i = 1; i >= 0; i--) {
+        if (top3v[i+1] > top3v[i]) {
+          let tv = top3v[i]; top3v[i] = top3v[i+1]; top3v[i+1] = tv;
+          let ti = top3[i]; top3[i] = top3[i+1]; top3[i+1] = ti;
+        }
+      }
+    }
+  }
+  let p = [0,0,0], mx = top3v[0], sum = 0;
+  for (let i = 0; i < 3; i++) { p[i] = Math.exp((top3v[i] - mx) / temperature); sum += p[i]; }
+  let r = randf() * sum, cum = 0;
+  for (let i = 0; i < 3; i++) { cum += p[i]; if (cum >= r) return top3[i]; }
+  return top3[0];
+}
+
+// ── Global ghost state used by parliament ──
+let ghostState = { ghost: [], interference: 0 };
+
+// ── Exhale — Full Dario 7 forces + Parliament ──
+function exhaleGenerate(langCode) {
   let lp = langPacks[langCode];
   let nEx = lp.exhale.length;
   if (nEx === 0) return [];
+
+  // velocity-modulated parameters
+  let effMax = velocity.maxGen;
+  let effTemp = velocity.temperature > 0 ? velocity.temperature : GEN_TEMP;
+  let effTopK = velocity.topK > 0 ? Math.min(velocity.topK, nEx) : Math.min(TOP_K, nEx);
+
+  // RRPRAM boost (V term)
+  let rrpram = rrpramBoost(lp, prevExhale, nEx);
+
+  // Hebbian field (H term)
   let hebb = metaHebbian(lp.meta, prevExhale, nEx);
+
+  // Somatic coefficient modulation
+  let C = chambers.act;
+  alphaMod = clampf(1.0 + 0.3*C[1] - 0.2*C[2] + 0.1*C[4], 0.5, 2.0);
+  betaMod  = clampf(1.0 + 0.2*C[4] - 0.3*C[0], 0.5, 2.0);
+  gammaMod = clampf(1.0 + 0.4*C[3] + 0.2*C[5] - 0.1*C[1], 0.5, 2.0);
+  tauMod   = clampf(1.0 + 0.5*C[4] - 0.3*C[0], 0.5, 2.0);
+
+  let effAlpha = alphaMod * DARIO_ALPHA;
+  let effBeta  = betaMod  * DARIO_BETA;
+  let effGamma = gammaMod * DARIO_GAMMA;
+
+  traumaLevel = clampf(chambers.totalScar * 0.5 + C[0] * 0.3, 0, 1);
+  if (traumaLevel > 0.3) effGamma += traumaLevel * 1.5;
+
+  let vTau = tauMod * effTemp;
+  let darkGhostMult = darkMatterActive ? 1.5 : 1.0;
+  let propPressure = prophecyPressure();
+  let scarProphecyMult = 1.0 + chambers.totalScar * 0.3;
+  resonanceField = clampf(rba.coherence * 0.5 + C[4] * 0.3 + 0.2, 0, 1);
+  let resGate = 1.0 / (1.0 + Math.exp(-(resonanceField - 0.5) * 4.0));
+
   let result = [], prev = prevExhale.length > 0 ? prevExhale[prevExhale.length-1] : -1;
   let localUsed = new Set(usedExhale);
 
-  for (let step = 0; step < MAX_RESPONSE; step++) {
+  for (let step = 0; step < effMax; step++) {
     let logits = new Float64Array(nEx);
     for (let w = 0; w < nEx; w++) {
-      let somaScore = 0;
-      for (let c = 0; c < 6; c++) somaScore += chambers.act[c] * lp.exhale[w].aff[c];
-      let biScore = prev >= 0 ? metaBigram(lp.meta, prev, w) : 0;
-      let propPressure = prophecies.reduce((s,p)=>s+p.strength,0)/3;
-      logits[w] = ALPHA_SOM * somaScore + BETA_BIG * biScore + GAMMA_HEB * hebb[w]
-                + DELTA_RRPRAM * 0 + EPSILON_PROP * (propPressure > 0.3 ? somaScore*0.5 : 0)
-                + ZETA_META * (ghostState.ghost[w]||0);
+      // B: bigram chain
+      let B = (prev >= 0) ? metaBigram(lp.meta, prev, w) * BIGRAM_BASE : 0;
+      // H: Hebbian resonance
+      let H = effAlpha * hebb[w] * (1.0 + resGate);
+      // F: Prophecy fulfillment
+      let somaScore = vecDot(chambers.act, lp.exhale[w].aff, N_CHAMBERS);
+      let F = (propPressure > 0.3) ? effBeta * somaScore * 0.5 * scarProphecyMult : 0;
+      // A: Destiny attraction
+      let destSim = vecDot(destiny, lp.exhale[w].aff, N_CHAMBERS);
+      let A = effGamma * destSim;
+      // V: RRPRAM
+      let V = DARIO_DELTA * rrpram[w];
+      // G: Ghost
+      let G = DARIO_ZETA * (ghostState.ghost[w] || 0) * darkGhostMult;
+      // T: Trauma/scar gravity
+      let T = 0;
+      for (let c = 0; c < N_CHAMBERS; c++) T += chambers.scar[c] * lp.exhale[w].aff[c] * 0.5;
+
+      logits[w] = (B + H + F + A + V + G + T + somaScore) / Math.max(vTau, 0.1);
+
       if (localUsed.has(w) || localUsed.has(lp.exhale[w].text)) logits[w] -= 100;
     }
-    // temperature
-    for (let w = 0; w < nEx; w++) logits[w] /= GEN_TEMP;
-    // top-K
-    let indices = Array.from({length:nEx}, (_,i)=>i);
-    indices.sort((a,b)=>logits[b]-logits[a]);
-    let topK = indices.slice(0, TOP_K);
-    let mx = logits[topK[0]], probs = topK.map(i => Math.exp(logits[i]-mx));
-    let sum = probs.reduce((a,b)=>a+b,0);
-    probs = probs.map(p => p/sum);
-    let r = randf(), cum = 0, chosen = topK[0];
-    for (let i = 0; i < topK.length; i++) {
-      cum += probs[i];
-      if (cum >= r) { chosen = topK[i]; break; }
-    }
+
+    // spore boost
+    sporeBoost(langCode, logits, nEx);
+
+    // Parliament vote
+    let chosen = parliamentVote(logits, nEx, lp, effTemp);
+
     result.push(chosen);
     localUsed.add(chosen);
     localUsed.add(lp.exhale[chosen].text);
     prev = chosen;
+
+    // destiny attractor update
+    for (let c = 0; c < N_CHAMBERS; c++)
+      destiny[c] = 0.1 * chambers.act[c] + 0.9 * destiny[c];
+
+    // mark used
+    usedExhale.add(chosen);
+    usedExhale.add(lp.exhale[chosen].text);
+
+    // prophecy
+    let maxAff = 0;
+    for (let c = 0; c < N_CHAMBERS; c++)
+      if (lp.exhale[chosen].aff[c] > maxAff) maxAff = lp.exhale[chosen].aff[c];
+    if (maxAff > 0.7) {
+      let dom = 0;
+      for (let c = 1; c < N_CHAMBERS; c++)
+        if (lp.exhale[chosen].aff[c] > lp.exhale[chosen].aff[dom]) dom = c;
+      for (let w2 = 0; w2 < nEx; w2++) {
+        if (lp.exhale[w2].aff[dom] > 0.6 && w2 !== chosen) {
+          prophecyAdd(w2, maxAff * 0.4);
+          break;
+        }
+      }
+    }
+
     // stop condition
-    if (step > 2) {
-      let score = 0;
-      for (let c = 0; c < 6; c++) score += chambers.act[c]*lp.exhale[chosen].aff[c];
-      if (score < 0.2) break;
+    if (step > 2 && vecDot(chambers.act, lp.exhale[chosen].aff, N_CHAMBERS) < 0.2) break;
+  }
+
+  // update prev_exhale context
+  prevExhale = result.slice(-4);
+
+  // spore learn
+  for (const g of result) {
+    for (const h of matchedInhaleHashes) {
+      sporeLearn(h, g, langCode);
     }
   }
-  // update state
-  prevExhale = result.slice(-4);
-  for (const w of result) { usedExhale.add(w); usedExhale.add(lp.exhale[w].text); }
-  return result.map(i => lp.exhale[i].text);
+
+  return result.map(i => ({ idx: i, text: lp.exhale[i].text }));
+}
+
+// ── Meta-recursion ──
+function metaRecursion(langCode, firstResult) {
+  let lp = langPacks[langCode];
+  // concatenate first exhale as meta-prompt
+  let metaPrompt = firstResult.map(r => r.text).join(' ');
+  if (!metaPrompt) return firstResult;
+
+  // meta-inhale
+  let { emotion: metaEmotion } = inhaleProcess(lp, metaPrompt);
+
+  // MLP on meta-emotion
+  let metaMlpIn = new Float64Array(13);
+  for (let c = 0; c < 6; c++) metaMlpIn[c] = metaEmotion[c];
+  for (let c = 0; c < 6; c++) metaMlpIn[6+c] = chambers.soma[c];
+  metaMlpIn[12] = calendarDissonance();
+  let metaMlpOut = mlpForward(mlpWeights, metaMlpIn);
+
+  // blend meta into primary: 85/15
+  for (let c = 0; c < 6; c++) {
+    let metaCh = clampf(0.5 * metaEmotion[c] + 0.3 * metaMlpOut[c] + 0.2 * chambers.soma[c], 0, 1);
+    chambers.act[c] = clampf((1 - META_BLEND) * chambers.act[c] + META_BLEND * metaCh, 0, 1);
+  }
+
+  // re-generate with blended chambers
+  let savedUsed = new Set(usedExhale);
+  usedExhale = new Set();
+  let metaResult = exhaleGenerate(langCode);
+  // merge used
+  for (const u of savedUsed) usedExhale.add(u);
+  for (const r of metaResult) { usedExhale.add(r.idx); usedExhale.add(r.text); }
+
+  // update prev_exhale from meta output
+  prevExhale = metaResult.slice(-4).map(r => r.idx);
+
+  return metaResult;
 }
 
 // ── Full pipeline ──
@@ -728,29 +1584,189 @@ function klausProcess(prompt) {
   let lang = detectLanguage(prompt);
   let lp = langPacks[lang];
   if (!lp) return null;
-  let emotion = inhaleProcess(lp, prompt);
+
+  interactionCount++;
+
+  // Dark matter detection
+  let dm = detectDarkMatter(prompt);
+  darkMatterActive = dm.found;
+
+  // Inhale
+  let { emotion, matchedIndices } = inhaleProcess(lp, prompt);
+
+  // Store matched inhale hashes for spore learning
+  matchedInhaleHashes = matchedIndices.slice(0, 32).map(i => hashWord32(lp.inhale[i].text));
+
+  // Dark matter amplification
+  if (darkMatterActive) {
+    emotion[0] = clampf(emotion[0] + dm.fear * 0.4, 0, 1);
+    emotion[2] = clampf(emotion[2] + dm.rage * 0.4, 0, 1);
+    chambers.scar[0] = clampf(chambers.scar[0] + dm.fear * 0.2, 0, 1);
+    chambers.scar[2] = clampf(chambers.scar[2] + dm.rage * 0.2, 0, 1);
+  }
+
+  // Wormhole check
+  let wormhole = wormholeCheck(lp, matchedIndices, lang);
+
+  // MLP
   let memState = memoryBlend();
   let disc = calendarDissonance();
-  // MLP input
   let mlpIn = new Float64Array(13);
   for (let c = 0; c < 6; c++) mlpIn[c] = emotion[c];
   for (let c = 0; c < 6; c++) mlpIn[6+c] = memState[c];
   mlpIn[12] = disc;
   let mlpOut = mlpForward(mlpWeights, mlpIn);
-  // combine
-  for (let c = 0; c < 6; c++)
-    chambers.act[c] = Math.max(0, Math.min(1,
-      0.4*emotion[c] + 0.3*mlpOut[c] + 0.2*memState[c] + 0.1*chambers.soma[c]));
+
+  // Apply to chambers + distribute to sub-chambers
+  for (let c = 0; c < 6; c++) {
+    let newAct = clampf(0.4*emotion[c] + 0.3*mlpOut[c] + 0.2*memState[c] + 0.1*chambers.soma[c], 0, 1);
+    chambers.act[c] = newAct;
+    for (let s = 0; s < N_SUB; s++) {
+      chambers.subAct[c][s] = clampf(chambers.subAct[c][s] + newAct / N_SUB, 0, 1);
+    }
+  }
+
+  // HyperKuramoto crossfire (24 oscillators)
   chambersCrossfire(XFIRE_ITERS);
+
+  // Scar update
+  scarsUpdate();
+
+  // RBA-1 update
+  rbaUpdate(disc);
+
+  // Store coherence in history
+  coherenceHistory[coherencePtr] = rba.coherence;
+  coherencePtr = (coherencePtr + 1) % COHERENCE_WINDOW;
+
+  // Velocity detection
+  velocityDetect();
+
+  // find dominant
+  let dominant = 0;
+  for (let c = 1; c < N_CHAMBERS; c++)
+    if (chambers.act[c] > chambers.act[dominant]) dominant = c;
+
+  // premonition
   let prem = propheticPremonition(disc);
   let isProphetic = disc > 0.3 && memory.length >= 2;
-  let ghostState = metaklausCompute(lang);
-  let words = exhaleGenerate(lang, ghostState);
+
+  // MetaKlaus ghost
+  ghostState = metaklausCompute(lang);
+
+  // Exhale (first pass)
+  let words = exhaleGenerate(lang);
+
+  // Meta-recursion: re-inhale own output, blend 85/15, re-generate
+  words = metaRecursion(lang, words);
+
+  // Store memory
   memoryStore(disc);
-  // tick prophecies
-  prophecies = prophecies.filter(p => { p.age++; p.strength *= 0.95; return p.age < 20 && p.strength > 0.01; });
-  return {lang, words, chambers: Array.from(chambers.act), prem: Array.from(prem),
-          disc, ghostStrength: ghostState.interference, isProphetic};
+
+  // Tick prophecies
+  prophecyTick();
+
+  // Experience consolidation
+  experienceConsolidate();
+
+  // Spore maintenance
+  sporeUpdateResidue();
+  sporeDecay();
+  sporeSave();
+
+  // Somatic persistence (localStorage)
+  saveSomaticState();
+
+  return {
+    lang,
+    words: words.map(w => w.text),
+    chambers: Array.from(chambers.act),
+    prem: Array.from(prem),
+    disc,
+    ghostStrength: ghostState.interference,
+    isProphetic,
+    dominant,
+    velocity: velocity.current,
+    velocityIntensity: velocity.intensity,
+    coherence: rba.coherence,
+    recursiveComplexity: rba.recursiveComplexity,
+    deepSomatic: rba.deepSomatic,
+    totalScar: chambers.totalScar,
+    scars: Array.from(chambers.scar),
+    darkMatterActive,
+    metaRecursionDepth: 1,
+    phaseGate: psiPhaseGate(),
+    sustainedResonance: rba.sustainedResonance,
+    wormholeHit: wormhole.hit,
+    wormholeWord: wormhole.word,
+  };
+}
+
+// ── Somatic persistence via localStorage ──
+function saveSomaticState() {
+  try {
+    localStorage.setItem('klaus_soma', JSON.stringify({
+      act: Array.from(chambers.act),
+      soma: Array.from(chambers.soma),
+      phase: Array.from(chambers.phase),
+      presence: chambers.presence,
+      trauma: chambers.trauma,
+      debt: chambers.debt,
+      scar: Array.from(chambers.scar),
+      totalScar: chambers.totalScar,
+      subAct: chambers.subAct.map(a => Array.from(a)),
+      subPhase: chambers.subPhase.map(a => Array.from(a)),
+      subFreq: chambers.subFreq.map(a => Array.from(a)),
+      memory: memory.map(m => ({ ch: Array.from(m.ch), valence: m.valence, arousal: m.arousal, calPhase: m.calPhase })),
+      coherenceHistory: Array.from(coherenceHistory),
+      coherencePtr,
+      interactionCount,
+      destiny: Array.from(destiny),
+      rba: {
+        phaseLock: rba.phaseLock,
+        thresholdBias: rba.thresholdBias,
+        deepSomatic: rba.deepSomatic,
+        deepTicks: rba.deepTicks,
+        P_history: Array.from(rba.P_history),
+        P_ptr: rba.P_ptr,
+      },
+    }));
+  } catch(e) {}
+}
+
+function loadSomaticState() {
+  try {
+    let data = localStorage.getItem('klaus_soma');
+    if (!data) return false;
+    let obj = JSON.parse(data);
+    chambers.act = new Float64Array(obj.act);
+    chambers.soma = new Float64Array(obj.soma);
+    chambers.phase = new Float64Array(obj.phase);
+    chambers.presence = obj.presence || 0;
+    chambers.trauma = obj.trauma || 0;
+    chambers.debt = obj.debt || 0;
+    chambers.scar = new Float64Array(obj.scar || 6);
+    chambers.totalScar = obj.totalScar || 0;
+    if (obj.subAct) chambers.subAct = obj.subAct.map(a => new Float64Array(a));
+    if (obj.subPhase) chambers.subPhase = obj.subPhase.map(a => new Float64Array(a));
+    if (obj.subFreq) chambers.subFreq = obj.subFreq.map(a => new Float64Array(a));
+    if (obj.memory) {
+      memory = obj.memory.map(m => ({ ch: new Float64Array(m.ch), valence: m.valence, arousal: m.arousal, calPhase: m.calPhase }));
+    }
+    if (obj.coherenceHistory) coherenceHistory = new Float64Array(obj.coherenceHistory);
+    if (obj.coherencePtr !== undefined) coherencePtr = obj.coherencePtr;
+    if (obj.interactionCount !== undefined) interactionCount = obj.interactionCount;
+    if (obj.destiny) destiny = new Float64Array(obj.destiny);
+    if (obj.rba) {
+      rba.phaseLock = obj.rba.phaseLock || 0;
+      rba.thresholdBias = obj.rba.thresholdBias || 0;
+      rba.deepSomatic = obj.rba.deepSomatic || 0;
+      rba.deepTicks = obj.rba.deepTicks || 0;
+      if (obj.rba.P_history) rba.P_history = new Float64Array(obj.rba.P_history);
+      if (obj.rba.P_ptr !== undefined) rba.P_ptr = obj.rba.P_ptr;
+    }
+    return true;
+  } catch(e) { return false; }
 }
 
 // ── UI ──
@@ -775,6 +1791,26 @@ function updateChamberBars() {
   }
 }
 
+function updateVelocityIndicator(result) {
+  let el = document.getElementById('velocity-indicator');
+  el.textContent = '{' + VEL_NAMES[result.velocity] + ' x' + result.velocityIntensity.toFixed(2) + '}';
+  el.style.color = VEL_COLORS[result.velocity];
+}
+
+function updateDeepIndicator(result) {
+  let el = document.getElementById('deep-indicator');
+  el.className = result.deepSomatic ? 'visible' : '';
+}
+
+function updateRBAStatus(result) {
+  let el = document.getElementById('rba-status');
+  el.textContent = 'RBA-1 coh:' + result.coherence.toFixed(3) +
+    ' C:' + result.recursiveComplexity.toFixed(3) +
+    ' psi:' + result.phaseGate.toFixed(3) +
+    ' sus:' + result.sustainedResonance.toFixed(3) +
+    ' meta:' + result.metaRecursionDepth;
+}
+
 function displayResponse(prompt, result) {
   let col = document.getElementById('column');
   let block = document.createElement('div');
@@ -783,50 +1819,83 @@ function displayResponse(prompt, result) {
   echo.className = 'prompt-echo';
   echo.textContent = '> ' + prompt;
   block.appendChild(echo);
+
+  // wormhole event
+  if (result.wormholeHit) {
+    let wh = document.createElement('div');
+    wh.className = 'wormhole-line';
+    wh.textContent = '[WORMHOLE] prophecy \'' + result.wormholeWord + '\' fulfilled! coherence +0.15';
+    block.appendChild(wh);
+  }
+
   let somaLine = document.createElement('div');
-  somaLine.innerHTML = result.words.map(w => `<span class="soma-word">${w}</span>`).join('. ') + '.';
+  somaLine.innerHTML = result.words.map(w => '<span class="soma-word">' + w + '</span>').join('. ') + '.';
   block.appendChild(somaLine);
+
   if (result.ghostStrength > 0.1) {
     let ghost = document.createElement('div');
     ghost.className = 'ghost-line';
-    ghost.textContent = `metaklaus: interference ${result.ghostStrength.toFixed(2)}`;
+    let ghostText = 'metaklaus: ' + CH_NAMES[result.dominant] + '-dominant, interference ' + result.ghostStrength.toFixed(2);
+    if (result.darkMatterActive) ghostText += ', DARK MATTER x1.5';
+    ghost.textContent = ghostText;
     block.appendChild(ghost);
   }
+
+  // scars
+  if (result.totalScar > 0.01) {
+    let scarText = 'scars:';
+    for (let c = 0; c < N_CHAMBERS; c++) {
+      if (result.scars[c] > 0.01)
+        scarText += ' ' + CH_NAMES[c] + ':' + result.scars[c].toFixed(2);
+    }
+    scarText += ' total:' + result.totalScar.toFixed(2);
+    let scarEl = document.createElement('div');
+    scarEl.className = 'scar-line';
+    scarEl.textContent = scarText;
+    block.appendChild(scarEl);
+  }
+
   col.appendChild(block);
   let arena = document.getElementById('arena');
   arena.scrollTop = arena.scrollHeight;
   updateChamberBars();
+  updateVelocityIndicator(result);
+  updateDeepIndicator(result);
+  updateRBAStatus(result);
   document.getElementById('lang-indicator').textContent = result.lang.toUpperCase();
+
   // prophecy
   let propEl = document.getElementById('prophecy');
   if (result.isProphetic) {
     let dom = result.prem.indexOf(Math.max(...result.prem));
-    propEl.textContent = `~premonition~ → ${CH_NAMES[dom]} (${result.disc.toFixed(2)})`;
+    propEl.textContent = '~premonition~ -> ' + CH_NAMES[dom] + ' (' + result.disc.toFixed(2) + ')';
     propEl.className = 'visible';
     setTimeout(() => propEl.className = '', 4000);
   }
+
+  // status
+  let disc = result.disc;
+  let nLangs = Object.keys(langPacks).length;
+  document.getElementById('status').textContent =
+    nLangs + ' lang | cal:' + disc.toFixed(3) + ' | n:' + interactionCount;
 }
 
 // ── Init ──
-// ── Scan directory for language files ──
 async function scanLanguages() {
   let codes = [];
-  // Try directory listing first (works with python -m http.server)
   try {
     let resp = await fetch('inhale/');
     if (resp.ok) {
       let html = await resp.text();
-      // Parse directory listing for .txt files
       let matches = html.matchAll(/href="([a-z]{2})\.txt"/gi);
       for (const m of matches) codes.push(m[1].toLowerCase());
     }
   } catch(e) {}
-  // Fallback: try common language codes
   if (codes.length === 0) {
     let candidates = ['en','ru','fr','he','de','es','it','ja','zh','ar','pt','ko','nl','sv','pl','uk'];
     for (const code of candidates) {
       try {
-        let resp = await fetch(`inhale/${code}.txt`, {method:'HEAD'});
+        let resp = await fetch('inhale/' + code + '.txt', {method:'HEAD'});
         if (resp.ok) codes.push(code);
       } catch(e) {}
     }
@@ -838,18 +1907,18 @@ async function init() {
   let status = document.getElementById('status');
   status.textContent = 'scanning languages...';
   let codes = await scanLanguages();
-  if (codes.length === 0) codes = ['en','ru','fr','he']; // ultimate fallback
-  status.textContent = `found ${codes.length} language(s), loading...`;
+  if (codes.length === 0) codes = ['en','ru','fr','he'];
+  status.textContent = 'found ' + codes.length + ' language(s), loading...';
   for (const code of codes) {
-    let inhale = await loadWordFile(`inhale/${code}.txt`, code);
-    let exhale = await loadWordFile(`exhale/ex-${code}.txt`, code);
+    let inhale = await loadWordFile('inhale/' + code + '.txt', code);
+    let exhale = await loadWordFile('exhale/ex-' + code + '.txt', code);
     if (inhale.length > 0 && exhale.length > 0) {
       let corpus = exhale.map(w=>w.text).join(' ') + ' ' + inhale.map(w=>w.text).join(' ');
       let bpe = bpeLearn(corpus, 256);
       let tokenIds = bpeEncode(corpus, bpe.merges);
       let meta = metaBuild(tokenIds, exhale.length);
       langPacks[code] = { inhale, exhale, meta, bpe };
-      status.textContent = `loaded ${code}: ${inhale.length}+${exhale.length}`;
+      status.textContent = 'loaded ' + code + ': ' + inhale.length + '+' + exhale.length;
     }
   }
   let nLangs = Object.keys(langPacks).length;
@@ -857,11 +1926,32 @@ async function init() {
     status.textContent = 'ERROR: no word files. serve this directory with a web server.';
     return;
   }
+
+  // Build sensitivity tensor
+  buildSensitivity();
+
+  // Init chambers (HyperKuramoto)
   chambersInit();
+
+  // Load somatic state from localStorage
+  let restored = loadSomaticState();
+
+  // Load spores
+  sporeLoad();
+
   mlpWeights = initMLP();
   updateChamberBars();
   let disc = calendarDissonance();
-  status.textContent = `${nLangs} lang | cal:${disc.toFixed(3)} | ready`;
+  let pDisc = planetaryDissonance();
+
+  if (restored) {
+    status.textContent = nLangs + ' lang | cal:' + disc.toFixed(3) + ' | SOMA RESTORED | n:' + interactionCount;
+  } else {
+    status.textContent = nLangs + ' lang | cal:' + disc.toFixed(3) + ' | planet:' + pDisc.toFixed(3) + ' | ready';
+  }
+
+  document.getElementById('velocity-indicator').textContent = '{WALK x0.50}';
+  document.getElementById('velocity-indicator').style.color = VEL_COLORS[VEL_WALK];
 
   // Input handler
   document.getElementById('prompt-input').addEventListener('keydown', (e) => {

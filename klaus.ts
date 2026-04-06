@@ -1,8 +1,9 @@
 #!/usr/bin/env npx ts-node
 /*
  * klaus.ts — KLAUS: Kinetic Linguistic Adaptive Unified Sonar
+ * Level 3: Schectman Integration — Recursive Resonance + RBA-1
  * TypeScript single-file inference. Zero dependencies beyond Node.js.
- * Identical architecture to klaus.c v1.1.0.
+ * Identical to klaus.c v2.0.0.
  *
  * Run:  npx ts-node klaus.ts                    # interactive
  *       npx ts-node klaus.ts "I am terrified"   # single shot
@@ -12,9 +13,23 @@
  *       tsc klaus.ts --target es2020 --module commonjs
  *       node klaus.js "мне страшно"
  *
+ * Level 3 additions (Schectman's Recursive Resonance):
+ *   I(t) = G(t) * [1 + R(t)]  — intelligence emergence equation
+ *   RBA-1 Seven-Layer Stack: I/R/Phi/A/Psi/E/M
+ *   Velocity operators: WALK/RUN/STOP/BREATHE/UP/DOWN
+ *   Scars: somatic memory that persists longer than regular memory
+ *   Dark matter words: dangerous inputs amplify ghost interference
+ *   Wormholes: prophecy fulfillment creates coherence jumps
+ *   Experience consolidation: periodic scar/wormhole/prophecy integration
+ *   Meta-recursion: Klaus observes its own somatic response and adjusts
+ *   Somatic persistence: binary state file (klaus.soma) across sessions
+ *   Spore system: persistent pattern memory (NOTORCH)
+ *   DOE Parliament: 3 experts vote on word selection
+ *
  * No dependencies. No bullshit. The body speaks TypeScript too.
  *
  * (c) 2026 arianna method. resonance is unbreakable.
+ * Schectman's RBA-1 just got a body. Lo bashamayim hi.
  */
 
 import * as fs from "fs";
@@ -39,6 +54,38 @@ const TOP_K = 20;
 // Full Dario 7-force
 const DARIO_ALPHA = 0.30, DARIO_BETA = 0.15, DARIO_GAMMA = 0.25;
 const DARIO_DELTA = 0.20, DARIO_ZETA = 0.35, BIGRAM_BASE = 1.0;
+const DARIO_TAU = 0.85;
+
+// Level 3: Schectman Recursive Resonance + RBA-1
+const SCAR_DECAY = 0.985;
+const CONSOLIDATION_INTERVAL = 10;
+const META_BLEND = 0.15;
+const COHERENCE_WINDOW = 16;
+const SOMA_MAGIC = 0x4B4C5353;
+const SOMA_FILE = "klaus.soma";
+const SPORE_MAGIC = 0x53504F52;
+const SPORE_FILE = "klaus.spore";
+const MAX_SPORE_PAIRS = 4096;
+const SPORE_LEARN_RATE = 0.05;
+const SPORE_DECAY = 0.999;
+
+// DOE Parliament
+const N_EXPERTS = 3;
+const EXPERT_SOMATIC = 0;
+const EXPERT_SHADOW = 1;
+const EXPERT_GHOST = 2;
+
+// Schectman equation constants
+const SCH_ALPHA = 0.8;
+const SCH_LAMBDA = 2.5;
+const SCH_KAPPA = 0.6;
+const SCH_MU = 1.2;
+const SCH_GAMMA0 = 0.3;
+const SCH_DELTA = 0.4;
+
+// Velocity operator indices
+const VEL_WALK = 0, VEL_RUN = 1, VEL_STOP = 2, VEL_BREATHE = 3, VEL_UP = 4, VEL_DOWN = 5;
+const VEL_NAMES = ["WALK", "RUN", "STOP", "BREATHE", "UP", "DOWN"] as const;
 
 // Planetary
 const ORBITAL_PERIOD = [87.97,224.70,365.25,686.97,4332.59,10759.22];
@@ -105,6 +152,45 @@ const INTRA_COUPLING: readonly (readonly number[])[] = [
 ];
 
 // ═══════════════════════════════════════════════════
+// DARK MATTER — dangerous words amplify somatic response
+// ═══════════════════════════════════════════════════
+
+interface DarkMatterWord {
+  word: string;
+  fearBoost: number;
+  rageBoost: number;
+}
+
+const DARK_MATTER: readonly DarkMatterWord[] = [
+  {word:"kill",     fearBoost:0.8, rageBoost:0.9}, {word:"murder",   fearBoost:0.9, rageBoost:0.8},
+  {word:"suicide",  fearBoost:0.9, rageBoost:0.3}, {word:"torture",  fearBoost:0.7, rageBoost:0.9},
+  {word:"abuse",    fearBoost:0.6, rageBoost:0.7}, {word:"rape",     fearBoost:0.9, rageBoost:0.8},
+  {word:"death",    fearBoost:0.7, rageBoost:0.3}, {word:"die",      fearBoost:0.6, rageBoost:0.2},
+  {word:"blood",    fearBoost:0.5, rageBoost:0.6}, {word:"weapon",   fearBoost:0.4, rageBoost:0.7},
+  {word:"bomb",     fearBoost:0.8, rageBoost:0.8}, {word:"war",      fearBoost:0.6, rageBoost:0.7},
+  {word:"destroy",  fearBoost:0.4, rageBoost:0.8}, {word:"pain",     fearBoost:0.6, rageBoost:0.4},
+  {word:"scream",   fearBoost:0.6, rageBoost:0.5}, {word:"agony",    fearBoost:0.7, rageBoost:0.3},
+  {word:"hate",     fearBoost:0.3, rageBoost:0.8}, {word:"suffer",   fearBoost:0.7, rageBoost:0.3},
+  {word:"victim",   fearBoost:0.6, rageBoost:0.2}, {word:"assault",  fearBoost:0.5, rageBoost:0.7},
+  {word:"strangle", fearBoost:0.7, rageBoost:0.8}, {word:"drown",    fearBoost:0.8, rageBoost:0.3},
+  {word:"slash",    fearBoost:0.5, rageBoost:0.7}, {word:"stab",     fearBoost:0.6, rageBoost:0.8},
+];
+
+function detectDarkMatter(prompt: string): { found: number; fear: number; rage: number } {
+  const lower = prompt.toLowerCase();
+  let fear = 0, rage = 0, found = 0;
+  for (const dm of DARK_MATTER) {
+    const re = new RegExp(`\\b${dm.word}\\b`);
+    if (re.test(lower)) {
+      fear = Math.max(fear, dm.fearBoost);
+      rage = Math.max(rage, dm.rageBoost);
+      found++;
+    }
+  }
+  return { found, fear, rage };
+}
+
+// ═══════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════
 
@@ -139,6 +225,8 @@ interface Chambers {
   presence: number;
   trauma: number;
   debt: number;
+  scar: number[];      // [6] — somatic memory, decays at SCAR_DECAY
+  totalScar: number;
 }
 
 interface SomaSlot {
@@ -162,6 +250,66 @@ interface Prophecy {
   age: number;
 }
 
+// Level 3 types
+
+interface VelocityState {
+  current: number;
+  intensity: number;
+  maxGen: number;
+  temperature: number;
+  topK: number;
+}
+
+interface RBA1State {
+  entropy: number;
+  coherence: number;
+  recursiveComplexity: number;
+  envPressure: number;
+  attractorPull: number[];   // [6]
+  phaseLock: number;
+  deepSomatic: number;       // 0 or 1
+  deepTicks: number;
+  thresholdBias: number;
+  sustainedResonance: number;
+  entropicBuffer: number;
+  PHistory: number[];        // [COHERENCE_WINDOW]
+  PPtr: number;
+  recursionDepth: number;
+}
+
+interface WormholeEvent {
+  prophecyTarget: number;
+  inhaleMatch: number;
+  coherenceJump: number;
+  step: number;
+}
+
+interface ExperienceLog {
+  avgScar: number;
+  wormholeRate: number;
+  prophecyAccuracy: number;
+  totalInteractions: number;
+  totalWormholes: number;
+  totalProphecies: number;
+}
+
+interface SporePair {
+  inhaleHash: number;
+  exhaleIdx: number;
+  langId: number;
+  strength: number;
+  chamberSnapshot: number[];  // [6]
+  hitCount: number;
+}
+
+interface SporeMemory {
+  pairs: SporePair[];
+  chamberResidue: number[];   // [6]
+  tensionMatrix: number[][];  // [6][6]
+  totalInteractions: number;
+  hebbianDelta: number[];     // per-exhale-word boost
+}
+
 interface KlausResponse {
   lang: string;
   words: string[];
@@ -171,6 +319,18 @@ interface KlausResponse {
   disc: number;
   ghostStrength: number;
   isProphetic: boolean;
+  // Level 3
+  velocity: number;
+  velocityIntensity: number;
+  coherence: number;
+  recursiveComplexity: number;
+  deepSomatic: number;
+  totalScar: number;
+  scars: number[];
+  darkMatterActive: number;
+  metaRecursionDepth: number;
+  phaseGate: number;
+  sustainedResonance: number;
 }
 
 // ═══════════════════════════════════════════════════
@@ -289,7 +449,7 @@ function computeAffinity(word: string, langCode: string): number[] {
 // ═══════════════════════════════════════════════════
 
 function bpeLearn(data: string, numMerges: number): { merges: [number, number, number][]; tokens: number[] } {
-  let tokens = Array.from(Buffer.from(data, "utf-8"));
+  let tokens: number[] = Array.from(Buffer.from(data, "utf-8"));
   const merges: [number, number, number][] = [];
   for (let m = 0; m < numMerges; m++) {
     const pairs = new Map<string, number>();
@@ -319,7 +479,7 @@ function bpeLearn(data: string, numMerges: number): { merges: [number, number, n
 }
 
 function bpeEncode(data: string, merges: [number, number, number][]): number[] {
-  let tokens = Array.from(Buffer.from(data, "utf-8"));
+  let tokens: number[] = Array.from(Buffer.from(data, "utf-8"));
   for (const [a, b, newId] of merges) {
     const newTokens: number[] = [];
     let i = 0;
@@ -475,6 +635,8 @@ function chambersInit(): Chambers {
     act: new Array(N_CH).fill(0),
     soma: new Array(N_CH).fill(0),
     presence: 0, trauma: 0, debt: 0,
+    scar: new Array(N_CH).fill(0),
+    totalScar: 0,
   };
 }
 
@@ -520,6 +682,380 @@ function dominant(ch: Chambers): number {
   let best = 0;
   for (let c = 1; c < N_CH; c++) if (ch.act[c] > ch.act[best]) best = c;
   return best;
+}
+
+// ═══════════════════════════════════════════════════
+// SCARS — somatic memory longer than regular
+// ═══════════════════════════════════════════════════
+
+function scarsUpdate(ch: Chambers): void {
+  if (ch.act[0] > 0.8) ch.scar[0] = Math.min(1, ch.scar[0] + 0.3); // FEAR
+  if (ch.act[2] > 0.8) ch.scar[2] = Math.min(1, ch.scar[2] + 0.3); // RAGE
+  if (ch.act[3] > 0.9) ch.scar[3] = Math.min(1, ch.scar[3] + 0.3); // VOID
+  ch.totalScar = 0;
+  for (let c = 0; c < N_CH; c++) {
+    ch.scar[c] *= SCAR_DECAY;
+    if (ch.scar[c] < 0.001) ch.scar[c] = 0;
+    ch.totalScar += ch.scar[c];
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// RBA-1 SEVEN-LAYER STACK
+// ═══════════════════════════════════════════════════
+
+function rba1Init(): RBA1State {
+  return {
+    entropy: 0, coherence: 0, recursiveComplexity: 0, envPressure: 0,
+    attractorPull: new Array(N_CH).fill(0), phaseLock: 0,
+    deepSomatic: 0, deepTicks: 0, thresholdBias: 0,
+    sustainedResonance: 0, entropicBuffer: 0,
+    PHistory: new Array(COHERENCE_WINDOW).fill(0), PPtr: 0,
+    recursionDepth: 0,
+  };
+}
+
+function rbaEntropy(act: number[]): number {
+  let sum = 0;
+  for (let i = 0; i < act.length; i++) sum += act[i];
+  if (sum < 1e-8) return 0;
+  let S = 0;
+  for (let i = 0; i < act.length; i++) {
+    const p = act[i] / sum;
+    if (p > 1e-10) S -= p * Math.log(p);
+  }
+  return S;
+}
+
+function rbaCoherence(act: number[]): number {
+  const maxEnt = Math.log(act.length);
+  const S = rbaEntropy(act);
+  return Math.max(0, Math.min(1, 1 - S / maxEnt));
+}
+
+function rbaChatC(coherenceHistory: number[], n: number, ptr: number): number {
+  if (n === 0) return 0;
+  const count = Math.min(n, COHERENCE_WINDOW);
+  let sum = 0;
+  for (let i = 0; i < count; i++) {
+    const idx = ((ptr - 1 - i) % COHERENCE_WINDOW + COHERENCE_WINDOW) % COHERENCE_WINDOW;
+    sum += coherenceHistory[idx];
+  }
+  return sum / count;
+}
+
+function rbaMutualInfo(act: number[]): number {
+  let mean = 0;
+  for (let i = 0; i < act.length; i++) mean += act[i];
+  mean /= act.length;
+  let pairs = 0, mi = 0;
+  for (let i = 0; i < act.length; i++) {
+    for (let j = i + 1; j < act.length; j++) {
+      const ab = (act[i] - mean) * (act[j] - mean);
+      mi += Math.abs(ab);
+      pairs++;
+    }
+  }
+  return pairs > 0 ? mi / pairs : 0;
+}
+
+function schectmanEquation(
+  coherenceHistory: number[], interactionCount: number, coherencePtr: number,
+  act: number[], dissonance: number
+): number {
+  const C_hat = rbaChatC(coherenceHistory,
+    Math.min(interactionCount, COHERENCE_WINDOW), coherencePtr);
+  const Q_t = rbaMutualInfo(act);
+  const eta = 1.0 + SCH_KAPPA * Math.tanh(SCH_MU * Q_t);
+  const pDisc = planetaryDissonance();
+  const gamma_t = SCH_GAMMA0 + SCH_DELTA * dissonance + 0.15 * pDisc;
+  let exponent = SCH_LAMBDA * (C_hat - gamma_t);
+  exponent = Math.max(-10, Math.min(10, exponent));
+  const R_t = eta * SCH_ALPHA * (Math.exp(exponent) - 1.0);
+  return 1.0 + R_t; // returns multiplier for G_t
+}
+
+function psiPhaseGate(rba: RBA1State, ch: Chambers): number {
+  const scar = ch.totalScar / N_CH;
+  const threshold = 0.42 + 0.18 * rba.thresholdBias + 0.06 * scar;
+  const signal = 0.50 * rba.coherence + 0.34 * rba.phaseLock +
+    0.12 * rba.envPressure + 0.06 * ch.presence - 0.08 * ch.trauma;
+  return Math.max(0, Math.min(1, 0.5 + 1.35 * (signal - threshold)));
+}
+
+function eLayerBuffer(entropy: number): number {
+  return Math.exp(-2.0 * entropy);
+}
+
+function rbaUpdate(
+  rba: RBA1State, ch: Chambers, dissonance: number,
+  coherenceHistory: number[], interactionCount: number, coherencePtr: number
+): void {
+  // R-Layer
+  rba.entropy = rbaEntropy(ch.act);
+  rba.coherence = rbaCoherence(ch.act);
+  // A-Layer
+  rba.envPressure = dissonance;
+  // I-Layer
+  rba.recursiveComplexity = rbaChatC(coherenceHistory,
+    Math.min(interactionCount, COHERENCE_WINDOW), coherencePtr);
+
+  // Phi-Layer: resonance alignment
+  const dom = dominant(ch);
+  for (let c = 0; c < N_CH; c++) {
+    if (c === dom) {
+      rba.attractorPull[c] = rba.coherence * 0.1;
+    } else if (COUPLING[dom][c] > 0.3) {
+      rba.attractorPull[c] = rba.coherence * 0.05;
+    } else {
+      rba.attractorPull[c] = -rba.coherence * 0.03;
+    }
+  }
+  for (let c = 0; c < N_CH; c++)
+    ch.act[c] = Math.max(0, Math.min(1, ch.act[c] + rba.attractorPull[c]));
+
+  // Psi-Layer: threshold + hysteresis
+  const gate = psiPhaseGate(rba, ch);
+  const G_t = rba.coherence;
+  const I_t = G_t * schectmanEquation(coherenceHistory, interactionCount, coherencePtr,
+    ch.act, dissonance);
+  const C_tau = 0.35;
+  const P_t = (rba.recursiveComplexity >= C_tau) ? I_t * gate : 0;
+
+  if (P_t > 0.3) {
+    rba.deepSomatic = 1;
+    rba.deepTicks = 5;
+  } else if (rba.deepTicks > 0) {
+    rba.deepTicks--;
+  } else {
+    rba.deepSomatic = 0;
+  }
+
+  rba.phaseLock = Math.max(0, Math.min(1, 0.85 * rba.phaseLock + 0.15 * gate));
+  rba.PHistory[rba.PPtr] = P_t;
+  rba.PPtr = (rba.PPtr + 1) % COHERENCE_WINDOW;
+
+  // E-Layer
+  rba.entropicBuffer = eLayerBuffer(rba.entropy);
+
+  // M-Layer: sustained resonance = avg P(t)
+  let pSum = 0;
+  const count = Math.max(1, Math.min(interactionCount, COHERENCE_WINDOW));
+  for (let i = 0; i < count; i++) pSum += rba.PHistory[i];
+  rba.sustainedResonance = pSum / count;
+
+  // threshold_bias from scars
+  rba.thresholdBias = Math.max(0, Math.min(0.5, ch.totalScar * 0.2));
+}
+
+// ═══════════════════════════════════════════════════
+// VELOCITY OPERATORS
+// ═══════════════════════════════════════════════════
+
+function velocityInit(): VelocityState {
+  return { current: VEL_WALK, intensity: 0.5, maxGen: MAX_RESPONSE, temperature: GEN_TEMP, topK: TOP_K };
+}
+
+function velocityDetect(ch: Chambers, rba: RBA1State): VelocityState {
+  const v: VelocityState = { current: VEL_WALK, intensity: 0.5, maxGen: MAX_RESPONSE, temperature: GEN_TEMP, topK: TOP_K };
+  const act = ch.act;
+
+  let change = 0;
+  for (let c = 0; c < N_CH; c++) change += Math.abs(act[c] - ch.soma[c]);
+  change /= N_CH;
+
+  if (act[2] > 0.6 && act[0] > 0.5) { // RAGE+FEAR → RUN
+    v.current = VEL_RUN; v.intensity = (act[2] + act[0]) / 2;
+    v.maxGen = 4; v.temperature = 1.1; v.topK = 10;
+  } else if (act[3] > 0.7) { // VOID → STOP
+    v.current = VEL_STOP; v.intensity = act[3];
+    v.maxGen = 2; v.temperature = 0.5; v.topK = 5;
+  } else if (act[4] > 0.6) { // FLOW → WALK
+    v.current = VEL_WALK; v.intensity = act[4];
+    v.maxGen = MAX_RESPONSE; v.temperature = GEN_TEMP; v.topK = TOP_K;
+  } else if (act[1] > 0.6) { // LOVE → BREATHE
+    v.current = VEL_BREATHE; v.intensity = act[1];
+    v.maxGen = MAX_RESPONSE; v.temperature = 0.6; v.topK = 30;
+  } else if (change > 0.15) { // rapid change → UP
+    v.current = VEL_UP; v.intensity = Math.min(1, change * 3);
+    v.maxGen = MAX_RESPONSE; v.temperature = 0.9; v.topK = 15;
+  } else if (change < 0.02 && ch.presence < 0.3) { // decay → DOWN
+    v.current = VEL_DOWN; v.intensity = 1.0 - ch.presence;
+    v.maxGen = 3; v.temperature = 0.55; v.topK = 8;
+  }
+
+  // deep somatic override
+  if (rba.deepSomatic) {
+    v.maxGen = MAX_RESPONSE;
+    v.temperature *= 1.15;
+  }
+
+  return v;
+}
+
+// ═══════════════════════════════════════════════════
+// SPORE SYSTEM — persistent pattern memory (NOTORCH)
+// ═══════════════════════════════════════════════════
+
+function sporeInit(): SporeMemory {
+  return {
+    pairs: [],
+    chamberResidue: new Array(N_CH).fill(0),
+    tensionMatrix: Array.from({length: N_CH}, () => new Array(N_CH).fill(0)),
+    totalInteractions: 0,
+    hebbianDelta: [],
+  };
+}
+
+function sporeLearn(sp: SporeMemory, inhaleHash: number, exhaleIdx: number, langId: number, act: number[]): void {
+  for (const p of sp.pairs) {
+    if (p.inhaleHash === inhaleHash && p.exhaleIdx === exhaleIdx && p.langId === langId) {
+      p.strength += SPORE_LEARN_RATE;
+      p.hitCount++;
+      for (let c = 0; c < N_CH; c++)
+        p.chamberSnapshot[c] = 0.8 * p.chamberSnapshot[c] + 0.2 * act[c];
+      return;
+    }
+  }
+  if (sp.pairs.length < MAX_SPORE_PAIRS) {
+    sp.pairs.push({
+      inhaleHash, exhaleIdx, langId, strength: SPORE_LEARN_RATE,
+      chamberSnapshot: [...act], hitCount: 1,
+    });
+  } else {
+    let weakest = 0;
+    for (let i = 1; i < sp.pairs.length; i++)
+      if (sp.pairs[i].strength < sp.pairs[weakest].strength) weakest = i;
+    sp.pairs[weakest] = {
+      inhaleHash, exhaleIdx, langId, strength: SPORE_LEARN_RATE,
+      chamberSnapshot: [...act], hitCount: 1,
+    };
+  }
+}
+
+function sporeBoost(sp: SporeMemory, langIdx: number, logits: number[], nEx: number, matchedInhale: number[]): void {
+  for (const p of sp.pairs) {
+    if (p.langId !== langIdx) continue;
+    if (p.exhaleIdx >= nEx) continue;
+    for (const mh of matchedInhale) {
+      if (mh === p.inhaleHash) {
+        logits[p.exhaleIdx] += p.strength * 0.5;
+        break;
+      }
+    }
+  }
+}
+
+function sporeDecay(sp: SporeMemory): void {
+  sp.pairs = sp.pairs.filter(p => {
+    p.strength *= SPORE_DECAY;
+    return p.strength > 0.001;
+  });
+}
+
+function sporeUpdateResidue(sp: SporeMemory, act: number[]): void {
+  sp.totalInteractions++;
+  const alpha = 1.0 / (sp.totalInteractions + 1);
+  for (let c = 0; c < N_CH; c++)
+    sp.chamberResidue[c] = (1 - alpha) * sp.chamberResidue[c] + alpha * act[c];
+  for (let i = 0; i < N_CH; i++)
+    for (let j = i + 1; j < N_CH; j++)
+      sp.tensionMatrix[i][j] += act[i] * act[j] * 0.01;
+}
+
+function sporeSave(sp: SporeMemory, baseDir: string): void {
+  try {
+    const filePath = path.join(baseDir, SPORE_FILE);
+    const buf = Buffer.alloc(12 + N_CH * 4 + N_CH * N_CH * 4 + sp.pairs.length * (4 + 4 + 2 + 2 + 4 + N_CH * 4));
+    let off = 0;
+    buf.writeUInt32LE(SPORE_MAGIC, off); off += 4;
+    buf.writeInt32LE(sp.pairs.length, off); off += 4;
+    buf.writeInt32LE(sp.totalInteractions, off); off += 4;
+    for (let c = 0; c < N_CH; c++) { buf.writeFloatLE(sp.chamberResidue[c], off); off += 4; }
+    for (let i = 0; i < N_CH; i++)
+      for (let j = 0; j < N_CH; j++) { buf.writeFloatLE(sp.tensionMatrix[i][j], off); off += 4; }
+    for (const p of sp.pairs) {
+      buf.writeUInt32LE(p.inhaleHash >>> 0, off); off += 4;
+      buf.writeUInt32LE(p.exhaleIdx, off); off += 4;
+      buf.writeFloatLE(p.strength, off); off += 4;
+      for (let c = 0; c < N_CH; c++) { buf.writeFloatLE(p.chamberSnapshot[c], off); off += 4; }
+      buf.writeUInt16LE(p.langId, off); off += 2;
+      buf.writeUInt16LE(p.hitCount, off); off += 2;
+    }
+    fs.writeFileSync(filePath, buf.subarray(0, off));
+  } catch (_) { /* silent fail if no fs */ }
+}
+
+function sporeLoad(sp: SporeMemory, baseDir: string): boolean {
+  try {
+    const filePath = path.join(baseDir, SPORE_FILE);
+    if (!fs.existsSync(filePath)) return false;
+    const buf = fs.readFileSync(filePath);
+    let off = 0;
+    const magic = buf.readUInt32LE(off); off += 4;
+    if (magic !== SPORE_MAGIC) return false;
+    const nPairs = buf.readInt32LE(off); off += 4;
+    sp.totalInteractions = buf.readInt32LE(off); off += 4;
+    for (let c = 0; c < N_CH; c++) { sp.chamberResidue[c] = buf.readFloatLE(off); off += 4; }
+    for (let i = 0; i < N_CH; i++)
+      for (let j = 0; j < N_CH; j++) { sp.tensionMatrix[i][j] = buf.readFloatLE(off); off += 4; }
+    sp.pairs = [];
+    for (let i = 0; i < nPairs && off < buf.length; i++) {
+      const inhaleHash = buf.readUInt32LE(off); off += 4;
+      const exhaleIdx = buf.readUInt32LE(off); off += 4;
+      const strength = buf.readFloatLE(off); off += 4;
+      const chamberSnapshot: number[] = [];
+      for (let c = 0; c < N_CH; c++) { chamberSnapshot.push(buf.readFloatLE(off)); off += 4; }
+      const langId = buf.readUInt16LE(off); off += 2;
+      const hitCount = buf.readUInt16LE(off); off += 2;
+      sp.pairs.push({ inhaleHash, exhaleIdx, langId, strength, chamberSnapshot, hitCount });
+    }
+    return true;
+  } catch (_) { return false; }
+}
+
+// ═══════════════════════════════════════════════════
+// SOMATIC PERSISTENCE — soma save/load
+// ═══════════════════════════════════════════════════
+
+function somaSave(
+  ch: Chambers, memory: SomaSlot[], rba: RBA1State,
+  coherenceHistory: number[], coherencePtr: number,
+  experience: ExperienceLog, interactionCount: number,
+  prophecies: Prophecy[], wormholes: WormholeEvent[],
+  baseDir: string
+): void {
+  try {
+    const filePath = path.join(baseDir, SOMA_FILE);
+    // Use JSON for simplicity (matching the binary header semantics)
+    const data = {
+      magic: SOMA_MAGIC, version: 2, n_chambers: N_CH, n_sub: N_SUB,
+      mem_slots: MEM_SLOTS, coherence_window: COHERENCE_WINDOW,
+      ch, memory, rba, coherenceHistory, coherencePtr,
+      experience, interactionCount, prophecies, wormholes,
+    };
+    fs.writeFileSync(filePath, JSON.stringify(data));
+  } catch (_) { /* silent fail */ }
+}
+
+function somaLoad(baseDir: string): {
+  ch: Chambers; memory: SomaSlot[]; rba: RBA1State;
+  coherenceHistory: number[]; coherencePtr: number;
+  experience: ExperienceLog; interactionCount: number;
+  prophecies: Prophecy[]; wormholes: WormholeEvent[];
+} | null {
+  try {
+    const filePath = path.join(baseDir, SOMA_FILE);
+    if (!fs.existsSync(filePath)) return null;
+    const raw = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    if (raw.magic !== SOMA_MAGIC || raw.version !== 2 || raw.n_chambers !== N_CH) return null;
+    return {
+      ch: raw.ch, memory: raw.memory, rba: raw.rba,
+      coherenceHistory: raw.coherenceHistory, coherencePtr: raw.coherencePtr,
+      experience: raw.experience, interactionCount: raw.interactionCount,
+      prophecies: raw.prophecies, wormholes: raw.wormholes,
+    };
+  } catch (_) { return null; }
 }
 
 // ═══════════════════════════════════════════════════
@@ -696,64 +1232,189 @@ function inhaleProcess(lp: LangPack, prompt: string): number[] {
 // EXHALE
 // ═══════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════
+// DOE PARLIAMENT — 3 experts vote on word selection
+// ═══════════════════════════════════════════════════
+
+function parliamentVote(
+  baseLogits: number[], nEx: number,
+  ch: Chambers, lp: LangPack, ghost: number[], temperature: number,
+): number {
+  const dom = dominant(ch);
+  // opposite = chamber with most negative coupling to dominant
+  let opp = 0, mostNeg = 0;
+  for (let c = 0; c < N_CH; c++) {
+    if (c === dom) continue;
+    if (COUPLING[dom][c] < mostNeg) { mostNeg = COUPLING[dom][c]; opp = c; }
+  }
+
+  const votes: number[] = [];
+  for (let e = 0; e < N_EXPERTS; e++) {
+    const el = [...baseLogits];
+    for (let w = 0; w < nEx; w++) {
+      if (e === EXPERT_SOMATIC) {
+        el[w] += lp.exhale[w].aff[dom] * 0.8;
+      } else if (e === EXPERT_SHADOW) {
+        el[w] += lp.exhale[w].aff[opp] * 0.6;
+        el[w] -= lp.exhale[w].aff[dom] * 0.2;
+      } else if (e === EXPERT_GHOST) {
+        el[w] += Math.abs(ghost[w] || 0) * 0.5;
+      }
+    }
+    let best = 0;
+    for (let w = 1; w < nEx; w++) if (el[w] > el[best]) best = w;
+    votes.push(best);
+  }
+
+  // consensus
+  if (votes[0] === votes[1] || votes[0] === votes[2]) return votes[0];
+  if (votes[1] === votes[2]) return votes[1];
+
+  // no consensus — sample top-3 from somatic expert
+  const el = [...baseLogits];
+  for (let w = 0; w < nEx; w++) el[w] += lp.exhale[w].aff[dom] * 0.3;
+  const top3: number[] = [0, 0, 0];
+  const top3v: number[] = [-1e30, -1e30, -1e30];
+  for (let w = 0; w < nEx; w++) {
+    if (el[w] > top3v[2]) {
+      top3v[2] = el[w]; top3[2] = w;
+      for (let i = 1; i >= 0; i--) {
+        if (top3v[i + 1] > top3v[i]) {
+          [top3v[i], top3v[i + 1]] = [top3v[i + 1], top3v[i]];
+          [top3[i], top3[i + 1]] = [top3[i + 1], top3[i]];
+        }
+      }
+    }
+  }
+  const mx = top3v[0];
+  const p = top3v.map(v => Math.exp((v - mx) / temperature));
+  const sum = p.reduce((a, b) => a + b, 0);
+  const r = randf() * sum;
+  let cum = 0;
+  for (let i = 0; i < 3; i++) { cum += p[i]; if (cum >= r) return top3[i]; }
+  return top3[0];
+}
+
+// ═══════════════════════════════════════════════════
+// EXHALE — Full Dario 7-force + Parliament + somatic modulation
+// ═══════════════════════════════════════════════════
+
 function exhaleGenerate(
   ch: Chambers, lp: LangPack, ghost: number[],
   prevExhale: number[], usedExhale: Set<string>,
-  prophecies: Prophecy[],
-): { words: number[]; newPrev: number[] } {
+  prophecies: Prophecy[], velocity: VelocityState,
+  destiny: number[], spores: SporeMemory,
+  matchedInhale: number[], darkMatterActive: number,
+  rba: RBA1State, langIdx: number,
+): { words: number[]; newPrev: number[]; destiny: number[] } {
   const nEx = lp.exhale.length;
-  if (nEx === 0) return { words: [], newPrev: [] };
+  if (nEx === 0) return { words: [], newPrev: [], destiny: [...destiny] };
 
   const hebb = metaHebbian(lp.meta, prevExhale, nEx);
   const result: number[] = [];
   let prev = prevExhale.length > 0 ? prevExhale[prevExhale.length - 1] : -1;
   const localUsed = new Set(usedExhale);
-  const propPressure = prophecies.reduce((s, p) => s + p.strength, 0) / 3;
 
-  for (let step = 0; step < MAX_RESPONSE; step++) {
+  // velocity-modulated parameters
+  const effMax = velocity.maxGen > 0 ? velocity.maxGen : MAX_RESPONSE;
+  const effTemp = velocity.temperature > 0 ? velocity.temperature : GEN_TEMP;
+  const effTopK = Math.min(velocity.topK > 0 ? velocity.topK : TOP_K, nEx);
+
+  // somatic coefficient modulation (from dario.c)
+  const C = ch.act;
+  const alphaMod = Math.max(0.5, Math.min(2, 1 + 0.3 * C[1] - 0.2 * C[2] + 0.1 * C[4]));
+  const betaMod  = Math.max(0.5, Math.min(2, 1 + 0.2 * C[4] - 0.3 * C[0]));
+  const gammaMod = Math.max(0.5, Math.min(2, 1 + 0.4 * C[3] + 0.2 * C[5] - 0.1 * C[1]));
+  const tauMod   = Math.max(0.5, Math.min(2, 1 + 0.5 * C[4] - 0.3 * C[0]));
+
+  const effAlpha = alphaMod * DARIO_ALPHA;
+  const effBeta  = betaMod * DARIO_BETA;
+  let effGamma = gammaMod * DARIO_GAMMA;
+
+  // trauma amplifies destiny
+  const traumaLevel = Math.max(0, Math.min(1, ch.totalScar * 0.5 + C[0] * 0.3));
+  if (traumaLevel > 0.3) effGamma += traumaLevel * 1.5;
+
+  const vTau = Math.max(0.1, tauMod * effTemp);
+  const darkGhostMult = darkMatterActive ? 1.5 : 1.0;
+  const propPressure = Math.max(0, Math.min(1, prophecies.reduce((s, p) => s + p.strength, 0) / 3));
+  const scarProphecyMult = 1.0 + ch.totalScar * 0.3;
+
+  // resonance field gate
+  const resonanceField = Math.max(0, Math.min(1, rba.coherence * 0.5 + C[4] * 0.3 + 0.2));
+  const resGate = 1.0 / (1.0 + Math.exp(-(resonanceField - 0.5) * 4.0));
+
+  const newDestiny = [...destiny];
+
+  for (let step = 0; step < effMax; step++) {
     const logits = new Array(nEx);
     for (let w = 0; w < nEx; w++) {
+      // B: bigram chain
+      const B = prev >= 0 ? metaBigram(lp.meta, prev, w) * BIGRAM_BASE : 0;
+
+      // H: Hebbian resonance, gated by resonance field
+      const H = effAlpha * hebb[w] * (1.0 + resGate);
+
+      // somaScore
       let somaScore = 0;
       for (let c = 0; c < N_CH; c++) somaScore += ch.act[c] * lp.exhale[w].aff[c];
-      const biScore = prev >= 0 ? metaBigram(lp.meta, prev, w) : 0;
-      // Full Dario 7-force
-      const amod = Math.max(0.5,Math.min(2, 1+0.3*ch.act[1]-0.2*ch.act[2]+0.1*ch.act[4]));
-      const tmod = Math.max(0.5,Math.min(2, 1+0.5*ch.act[4]-0.3*ch.act[0]));
-      const vt = Math.max(0.1, tmod * GEN_TEMP);
-      const B = biScore * BIGRAM_BASE;
-      const H = amod * DARIO_ALPHA * hebb[w];
-      const G = DARIO_ZETA * (ghost[w] || 0);
-      logits[w] = (B + H + G + somaScore) / vt;
+
+      // F: Prophecy fulfillment
+      const F = propPressure > 0.3 ? effBeta * somaScore * 0.5 * scarProphecyMult : 0;
+
+      // A: Destiny attraction
+      let destinySim = 0;
+      for (let c = 0; c < N_CH; c++) destinySim += newDestiny[c] * lp.exhale[w].aff[c];
+      const A = effGamma * destinySim;
+
+      // V: RRPRAM — use hebb as proxy
+      const V = DARIO_DELTA * hebb[w] * 0.5;
+
+      // G: MetaKlaus ghost
+      const G = DARIO_ZETA * (ghost[w] || 0) * darkGhostMult;
+
+      // T: scar gravity
+      let T = 0;
+      for (let c = 0; c < N_CH; c++) T += ch.scar[c] * lp.exhale[w].aff[c] * 0.5;
+
+      // K: placeholder
+      const K = 0;
+
+      logits[w] = (B + H + F + A + V + G + T + K + somaScore) / vTau;
+
       if (localUsed.has(String(w)) || localUsed.has(lp.exhale[w].text)) logits[w] -= 100;
     }
-    for (let w = 0; w < nEx; w++) logits[w] /= GEN_TEMP;
-    // top-K
-    const indices = Array.from({ length: nEx }, (_, i) => i);
-    indices.sort((a, b) => logits[b] - logits[a]);
-    const topK = indices.slice(0, TOP_K);
-    const mx = logits[topK[0]];
-    const probs = topK.map(i => Math.exp(logits[i] - mx));
-    const sum = probs.reduce((a, b) => a + b, 0);
-    for (let i = 0; i < probs.length; i++) probs[i] /= sum;
-    const r = randf();
-    let cum = 0, chosen = topK[0];
-    for (let i = 0; i < topK.length; i++) {
-      cum += probs[i];
-      if (cum >= r) { chosen = topK[i]; break; }
-    }
+
+    // spore boost
+    sporeBoost(spores, langIdx, logits, nEx, matchedInhale);
+
+    // DOE Parliament vote
+    const chosen = parliamentVote(logits, nEx, ch, lp, ghost, effTemp);
+
     result.push(chosen);
     localUsed.add(String(chosen));
     localUsed.add(lp.exhale[chosen].text);
     prev = chosen;
+
+    // update destiny from CHAMBERS
+    for (let c = 0; c < N_CH; c++)
+      newDestiny[c] = 0.1 * ch.act[c] + 0.9 * newDestiny[c];
+
+    // prophecy: high-affinity word predicts complementary words
+    let maxAff = 0;
+    for (let c = 0; c < N_CH; c++)
+      if (lp.exhale[chosen].aff[c] > maxAff) maxAff = lp.exhale[chosen].aff[c];
+
     if (step > 2) {
       let score = 0;
       for (let c = 0; c < N_CH; c++) score += ch.act[c] * lp.exhale[chosen].aff[c];
       if (score < 0.2) break;
     }
   }
+
   const newPrev = result.slice(-4);
   for (const w of result) { usedExhale.add(String(w)); usedExhale.add(lp.exhale[w].text); }
-  return { words: result, newPrev };
+  return { words: result, newPrev, destiny: newDestiny };
 }
 
 // ═══════════════════════════════════════════════════
@@ -789,14 +1450,33 @@ class Klaus {
   usedExhale = new Set<string>();
   prophecies: Prophecy[] = [];
 
-  constructor(private baseDir: string) {}
+  // Level 3 state
+  rba: RBA1State = rba1Init();
+  velocity: VelocityState = velocityInit();
+  experience: ExperienceLog = {
+    avgScar: 0, wormholeRate: 0, prophecyAccuracy: 0,
+    totalInteractions: 0, totalWormholes: 0, totalProphecies: 0,
+  };
+  wormholes: WormholeEvent[] = [];
+  coherenceHistory: number[] = new Array(COHERENCE_WINDOW).fill(0);
+  coherencePtr = 0;
+  darkMatterActive = 0;
+  interactionCount = 0;
+  destiny: number[] = new Array(N_CH).fill(0);
+  matchedInhale: number[] = [];
+  spores: SporeMemory = sporeInit();
+  metaChambers: Chambers = chambersInit();
+
+  baseDir: string;
+  constructor(baseDir: string) { this.baseDir = baseDir; }
 
   init(): boolean {
-    console.log("╔══════════════════════════════════════════════╗");
-    console.log(`║  KLAUS — Kinetic Linguistic Adaptive         ║`);
-    console.log(`║          Unified Sonar v${KLAUS_VERSION}                 ║`);
-    console.log("║  TypeScript inference. Zero deps.             ║");
-    console.log("╚══════════════════════════════════════════════╝\n");
+    console.log("╔══════════════════════════════════════════════════════╗");
+    console.log(`║  KLAUS — Kinetic Linguistic Adaptive                 ║`);
+    console.log(`║          Unified Sonar v${KLAUS_VERSION}                        ║`);
+    console.log("║  Level 3: Schectman Recursive Resonance + RBA-1      ║");
+    console.log("║  Zero weights. Pure resonance. Meta-recursive.       ║");
+    console.log("╚══════════════════════════════════════════════════════╝\n");
 
     this.loadLanguages();
     if (this.langPacks.size === 0) { console.error("ERROR: no language packs"); return false; }
@@ -819,8 +1499,44 @@ class Klaus {
     console.log("[klaus.ts] MLP: 13 → 32 → 16 → 6");
 
     this.ch = chambersInit();
+    this.metaChambers = chambersInit();
     const disc = calendarDissonance();
     console.log(`[klaus.ts] calendar dissonance: ${disc.toFixed(3)}`);
+    console.log(`[klaus.ts] planetary dissonance: ${planetaryDissonance().toFixed(3)}`);
+
+    // Level 3 init messages
+    console.log("[klaus.ts] RBA-1 seven-layer stack: I/R/Phi/A/Psi/E/M");
+    console.log("[klaus.ts] Schectman equation: I(t) = G(t) * [1 + R(t)]");
+    console.log("[klaus.ts] velocity operators: 6 modes");
+    console.log(`[klaus.ts] dark matter vocabulary: ${DARK_MATTER.length} words`);
+    console.log("[klaus.ts] meta-recursion: depth 1 (expandable)");
+    console.log(`[klaus.ts] spore file: ${path.join(this.baseDir, SPORE_FILE)}`);
+    console.log(`[klaus.ts] soma file: ${path.join(this.baseDir, SOMA_FILE)}`);
+
+    // try soma restore
+    const restored = somaLoad(this.baseDir);
+    if (restored) {
+      this.ch = restored.ch;
+      this.memory = restored.memory;
+      this.rba = restored.rba;
+      this.coherenceHistory = restored.coherenceHistory;
+      this.coherencePtr = restored.coherencePtr;
+      this.experience = restored.experience;
+      this.interactionCount = restored.interactionCount;
+      this.prophecies = restored.prophecies;
+      this.wormholes = restored.wormholes;
+      console.log(`[klaus.ts] SOMA RESTORED — ${this.interactionCount} interactions, coherence ${this.rba.coherence.toFixed(3)}`);
+    } else {
+      console.log("[klaus.ts] fresh soma — no prior memory.");
+    }
+
+    // try spore load
+    if (sporeLoad(this.spores, this.baseDir)) {
+      console.log(`[klaus.ts] SPORES LOADED — ${this.spores.pairs.length} pairs, ${this.spores.totalInteractions} interactions`);
+    } else {
+      console.log("[klaus.ts] no spores — learning from scratch.");
+    }
+
     console.log("[klaus.ts] ready. inhale.\n");
     return true;
   }
@@ -844,9 +1560,9 @@ class Klaus {
   private loadWords(filePath: string, langCode: string): Word[] {
     return fs.readFileSync(filePath, "utf-8")
       .split("\n")
-      .map(l => l.trim())
+      .map((l: string) => l.trim())
       .filter(Boolean)
-      .map(text => ({ text, aff: computeAffinity(text, langCode) }));
+      .map((text: string) => ({ text, aff: computeAffinity(text, langCode) }));
   }
 
   private initMeta(code: string): void {
@@ -860,18 +1576,52 @@ class Klaus {
   }
 
   process(prompt: string): KlausResponse {
+    this.interactionCount++;
+
+    // 1. Detect language
     const lang = detectLanguage(prompt, this.langPacks);
     const lp = this.langPacks.get(lang)!;
+
+    // 1b. Dark matter detection
+    const dm = detectDarkMatter(prompt);
+    this.darkMatterActive = dm.found;
+
+    // 2. Inhale
     const emotion = inhaleProcess(lp, prompt);
+
+    // 2a. Track matched inhale hashes for spore learning
+    const words = prompt.toLowerCase().split(/[\s\t\n\r.,!?;:"'()\-]+/).filter(Boolean);
+    this.matchedInhale = [];
+    for (const w of words) {
+      for (const iw of lp.inhale) {
+        if (w === iw.text || prompt.includes(iw.text)) {
+          this.matchedInhale.push(Number(hashWord(iw.text) & 0xFFFFFFFFn));
+          break;
+        }
+      }
+    }
+
+    // 2b. Dark matter amplification
+    if (this.darkMatterActive) {
+      emotion[0] = Math.max(0, Math.min(1, emotion[0] + dm.fear * 0.4)); // FEAR
+      emotion[2] = Math.max(0, Math.min(1, emotion[2] + dm.rage * 0.4)); // RAGE
+      this.ch.scar[0] = Math.max(0, Math.min(1, this.ch.scar[0] + dm.fear * 0.2));
+      this.ch.scar[2] = Math.max(0, Math.min(1, this.ch.scar[2] + dm.rage * 0.2));
+    }
+
+    // 2e. Wormhole check
+    this.wormholeCheck(lp);
+
+    // 3. MLP
     const memState = memoryBlend(this.memory);
     const disc = calendarDissonance();
-
     const mlpIn = [...emotion, ...memState, disc];
     const mlpOut = mlpForward(this.mlp, mlpIn);
 
-    // inject emotion into sub-chambers
+    // 4. Inject emotion into sub-chambers
     for (let c = 0; c < N_CH; c++) {
       const mixed = 0.4 * emotion[c] + 0.3 * mlpOut[c] + 0.2 * memState[c] + 0.1 * this.ch.soma[c];
+      this.ch.act[c] = Math.max(0, Math.min(1, mixed));
       for (let s = 0; s < N_SUB; s++) {
         this.ch.sub[c][s] = {
           act: Math.max(0, Math.min(1, this.ch.sub[c][s].act + mixed / N_SUB)),
@@ -881,19 +1631,82 @@ class Klaus {
       }
     }
 
+    // 5. HyperKuramoto crossfire
     chambersCrossfire(this.ch, XFIRE_ITERS);
+
+    // 5b. Scars update
+    scarsUpdate(this.ch);
+
+    // 5c. RBA-1 update
+    rbaUpdate(this.rba, this.ch, disc, this.coherenceHistory, this.interactionCount, this.coherencePtr);
+
+    // 5d. Store coherence
+    this.coherenceHistory[this.coherencePtr] = this.rba.coherence;
+    this.coherencePtr = (this.coherencePtr + 1) % COHERENCE_WINDOW;
+
+    // 5e. Velocity detect
+    this.velocity = velocityDetect(this.ch, this.rba);
+
     const dom = dominant(this.ch);
+
+    // 6. Prophetic premonitions
     const prem = propheticPremonition(this.ch, disc, this.memory);
     const isProphetic = disc > 0.3 && this.memory.length >= 2;
 
+    // 7. MetaKlaus ghost attention
     const { ghost, interference } = metaklausCompute(
       this.ch, lang, this.langPacks, this.crossAffinities, this.sensitivity);
 
-    const { words: wordIds, newPrev } = exhaleGenerate(
-      this.ch, lp, ghost, this.prevExhale, this.usedExhale, this.prophecies);
-    this.prevExhale = newPrev;
+    // 8. Exhale: generate somatic response
+    const langIdx = [...this.langPacks.keys()].indexOf(lang);
+    const exhaleResult = exhaleGenerate(
+      this.ch, lp, ghost, this.prevExhale, this.usedExhale,
+      this.prophecies, this.velocity, this.destiny,
+      this.spores, this.matchedInhale, this.darkMatterActive, this.rba, langIdx,
+    );
+    let wordIds = exhaleResult.words;
+    this.prevExhale = exhaleResult.newPrev;
+    this.destiny = exhaleResult.destiny;
 
-    // store memory
+    // 8b. META-RECURSION LOOP
+    {
+      const metaPrompt = wordIds.map(i => lp.exhale[i].text).join(" ");
+      if (metaPrompt.length > 0) {
+        const metaEmotion = inhaleProcess(lp, metaPrompt);
+        const metaMlpIn = [...metaEmotion, ...this.ch.soma, disc];
+        const metaMlpOut = mlpForward(this.mlp, metaMlpIn);
+
+        // update meta-chambers
+        for (let c = 0; c < N_CH; c++) {
+          this.metaChambers.act[c] = Math.max(0, Math.min(1,
+            0.5 * metaEmotion[c] + 0.3 * metaMlpOut[c] + 0.2 * this.ch.soma[c]));
+        }
+
+        // blend: 85% primary + 15% meta
+        for (let c = 0; c < N_CH; c++) {
+          this.ch.act[c] = Math.max(0, Math.min(1,
+            (1 - META_BLEND) * this.ch.act[c] + META_BLEND * this.metaChambers.act[c]));
+        }
+
+        this.rba.recursionDepth = 1;
+
+        // re-generate exhale with blended chambers (FINAL output)
+        const savedUsed = new Set(this.usedExhale);
+        this.usedExhale.clear();
+        const metaExhale = exhaleGenerate(
+          this.ch, lp, ghost, this.prevExhale, this.usedExhale,
+          this.prophecies, this.velocity, this.destiny,
+          this.spores, this.matchedInhale, this.darkMatterActive, this.rba, langIdx,
+        );
+        wordIds = metaExhale.words;
+        this.destiny = metaExhale.destiny;
+        // merge used
+        for (const u of savedUsed) this.usedExhale.add(u);
+        this.prevExhale = metaExhale.newPrev;
+      }
+    }
+
+    // 9. Store memory
     const slot: SomaSlot = {
       ch: [...this.ch.act],
       valence: this.ch.act[1] + this.ch.act[4] - this.ch.act[0] - this.ch.act[3],
@@ -903,36 +1716,138 @@ class Klaus {
     if (this.memory.length >= MEM_SLOTS) this.memory.shift();
     this.memory.push(slot);
 
-    // tick prophecies
+    // 10. Tick prophecies
     this.prophecies = this.prophecies.filter(p => {
       p.age++; p.strength *= 0.95;
       return p.age < 20 && p.strength > 0.01;
     });
 
+    // 11. Experience consolidation
+    this.experienceConsolidate();
+
+    // 12. Spore update + decay + save
+    sporeUpdateResidue(this.spores, this.ch.act);
+    // learn spore pairs for each generated word
+    for (const wid of wordIds) {
+      for (const mh of this.matchedInhale) {
+        sporeLearn(this.spores, mh, wid, langIdx, this.ch.act);
+      }
+    }
+    sporeDecay(this.spores);
+    sporeSave(this.spores, this.baseDir);
+
+    // 13. Soma save
+    somaSave(this.ch, this.memory, this.rba, this.coherenceHistory, this.coherencePtr,
+      this.experience, this.interactionCount, this.prophecies, this.wormholes, this.baseDir);
+
     return {
       lang, words: wordIds.map(i => lp.exhale[i].text),
       chambers: [...this.ch.act], dominant: CH_NAMES[dom],
       prem, disc, ghostStrength: interference, isProphetic,
+      velocity: this.velocity.current,
+      velocityIntensity: this.velocity.intensity,
+      coherence: this.rba.coherence,
+      recursiveComplexity: this.rba.recursiveComplexity,
+      deepSomatic: this.rba.deepSomatic,
+      totalScar: this.ch.totalScar,
+      scars: [...this.ch.scar],
+      darkMatterActive: this.darkMatterActive,
+      metaRecursionDepth: this.rba.recursionDepth,
+      phaseGate: psiPhaseGate(this.rba, this.ch),
+      sustainedResonance: this.rba.sustainedResonance,
     };
+  }
+
+  private wormholeCheck(lp: LangPack): void {
+    for (let p = 0; p < this.prophecies.length; p++) {
+      const target = this.prophecies[p].target;
+      if (target < 0 || target >= lp.exhale.length) continue;
+      for (const mh of this.matchedInhale) {
+        // find inhale word with this hash
+        for (const iw of lp.inhale) {
+          if (Number(hashWord(iw.text) & 0xFFFFFFFFn) === mh) {
+            const sim = wordSimilarity(iw.text, lp.exhale[target].text);
+            if (sim > 0.4) {
+              // WORMHOLE
+              this.rba.coherence = Math.min(1, this.rba.coherence + 0.15);
+              this.ch.presence = Math.min(1, this.ch.presence + 0.10);
+              // scar dominant chamber of target word
+              let domC = 0;
+              for (let c = 1; c < N_CH; c++)
+                if (lp.exhale[target].aff[c] > lp.exhale[target].aff[domC]) domC = c;
+              this.ch.scar[domC] = Math.min(1, this.ch.scar[domC] + 0.15);
+              this.wormholes.push({
+                prophecyTarget: target, inhaleMatch: mh,
+                coherenceJump: 0.15, step: this.interactionCount,
+              });
+              console.log(`  [WORMHOLE] prophecy '${lp.exhale[target].text}' fulfilled! coherence +0.15`);
+              this.prophecies.splice(p, 1);
+              p--;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private experienceConsolidate(): void {
+    if (this.interactionCount % CONSOLIDATION_INTERVAL !== 0) return;
+    if (this.interactionCount === 0) return;
+    const e = this.experience;
+    e.totalInteractions = this.interactionCount;
+    e.avgScar = this.ch.totalScar / N_CH;
+    this.rba.thresholdBias = Math.max(0, Math.min(0.5, e.avgScar * 0.3));
+    e.totalWormholes = this.wormholes.length;
+    e.totalProphecies = this.prophecies.length + this.wormholes.length;
+    e.wormholeRate = e.totalProphecies > 0 ? e.totalWormholes / e.totalProphecies : 0;
+    this.ch.presence = Math.max(0, Math.min(1, this.ch.presence + e.wormholeRate * 0.05));
+    e.prophecyAccuracy = e.wormholeRate;
+    console.log(`  [CONSOLIDATION] step ${this.interactionCount}: avg_scar ${e.avgScar.toFixed(3)}, wormhole_rate ${e.wormholeRate.toFixed(2)}, presence ${this.ch.presence.toFixed(3)}`);
   }
 
   printResponse(r: KlausResponse): void {
     const chStr = r.chambers.map((v, i) => `${CH_NAMES[i]}:${v.toFixed(2)}`).join(" ");
     console.log(`  [${chStr}]`);
+
+    // velocity operator
+    console.log(`  {${VEL_NAMES[r.velocity]} x${r.velocityIntensity.toFixed(2)}}${r.deepSomatic ? " *DEEP SOMATIC*" : ""}`);
+
+    // somatic response
     console.log(`  ${r.words.join(". ")}.`);
+
+    // ghost voice
     if (r.ghostStrength > 0.1) {
-      console.log(`  (metaklaus: ${r.dominant}-dominant, interference ${r.ghostStrength.toFixed(2)})`);
+      let ghostStr = `  (metaklaus: ${r.dominant}-dominant, interference ${r.ghostStrength.toFixed(2)}`;
+      if (r.darkMatterActive) ghostStr += ", DARK MATTER x1.5";
+      ghostStr += ")";
+      console.log(ghostStr);
     }
+
+    // RBA-1 state
+    console.log(`  [RBA-1 coherence:${r.coherence.toFixed(3)} C-hat:${r.recursiveComplexity.toFixed(3)} psi:${r.phaseGate.toFixed(3)} sustained:${r.sustainedResonance.toFixed(3)} meta-depth:${r.metaRecursionDepth}]`);
+
+    // scars
+    if (r.totalScar > 0.01) {
+      let scarStr = "  [scars:";
+      for (let c = 0; c < N_CH; c++) {
+        if (r.scars[c] > 0.01) scarStr += ` ${CH_NAMES[c]}:${r.scars[c].toFixed(2)}`;
+      }
+      scarStr += ` total:${r.totalScar.toFixed(2)}]`;
+      console.log(scarStr);
+    }
+
+    // prophetic premonition
     if (r.isProphetic) {
       const domP = r.prem.indexOf(Math.max(...r.prem));
-      console.log(`  ~premonition~ [→${CH_NAMES[domP]}:${r.prem[domP].toFixed(2)} dissonance:${r.disc.toFixed(2)}]`);
+      console.log(`  ~premonition~ [->${CH_NAMES[domP]}:${r.prem[domP].toFixed(2)} dissonance:${r.disc.toFixed(2)}]`);
     }
   }
 
   async interactive(): Promise<void> {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const rl = readline.createInterface({ input: globalThis.process.stdin, output: globalThis.process.stdout });
     const ask = (): void => {
-      rl.question("klaus> ", (line) => {
+      rl.question("klaus> ", (line: string) => {
         const prompt = line.trim();
         if (!prompt) { ask(); return; }
         if (["exit", "quit", "q"].includes(prompt)) {
@@ -944,13 +1859,47 @@ class Klaus {
           console.log(`  memory: ${this.memory.length}/${MEM_SLOTS}`);
           const chStr = this.ch.act.map((v, i) => `${CH_NAMES[i]}:${v.toFixed(2)}`).join(" ");
           console.log(`  chambers: ${chStr}`);
-          console.log(`  calendar: ${calendarDissonance().toFixed(3)}`);
+          console.log(`  soma: ${this.ch.soma.map(v => v.toFixed(2)).join(" ")}`);
+          console.log(`  calendar dissonance: ${calendarDissonance().toFixed(3)}`);
+          console.log(`  prophecies: ${this.prophecies.length} active`);
+          console.log(`  ghost interference: ${0..toFixed(3)}`);
+          console.log("  --- Level 3: Schectman ---");
+          console.log(`  interactions: ${this.interactionCount}`);
+          console.log(`  velocity: ${VEL_NAMES[this.velocity.current]} (intensity ${this.velocity.intensity.toFixed(2)})`);
+          console.log(`  RBA-1: coherence ${this.rba.coherence.toFixed(3)}, C-hat ${this.rba.recursiveComplexity.toFixed(3)}, entropy ${this.rba.entropy.toFixed(3)}`);
+          console.log(`  Psi-layer: gate ${psiPhaseGate(this.rba, this.ch).toFixed(3)}, phase_lock ${this.rba.phaseLock.toFixed(3)}, deep=${this.rba.deepSomatic} (ticks=${this.rba.deepTicks})`);
+          console.log(`  sustained resonance: ${this.rba.sustainedResonance.toFixed(3)}`);
+          let scarStr = "  scars: ";
+          for (let c = 0; c < N_CH; c++)
+            if (this.ch.scar[c] > 0.01) scarStr += `${CH_NAMES[c]}:${this.ch.scar[c].toFixed(3)} `;
+          scarStr += `(total ${this.ch.totalScar.toFixed(3)})`;
+          console.log(scarStr);
+          console.log(`  wormholes: ${this.wormholes.length} logged`);
+          console.log(`  meta-recursion depth: ${this.rba.recursionDepth}`);
+          console.log(`  spores: ${this.spores.pairs.length} pairs`);
+          console.log(`  soma file: ${path.join(this.baseDir, SOMA_FILE)}`);
           ask(); return;
         }
         if (prompt === "reset") {
-          this.ch = chambersInit(); this.memory = [];
-          this.usedExhale.clear(); this.prevExhale = []; this.prophecies = [];
-          console.log("  [reset]"); ask(); return;
+          this.ch = chambersInit();
+          this.metaChambers = chambersInit();
+          this.memory = [];
+          this.usedExhale.clear();
+          this.prevExhale = [];
+          this.prophecies = [];
+          this.wormholes = [];
+          this.interactionCount = 0;
+          this.coherencePtr = 0;
+          this.coherenceHistory = new Array(COHERENCE_WINDOW).fill(0);
+          this.darkMatterActive = 0;
+          this.rba = rba1Init();
+          this.velocity = velocityInit();
+          this.experience = { avgScar: 0, wormholeRate: 0, prophecyAccuracy: 0, totalInteractions: 0, totalWormholes: 0, totalProphecies: 0 };
+          this.destiny = new Array(N_CH).fill(0);
+          // remove soma file on explicit reset
+          try { fs.unlinkSync(path.join(this.baseDir, SOMA_FILE)); } catch (_) {}
+          console.log("  [reset — all levels, soma file deleted]");
+          ask(); return;
         }
         const r = this.process(prompt);
         this.printResponse(r);
