@@ -695,15 +695,20 @@ class Klaus:
             for w in range(nex):
                 B = (lp["meta"].bigram(prev,w)*BIGRAM_BASE) if prev>=0 else 0
                 H = eff_alpha*hebb[w]*(1+res_gate)
-                soma = sum(C[c]*lp["exhale"][w]["aff"][c] for c in range(N_CH))
+                aff = lp["exhale"][w]["aff"]
+                aff_norm = math.sqrt(sum(a*a for a in aff)) or 1e-6
+                soma = sum(C[c]*aff[c] for c in range(N_CH)) / aff_norm
                 F = eff_beta*soma*0.5*scar_prop if pp>0.3 else 0
                 dest_sim = sum(self.destiny[c]*lp["exhale"][w]["aff"][c] for c in range(N_CH))
                 A = eff_gamma * dest_sim
                 V = DARIO_DELTA * 0  # RRPRAM simplified in Python
-                G = DARIO_ZETA * (ghost[w] if w<len(ghost) else 0) * dark_mult
+                ghost_val = max(-1.0, min(1.0, ghost[w] if w<len(ghost) else 0))
+                G = DARIO_ZETA * ghost_val * dark_mult
                 T = sum(self.scars[c]*lp["exhale"][w]["aff"][c]*0.5 for c in range(N_CH))
                 K = self.kk.force_k(w, C) if self.kk else 0
-                logits[w] = (B + H + F + A + V + G + T + K + soma) / v_tau
+                total = B + H + F + A + V + G + T + K + soma
+                if step==0 and prev<0: total = soma + 0.1*G  # pure somatic start
+                logits[w] = total / v_tau
                 if str(w) in local_used or lp["exhale"][w]["text"] in local_used:
                     logits[w] -= 100
             # spore boost
@@ -718,7 +723,7 @@ class Klaus:
             prev=chosen
             if step>2:
                 sc=sum(C[c]*lp["exhale"][chosen]["aff"][c] for c in range(N_CH))
-                if sc<0.2: break
+                if sc<0.1: break
         self.prev_exhale=result[-4:]
         for w in result: self.used_exhale.add(str(w)); self.used_exhale.add(lp["exhale"][w]["text"])
         # NOTORCH: learn inhale→exhale spore pairs
@@ -842,12 +847,14 @@ class Klaus:
         disc = self._calendar()
         mlp_in = emotion + mem_state + [disc]
         mlp_out = self.mlp.forward(mlp_in)
-        # inject into sub-chambers
+        # crossfire on RESIDUAL state first (decays old energy)
+        self._crossfire(XFIRE_ITERS)
+        # inject emotion AFTER crossfire — new signal is NOT decayed
         for c in range(N_CH):
             mixed = 0.4*emotion[c]+0.3*mlp_out[c]+0.2*mem_state[c]+0.1*self.soma[c]
+            self.chambers[c] = max(0,min(1, mixed))
             for s in range(N_SUB):
-                self.sub[c][s][0] = max(0,min(1, self.sub[c][s][0]+mixed/N_SUB))
-        self._crossfire(XFIRE_ITERS)
+                self.sub[c][s][0] = max(0,min(1, self.sub[c][s][0]+mixed))
         vel = self._velocity_detect()
         R_t = self._rba_update(disc)
         dom = self._dominant()

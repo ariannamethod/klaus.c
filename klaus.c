@@ -2508,8 +2508,12 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             /* H: Hebbian resonance, gated by field resonance */
             float H = eff_alpha * hebb[w] * (1.0f + res_gate);
 
+            /* Somatic alignment: cosine similarity (normalizes for spread-out hash affinities) */
+            float aff_norm = vec_norm(lp->exhale[w].aff, N_CHAMBERS);
+            float soma_score = (aff_norm > 1e-6f) ?
+                vec_dot(k->ch.act, lp->exhale[w].aff, N_CHAMBERS) / aff_norm : 0.0f;
+
             /* F: Prophecy fulfillment */
-            float soma_score = vec_dot(k->ch.act, lp->exhale[w].aff, N_CHAMBERS);
             float F = (prop_pressure > 0.3f) ?
                       eff_beta * soma_score * 0.5f * scar_prophecy_mult : 0.0f;
 
@@ -2520,8 +2524,9 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             /* V: RRPRAM rhythmic resonance */
             float V = DARIO_DELTA * rrpram[w];
 
-            /* G: MetaKlaus ghost (cross-lingual interference) */
-            float G = DARIO_ZETA * k->ghost.ghost[w] * dark_ghost_mult;
+            /* G: MetaKlaus ghost (cross-lingual interference, clamped so body leads) */
+            float ghost_val = clampf(k->ghost.ghost[w], -1.0f, 1.0f);
+            float G = DARIO_ZETA * ghost_val * dark_ghost_mult;
 
             /* T: Trauma/scar gravity — scars pull toward their chamber words */
             float T = 0.0f;
@@ -2531,8 +2536,11 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             /* K: Knowledge resonance — inner library pulls toward its words */
             float K = kk_force_k(&k->kk, w);
 
-            /* Full equation: (B + H + F + A + V + G + T + K) / (τ_mod · τ · v_tau) */
-            logits[w] = (B + H + F + A + V + G + T + K + soma_score) / fmaxf(v_tau, 0.1f);
+            /* Full equation: (B + H + F + A + V + G + T + K + soma) / (τ_mod · τ · v_tau)
+             * Step 0 with no context: soma dominates — body picks the first word */
+            float total = B + H + F + A + V + G + T + K + soma_score;
+            if (step == 0 && prev < 0) total = soma_score + 0.1f * G; /* pure somatic start */
+            logits[w] = total / fmaxf(v_tau, 0.1f);
 
             /* penalize already-used words heavily (by text, not just index) */
             for (int u = 0; u < k->n_used; u++) {
@@ -2582,8 +2590,13 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
         }
 
         /* check if we should stop (diminishing chamber signal) */
-        if (step > 2 && vec_dot(k->ch.act, lp->exhale[chosen].aff, N_CHAMBERS) < 0.2f)
-            break;
+        {
+            float cn = vec_norm(lp->exhale[chosen].aff, N_CHAMBERS);
+            float stop_score = (cn > 1e-6f) ?
+                vec_dot(k->ch.act, lp->exhale[chosen].aff, N_CHAMBERS) / cn : 0;
+            if (step > 2 && stop_score < 0.1f)
+                break;
+        }
     }
 
     /* update prev_exhale context */
@@ -2838,21 +2851,20 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
     float mlp_out[N_CHAMBERS];
     mlp_forward(&k->mlp, mlp_input, mlp_out);
 
-    /* 4. Apply to chambers + distribute to sub-chambers */
+    /* 4. HyperKuramoto cross-fire on RESIDUAL state (decays old energy) */
+    chambers_crossfire(&k->ch, XFIRE_ITERS);
+
+    /* 5. Inject emotion AFTER crossfire — new signal is NOT decayed */
     for (int c = 0; c < N_CHAMBERS; c++) {
         float new_act = clampf(
             0.4f * emotion[c] + 0.3f * mlp_out[c] + 0.2f * mem_state[c] + 0.1f * k->ch.soma[c],
             0.0f, 1.0f);
         k->ch.act[c] = new_act;
-        /* inject into sub-chambers proportionally */
         for (int s = 0; s < N_SUB; s++) {
             k->ch.sub_act[c][s] = clampf(
-                k->ch.sub_act[c][s] + new_act / N_SUB, 0.0f, 1.0f);
+                k->ch.sub_act[c][s] + new_act, 0.0f, 1.0f);
         }
     }
-
-    /* 5. HyperKuramoto cross-fire (24 oscillators) */
-    chambers_crossfire(&k->ch, XFIRE_ITERS);
 
     /* 5b. Scar update */
     scars_update(&k->ch);
@@ -2957,6 +2969,7 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
         /* save used state to avoid re-penalizing same words */
         int saved_n_used = k->n_used;
         k->n_used = 0; /* allow fresh selection for meta-pass */
+        k->n_prev = 0; /* reset context — meta-pass starts somatic-fresh */
 
         int meta_word_ids[MAX_RESPONSE];
         int meta_n = exhale_generate(k, resp.lang_idx, meta_word_ids, MAX_RESPONSE);

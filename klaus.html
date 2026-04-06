@@ -1472,7 +1472,9 @@ function exhaleGenerate(langCode) {
       // H: Hebbian resonance
       let H = effAlpha * hebb[w] * (1.0 + resGate);
       // F: Prophecy fulfillment
-      let somaScore = vecDot(chambers.act, lp.exhale[w].aff, N_CHAMBERS);
+      let affNormSq = lp.exhale[w].aff.reduce((s,v)=>s+v*v,0);
+      let affNorm = Math.sqrt(affNormSq) || 1e-6;
+      let somaScore = vecDot(chambers.act, lp.exhale[w].aff, N_CHAMBERS) / affNorm;
       let F = (propPressure > 0.3) ? effBeta * somaScore * 0.5 * scarProphecyMult : 0;
       // A: Destiny attraction
       let destSim = vecDot(destiny, lp.exhale[w].aff, N_CHAMBERS);
@@ -1480,12 +1482,15 @@ function exhaleGenerate(langCode) {
       // V: RRPRAM
       let V = DARIO_DELTA * rrpram[w];
       // G: Ghost
-      let G = DARIO_ZETA * (ghostState.ghost[w] || 0) * darkGhostMult;
+      let ghostVal = Math.max(-1, Math.min(1, ghostState.ghost[w] || 0));
+      let G = DARIO_ZETA * ghostVal * darkGhostMult;
       // T: Trauma/scar gravity
       let T = 0;
       for (let c = 0; c < N_CHAMBERS; c++) T += chambers.scar[c] * lp.exhale[w].aff[c] * 0.5;
 
-      logits[w] = (B + H + F + A + V + G + T + somaScore) / Math.max(vTau, 0.1);
+      let total = B + H + F + A + V + G + T + somaScore;
+      if (step === 0 && prev < 0) total = somaScore + 0.1 * G; // pure somatic start
+      logits[w] = total / Math.max(vTau, 0.1);
 
       if (localUsed.has(w) || localUsed.has(lp.exhale[w].text)) logits[w] -= 100;
     }
@@ -1526,7 +1531,7 @@ function exhaleGenerate(langCode) {
     }
 
     // stop condition
-    if (step > 2 && vecDot(chambers.act, lp.exhale[chosen].aff, N_CHAMBERS) < 0.2) break;
+    if (step > 2 && vecDot(chambers.act, lp.exhale[chosen].aff, N_CHAMBERS) < 0.1) break;
   }
 
   // update prev_exhale context
@@ -1568,6 +1573,7 @@ function metaRecursion(langCode, firstResult) {
   // re-generate with blended chambers
   let savedUsed = new Set(usedExhale);
   usedExhale = new Set();
+  prevExhale = []; // reset context — meta-pass starts somatic-fresh
   let metaResult = exhaleGenerate(langCode);
   // merge used
   for (const u of savedUsed) usedExhale.add(u);
@@ -1617,17 +1623,17 @@ function klausProcess(prompt) {
   mlpIn[12] = disc;
   let mlpOut = mlpForward(mlpWeights, mlpIn);
 
-  // Apply to chambers + distribute to sub-chambers
+  // HyperKuramoto crossfire on RESIDUAL state (decays old energy)
+  chambersCrossfire(XFIRE_ITERS);
+
+  // Inject emotion AFTER crossfire — new signal is NOT decayed
   for (let c = 0; c < 6; c++) {
     let newAct = clampf(0.4*emotion[c] + 0.3*mlpOut[c] + 0.2*memState[c] + 0.1*chambers.soma[c], 0, 1);
     chambers.act[c] = newAct;
     for (let s = 0; s < N_SUB; s++) {
-      chambers.subAct[c][s] = clampf(chambers.subAct[c][s] + newAct / N_SUB, 0, 1);
+      chambers.subAct[c][s] = clampf(chambers.subAct[c][s] + newAct, 0, 1);
     }
   }
-
-  // HyperKuramoto crossfire (24 oscillators)
-  chambersCrossfire(XFIRE_ITERS);
 
   // Scar update
   scarsUpdate();

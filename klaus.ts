@@ -1355,9 +1355,11 @@ function exhaleGenerate(
       // H: Hebbian resonance, gated by resonance field
       const H = effAlpha * hebb[w] * (1.0 + resGate);
 
-      // somaScore
-      let somaScore = 0;
-      for (let c = 0; c < N_CH; c++) somaScore += ch.act[c] * lp.exhale[w].aff[c];
+      // somaScore (cosine similarity — normalizes for spread-out hash affinities)
+      let dotProd = 0, affNorm = 0;
+      for (let c = 0; c < N_CH; c++) { dotProd += ch.act[c] * lp.exhale[w].aff[c]; affNorm += lp.exhale[w].aff[c] ** 2; }
+      affNorm = Math.sqrt(affNorm) || 1e-6;
+      const somaScore = dotProd / affNorm;
 
       // F: Prophecy fulfillment
       const F = propPressure > 0.3 ? effBeta * somaScore * 0.5 * scarProphecyMult : 0;
@@ -1371,7 +1373,8 @@ function exhaleGenerate(
       const V = DARIO_DELTA * hebb[w] * 0.5;
 
       // G: MetaKlaus ghost
-      const G = DARIO_ZETA * (ghost[w] || 0) * darkGhostMult;
+      const ghostVal = Math.max(-1, Math.min(1, ghost[w] || 0));
+      const G = DARIO_ZETA * ghostVal * darkGhostMult;
 
       // T: scar gravity
       let T = 0;
@@ -1380,7 +1383,9 @@ function exhaleGenerate(
       // K: placeholder
       const K = 0;
 
-      logits[w] = (B + H + F + A + V + G + T + K + somaScore) / vTau;
+      let total = B + H + F + A + V + G + T + K + somaScore;
+      if (step === 0 && prev < 0) total = somaScore + 0.1 * G; // pure somatic start
+      logits[w] = total / vTau;
 
       if (localUsed.has(String(w)) || localUsed.has(lp.exhale[w].text)) logits[w] -= 100;
     }
@@ -1408,7 +1413,7 @@ function exhaleGenerate(
     if (step > 2) {
       let score = 0;
       for (let c = 0; c < N_CH; c++) score += ch.act[c] * lp.exhale[chosen].aff[c];
-      if (score < 0.2) break;
+      if (score < 0.1) break;
     }
   }
 
@@ -1618,21 +1623,21 @@ class Klaus {
     const mlpIn = [...emotion, ...memState, disc];
     const mlpOut = mlpForward(this.mlp, mlpIn);
 
-    // 4. Inject emotion into sub-chambers
+    // 4. HyperKuramoto crossfire on RESIDUAL state (decays old energy)
+    chambersCrossfire(this.ch, XFIRE_ITERS);
+
+    // 5. Inject emotion AFTER crossfire — new signal is NOT decayed
     for (let c = 0; c < N_CH; c++) {
       const mixed = 0.4 * emotion[c] + 0.3 * mlpOut[c] + 0.2 * memState[c] + 0.1 * this.ch.soma[c];
       this.ch.act[c] = Math.max(0, Math.min(1, mixed));
       for (let s = 0; s < N_SUB; s++) {
         this.ch.sub[c][s] = {
-          act: Math.max(0, Math.min(1, this.ch.sub[c][s].act + mixed / N_SUB)),
+          act: Math.max(0, Math.min(1, this.ch.sub[c][s].act + mixed)),
           phase: this.ch.sub[c][s].phase,
           freq: this.ch.sub[c][s].freq,
         };
       }
     }
-
-    // 5. HyperKuramoto crossfire
-    chambersCrossfire(this.ch, XFIRE_ITERS);
 
     // 5b. Scars update
     scarsUpdate(this.ch);
@@ -1693,6 +1698,7 @@ class Klaus {
         // re-generate exhale with blended chambers (FINAL output)
         const savedUsed = new Set(this.usedExhale);
         this.usedExhale.clear();
+        this.prevExhale = []; // reset context — meta-pass starts somatic-fresh
         const metaExhale = exhaleGenerate(
           this.ch, lp, ghost, this.prevExhale, this.usedExhale,
           this.prophecies, this.velocity, this.destiny,
