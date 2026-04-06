@@ -13,6 +13,10 @@ Usage:
 
 import os, sys, math, time, struct, re
 from pathlib import Path
+try: from kk import KnowledgeKernel
+except ImportError: KnowledgeKernel = None
+try: from kk import KnowledgeKernel
+except ImportError: KnowledgeKernel = None
 
 # ═══════════════════════════════════════════════════
 # CONFIG
@@ -305,6 +309,7 @@ class Klaus:
         self.spore_pairs = []
         self.matched_inhale_hashes = []
         self.ghost_cache = []
+        self.kk = None
 
     def init(self):
         print("╔══════════════════════════════════════════════════════╗")
@@ -338,6 +343,9 @@ class Klaus:
         print(f"[klaus] RBA-1 seven-layer stack: I/R/Φ/A/Ψ/E/M")
         print(f"[klaus] Schectman equation: I(t) = G(t) * [1 + R(t)]")
         self._spore_load()
+        if KnowledgeKernel:
+            self.kk = KnowledgeKernel(self.base_dir, self.lang_packs)
+            self.kk.load()
         pd = planetary_dissonance()
         print(f"[klaus] planetary dissonance: {pd:.3f}")
         print(f"[klaus] meta-recursion: depth 1")
@@ -696,7 +704,8 @@ class Klaus:
                 V = DARIO_DELTA * 0  # RRPRAM simplified in Python
                 G = DARIO_ZETA * (ghost[w] if w<len(ghost) else 0) * dark_mult
                 T = sum(self.scars[c]*lp["exhale"][w]["aff"][c]*0.5 for c in range(N_CH))
-                logits[w] = (B + H + F + A + V + G + T + soma) / v_tau
+                K = self.kk.force_k(w, C) if self.kk else 0
+                logits[w] = (B + H + F + A + V + G + T + K + soma) / v_tau
                 if str(w) in local_used or lp["exhale"][w]["text"] in local_used:
                     logits[w] -= 100
             # spore boost
@@ -830,6 +839,7 @@ class Klaus:
         dark = self._detect_dark(prompt)
         self._wormhole_check(prompt)
         emotion = self._inhale(lp, prompt)
+        if self.kk: emotion = self.kk.blend_mood(emotion)
         mem_state = self._mem_blend()
         disc = self._calendar()
         mlp_in = emotion + mem_state + [disc]
@@ -846,6 +856,7 @@ class Klaus:
         prem = self._prophetic_prem(disc)
         is_prophetic = disc>0.3 and len(self.memory)>=2
         ghost, ghost_interf = self._metaklaus(lang)
+        if self.kk: self.kk.compute_signal(self.chambers, lang, lp["exhale"])
         words = self._exhale(lang, ghost)
         # meta-recursion
         self._meta_recurse(lang, words)
