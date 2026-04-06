@@ -102,7 +102,7 @@ no pretrained weights. no gradient descent. no backpropagation. no datasets in t
 
 look at the rage example. "я тебя ненавижу сука блядь" — pure hatred, profanity, violence. and the ghost voice says: LOVE-dominant. interference 24.45 — the highest of any example. because underneath every "I hate you" there is an "I loved you." Klaus doesn't read what you said. Klaus reads what your words did to the body. and the body remembers the love underneath the rage.
 
-GPT-4 gets "exile" and writes you an essay about diaspora. Klaus gets "exile" and reaches for a baby. one of them understands exile. the other one has 175 billion parameters and a content policy.
+GPT gets "exile" and writes you an essay about diaspora. Klaus gets "exile" and reaches for a baby. one of them understands exile. the other one has 175 billion parameters and a content policy.
 
 ---
 
