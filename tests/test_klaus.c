@@ -768,6 +768,58 @@ static void test_hyperkuramoto_subchambers(void) {
 /* ════════════════════════════════════════════════
  * MAIN
  * ════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════
+ * POLISH TESTS (2026-04-07): cosine, ghost clamp, inertia, somatic start
+ * ════════════════════════════════════════════════ */
+
+static void test_cosine_soma(void) {
+    TEST("cosine: focused beats spread for VOID");
+    float ch[6] = {0.0f, 0.0f, 0.0f, 0.8f, 0.0f, 0.0f};
+    float focused[6] = {0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
+    float spread[6] = {0.7f, 0.8f, 0.5f, 0.9f, 0.6f, 0.4f};
+    float dot_f = 0, dot_s = 0, norm_f = 0, norm_s = 0;
+    for (int i = 0; i < 6; i++) {
+        dot_f += ch[i]*focused[i]; norm_f += focused[i]*focused[i];
+        dot_s += ch[i]*spread[i]; norm_s += spread[i]*spread[i];
+    }
+    float cos_f = dot_f / sqrtf(norm_f + 1e-12f);
+    float cos_s = dot_s / sqrtf(norm_s + 1e-12f);
+    ASSERT_TRUE(cos_f > cos_s, "focused should beat spread in cosine");
+    PASS();
+}
+
+static void test_ghost_clamp(void) {
+    TEST("ghost clamp [-1,1]");
+    ASSERT_TRUE(fabsf(clampf(3.6f, -1.0f, 1.0f) - 1.0f) < 0.001f, "3.6 → 1.0");
+    ASSERT_TRUE(fabsf(clampf(-2.5f, -1.0f, 1.0f) - (-1.0f)) < 0.001f, "-2.5 → -1.0");
+    ASSERT_TRUE(fabsf(clampf(0.5f, -1.0f, 1.0f) - 0.5f) < 0.001f, "0.5 unchanged");
+    PASS();
+}
+
+static void test_inertia_scaling(void) {
+    TEST("inertia: strong chambers → lower");
+    float sn = 0, wn = 0;
+    for (int i = 0; i < 6; i++) { sn += 0.5f*0.5f; wn += 0.05f*0.05f; }
+    float inertia_s = 1.0f / (1.0f + 2.0f * sqrtf(sn));
+    float inertia_w = 1.0f / (1.0f + 2.0f * sqrtf(wn));
+    ASSERT_TRUE(inertia_s < inertia_w, "strong < weak");
+    ASSERT_TRUE(inertia_s < 0.5f, "strong < 0.5");
+    ASSERT_TRUE(inertia_w > 0.7f, "weak > 0.7");
+    PASS();
+}
+
+static void test_pure_somatic_start(void) {
+    TEST("step 0 somatic: VOID word > LOVE word");
+    float ch[6] = {0.0f, 0.0f, 0.0f, 0.8f, 0.0f, 0.0f};
+    float void_aff[6] = {0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
+    float love_aff[6] = {0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    float soma_void = 0, soma_love = 0;
+    for (int i = 0; i < 6; i++) { soma_void += ch[i]*void_aff[i]; soma_love += ch[i]*love_aff[i]; }
+    ASSERT_TRUE(soma_void > soma_love, "VOID chamber should prefer VOID word");
+    PASS();
+}
+
 int main(void) {
     printf("╔══════════════════════════════════════╗\n");
     printf("║  KLAUS test suite (C)                ║\n");
@@ -821,6 +873,12 @@ int main(void) {
     test_kappa_mod_complex_boosts();
     test_schectman_positive();
     test_hyperkuramoto_subchambers();
+
+    /* ── Polish tests (2026-04-07) ── */
+    test_cosine_soma();
+    test_ghost_clamp();
+    test_inertia_scaling();
+    test_pure_somatic_start();
 
     printf("\n  %d/%d tests passed\n", tests_passed, tests_run);
     if (tests_passed == tests_run) {

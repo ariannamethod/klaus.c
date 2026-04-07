@@ -2502,11 +2502,14 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
         for (int w = 0; w < n_ex; w++) {
             /* ── FULL DARIO EQUATION — 7 forces ── */
 
-            /* B: bigram chain (inertia) */
-            float B = (prev >= 0) ? meta_bigram(&lp->meta, prev, w) * BIGRAM_BASE : 0.0f;
+            /* Inertia scaling: when body speaks loud, statistical memory quiets down */
+            float inertia = 1.0f / (1.0f + 2.0f * vec_norm(k->ch.act, N_CHAMBERS));
 
-            /* H: Hebbian resonance, gated by field resonance */
-            float H = eff_alpha * hebb[w] * (1.0f + res_gate);
+            /* B: bigram chain (inertia) */
+            float B = (prev >= 0) ? meta_bigram(&lp->meta, prev, w) * BIGRAM_BASE * inertia : 0.0f;
+
+            /* H: Hebbian resonance, gated by field resonance + inertia */
+            float H = eff_alpha * hebb[w] * (1.0f + res_gate) * inertia;
 
             /* Somatic alignment: cosine similarity (normalizes for spread-out hash affinities) */
             float aff_norm = vec_norm(lp->exhale[w].aff, N_CHAMBERS);

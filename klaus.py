@@ -693,8 +693,9 @@ class Klaus:
         for step in range(max_gen):
             logits=[0.0]*nex
             for w in range(nex):
-                B = (lp["meta"].bigram(prev,w)*BIGRAM_BASE) if prev>=0 else 0
-                H = eff_alpha*hebb[w]*(1+res_gate)
+                inertia = 1.0 / (1.0 + 2.0 * math.sqrt(sum(c*c for c in C)))
+                B = (lp["meta"].bigram(prev,w)*BIGRAM_BASE*inertia) if prev>=0 else 0
+                H = eff_alpha*hebb[w]*(1+res_gate)*inertia
                 aff = lp["exhale"][w]["aff"]
                 aff_norm = math.sqrt(sum(a*a for a in aff)) or 1e-6
                 soma = sum(C[c]*aff[c] for c in range(N_CH)) / aff_norm

@@ -1350,10 +1350,11 @@ function exhaleGenerate(
     const logits = new Array(nEx);
     for (let w = 0; w < nEx; w++) {
       // B: bigram chain
-      const B = prev >= 0 ? metaBigram(lp.meta, prev, w) * BIGRAM_BASE : 0;
+      const inertia = 1.0 / (1.0 + 2.0 * Math.sqrt(ch.act.reduce((s: number, v: number) => s + v * v, 0)));
+      const B = prev >= 0 ? metaBigram(lp.meta, prev, w) * BIGRAM_BASE * inertia : 0;
 
       // H: Hebbian resonance, gated by resonance field
-      const H = effAlpha * hebb[w] * (1.0 + resGate);
+      const H = effAlpha * hebb[w] * (1.0 + resGate) * inertia;
 
       // somaScore (cosine similarity — normalizes for spread-out hash affinities)
       let dotProd = 0, affNorm = 0;

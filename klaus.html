@@ -1468,9 +1468,10 @@ function exhaleGenerate(langCode) {
     let logits = new Float64Array(nEx);
     for (let w = 0; w < nEx; w++) {
       // B: bigram chain
-      let B = (prev >= 0) ? metaBigram(lp.meta, prev, w) * BIGRAM_BASE : 0;
+      let inertia = 1.0 / (1.0 + 2.0 * Math.sqrt(chambers.act.reduce((s,v)=>s+v*v,0)));
+      let B = (prev >= 0) ? metaBigram(lp.meta, prev, w) * BIGRAM_BASE * inertia : 0;
       // H: Hebbian resonance
-      let H = effAlpha * hebb[w] * (1.0 + resGate);
+      let H = effAlpha * hebb[w] * (1.0 + resGate) * inertia;
       // F: Prophecy fulfillment
       let affNormSq = lp.exhale[w].aff.reduce((s,v)=>s+v*v,0);
       let affNorm = Math.sqrt(affNormSq) || 1e-6;
