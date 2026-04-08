@@ -3,8 +3,6 @@
 KLAUS v2.0.0 — Kinetic Linguistic Adaptive Unified Sonar
 Python inference. Zero dependencies. Identical to klaus.c v2.0.0.
 
-Level 3: Schectman Recursive Resonance + RBA-1 + Meta-Recursion.
-
 Usage:
     python3 klaus.py                    # interactive
     python3 klaus.py "I am afraid"      # single prompt
