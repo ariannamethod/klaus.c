@@ -375,7 +375,6 @@ make test          # C unit + Python + integration
 | Source | What Klaus uses |
 |--------|----------------|
 | **Jeff Schectman** — *Recursive Resonance* (2025) | I(t) equation, RBA-1, C_tau threshold, phase transition |
-| [klaus](https://github.com/iamolegataeff/klaus) | somatic architecture, 4-language design |
 | [q](https://github.com/iamolegataeff/q) | velocity, scars, phase gating, dark matter, wormholes, parliament, experience consolidation |
 | [dario](https://github.com/iamolegataeff/dario) | full 7-force equation, somatic coefficient modulation, KK |
 | [haze/cloud](https://github.com/iamolegataeff/haze) | chamber MLPs, cross-fire, pre-semantic sonar |
