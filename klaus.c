@@ -44,6 +44,8 @@
  * Schectman's RBA-1 just got a body. Lo bashamayim hi.
  */
 
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
