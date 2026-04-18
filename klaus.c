@@ -118,7 +118,7 @@ static float vec_norm(const float *v, int n);
 #define N_EXPERTS      3
 #define EXPERT_SOMATIC 0  /* follows dominant chamber — the body's loudest voice */
 #define EXPERT_SHADOW  1  /* follows OPPOSITE of dominant — the contrarian, yent.yo */
-#define EXPERT_GHOST   2  /* follows MetaKlaus ghost — the cross-lingual whisper */
+#define EXPERT_CONTRARIAN   2  /* follows MetaKlaus ghost — the cross-lingual whisper */
 
 /* Schectman equation constants */
 #define SCHECTMAN_ALPHA  0.8f    /* coupling constant alpha */
@@ -2353,7 +2353,7 @@ static int inhale_process(const LangPack *lp, const char *prompt,
  *   The contrarian. Yent.yo principle. "You feel FEAR? Here's LOVE."
  *   This creates surprise, depth, personality.
  *
- * GHOST expert: amplifies words with strongest MetaKlaus interference.
+ * CONTRARIAN expert: amplifies words with strongest MetaKlaus interference.
  *   The cross-lingual whisper. "The other languages want THIS word."
  *
  * Voting: each expert biases the logits differently, picks top-1.
@@ -2391,7 +2391,7 @@ static int parliament_vote(const float *base_logits, int n_ex,
                 expert_logits[w] += lp->exhale[w].aff[opp] * 0.6f;
                 /* slight penalty for dominant-aligned (contrarian) */
                 expert_logits[w] -= lp->exhale[w].aff[dom] * 0.2f;
-            } else if (e == EXPERT_GHOST) {
+            } else if (e == EXPERT_CONTRARIAN) {
                 /* boost words with strong ghost signal */
                 if (w < MAX_EXHALE)
                     expert_logits[w] += fabsf(k->ghost.ghost[w]) * 0.5f;
@@ -2407,7 +2407,7 @@ static int parliament_vote(const float *base_logits, int n_ex,
 
     /* count agreement */
     if (votes[0] == votes[1] || votes[0] == votes[2]) return votes[0]; /* somatic + one other */
-    if (votes[1] == votes[2]) return votes[1]; /* shadow + ghost agree */
+    if (votes[1] == votes[2]) return votes[1]; /* shadow + contrarian agree */
 
     /* no consensus — sample from somatic expert's top-K with extra randomness */
     /* (disagreement = uncertainty = wider sampling) */

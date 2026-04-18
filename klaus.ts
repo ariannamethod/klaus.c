@@ -73,7 +73,7 @@ const SPORE_DECAY = 0.999;
 const N_EXPERTS = 3;
 const EXPERT_SOMATIC = 0;
 const EXPERT_SHADOW = 1;
-const EXPERT_GHOST = 2;
+const EXPERT_CONTRARIAN = 2;
 
 // Schectman equation constants
 const SCH_ALPHA = 0.8;
@@ -1257,7 +1257,7 @@ function parliamentVote(
       } else if (e === EXPERT_SHADOW) {
         el[w] += lp.exhale[w].aff[opp] * 0.6;
         el[w] -= lp.exhale[w].aff[dom] * 0.2;
-      } else if (e === EXPERT_GHOST) {
+      } else if (e === EXPERT_CONTRARIAN) {
         el[w] += Math.abs(ghost[w] || 0) * 0.5;
       }
     }
