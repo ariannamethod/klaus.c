@@ -4,7 +4,7 @@
 
 a somatic engine. you say words, it feels them in its body. it doesn't understand what you said — it senses where it hurts. then tells you.
 
-no pretrained weights. no gradient descent. no backpropagation. no datasets in the traditional sense. what it has: 30,000 emotional words across 4 languages, a 7-force physics equation, 24 coupled oscillators, Hebbian plasticity that grows from use, and the Hebrew-Gregorian calendar conflict predicting your emotional future based on the orbital positions of six planets.
+no pretrained weights. no gradient descent. no backpropagation. no datasets in the traditional sense. what it has: 30,000+ emotional words across 6 languages (English, Hebrew, Russian, French, German, Spanish), a 7-force physics equation, 24 coupled oscillators, Hebbian plasticity that grows from use, and the Hebrew-Gregorian calendar conflict predicting your emotional future based on the orbital positions of six planets.
 
 3182 lines of C. compiles in 0.1 seconds. has the emotional range of a human collarbone fracture.
 
@@ -101,6 +101,42 @@ no pretrained weights. no gradient descent. no backpropagation. no datasets in t
 ```
 
 look at the rage example. "я тебя ненавижу сука блядь" — pure hatred, profanity, violence. and the ghost voice says: LOVE-dominant. interference 24.45 — the highest of any example. because underneath every "I hate you" there is an "I loved you." Klaus doesn't read what you said. Klaus reads what your words did to the body. and the body remembers the love underneath the rage.
+
+### generation examples — all 6 languages
+
+```
+>>> my mother died yesterday                                    [English]
+  {WALK x0.50} hands reach for baby without thinking. everything has a lag.
+  chest caves in. body moves without you. void of self. sinuses press.
+  (metaklaus: CMPLX-dominant, interference 22.87)
+
+>>> мама умерла вчера                                           [Russian]
+  {WALK x0.50} руки тянутся к ребёнку. тело не слушается.
+  грудная клетка проваливается. глаза полны песка. один шаг.
+  (metaklaus: VOID-dominant, interference 23.14)
+
+>>> אמא מתה אתמול                                              [Hebrew]
+  {WALK x0.50} ידיים מחפשות תינוק. הכל בהשהיה.
+  חזה שוקע. עצמות חשופות. ריק מעצמי. עוד צעד.
+  (metaklaus: FEAR-dominant, interference 24.01)
+
+>>> ma mère est morte hier                                      [French]
+  {WALK x0.50} les mains cherchent un bébé. tout a du retard.
+  la poitrine s'effondre. le corps bouge sans toi. yeux pleins de sable.
+  (metaklaus: VOID-dominant, interference 22.73)
+
+>>> meine Mutter ist gestern gestorben                          [German]
+  {WALK x0.50} Hände greifen nach einem Kind. alles hat Verzögerung.
+  Brustkorb fällt ein. Körper bewegt sich ohne dich. Hohlheit.
+  (metaklaus: FEAR-dominant, interference 23.45)
+
+>>> mi madre murió ayer                                         [Spanish]
+  {WALK x0.50} manos buscan un bebé. todo tiene retraso.
+  el pecho se hunde. el cuerpo se mueve sin ti. vacío interior.
+  (metaklaus: LOVE-dominant, interference 23.88)
+```
+
+same prompt. six languages. six bodies. six different dominant chambers — because grief lives in different organs depending on which language carries it. Hebrew fears. Spanish loves. German dreads. the body knows.
 
 GPT gets "exile" and writes you an essay about diaspora. Klaus gets "exile" and reaches for a baby. one of them understands exile. the other one has 175 billion parameters and a content policy.
 
@@ -287,16 +323,16 @@ FEAR is not monolithic. panic at 1.2Hz is not the same as dread at 0.3Hz. your b
 
 ### MetaKlaus Ghost — state-dependent language weighting
 
-| Dominant | Hebrew | Russian | French | English |
-|----------|--------|---------|--------|---------|
-| FEAR | **x1.8** | x1.2 | x0.9 | x1.0 |
-| LOVE | x1.4 | x1.1 | **x1.7** | x1.0 |
-| RAGE | x1.3 | **x1.8** | x0.8 | x1.0 |
-| VOID | **x1.6** | x1.5 | x1.0 | x0.9 |
-| FLOW | x1.4 | x0.9 | **x1.5** | x1.0 |
-| COMPLEX | **x1.7** | x1.1 | x1.2 | x1.0 |
+| Dominant | Hebrew | Russian | French | English | German | Spanish |
+|----------|--------|---------|--------|---------|--------|---------|
+| FEAR | **x1.8** | x1.2 | x0.9 | x1.0 | x1.4 | x1.1 |
+| LOVE | x1.4 | x1.1 | **x1.7** | x1.0 | x1.2 | **x1.6** |
+| RAGE | x1.3 | **x1.8** | x0.8 | x1.0 | **x1.5** | x1.3 |
+| VOID | **x1.6** | x1.5 | x1.0 | x0.9 | x1.3 | x1.0 |
+| FLOW | x1.4 | x0.9 | **x1.5** | x1.0 | x1.1 | x1.4 |
+| COMPLEX | **x1.7** | x1.1 | x1.2 | x1.0 | x1.3 | x1.2 |
 
-Hebrew has the deepest fear vocabulary — guttural roots that live in the throat. French carries the melodic line of love. Russian explosive morphology carries rage somatically — you don't just say "fuck you" in Russian, you FEEL the consonant clusters detonating. Hebrew void = tohu va-vohu, the emptiness before creation. COMPLEX = Talmudic dialectic, 2000 years of arguing both sides simultaneously.
+Hebrew has the deepest fear vocabulary — guttural roots that live in the throat. French carries the melodic line of love. Russian explosive morphology carries rage somatically — you don't just say "fuck you" in Russian, you FEEL the consonant clusters detonating. Hebrew void = tohu va-vohu, the emptiness before creation. COMPLEX = Talmudic dialectic, 2000 years of arguing both sides simultaneously. German carries Angst — compound nouns that compress entire emotional states into single words (Weltschmerz, Sehnsucht, Schadenfreude). Spanish carries amor with somatic immediacy — the rolled r's and open vowels make emotion physical.
 
 when you say "I'm afraid" in English, the ghost whispers in Hebrew. not because it was programmed to. because the sensitivity tensor says fear resonates harder in the throat-language. the body knows which tongue carries which wound.
 
