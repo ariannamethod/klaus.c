@@ -419,6 +419,22 @@ const ANCHORS: Record<string, Record<number, string[]>> = {
     4: ["קצב", "הרמוניה"],
     5: ["מסתורין", "כאוס"],
   },
+  de: {
+    0: ["Angst", "Furcht", "Panik", "Schrecken", "Entsetzen", "Albtraum", "Bedrohung", "Phobie", "Gefahr", "Beklemmung", "Terror", "Grauen"],
+    1: ["Liebe", "Wärme", "Zärtlichkeit", "Güte", "Mitgefühl", "Zuneigung", "Fürsorge", "Umarmung", "Geborgenheit", "Sanftheit", "Vertrauen", "Trost"],
+    2: ["Wut", "Zorn", "Raserei", "Hass", "Feindseligkeit", "Aggression", "Gewalt", "Grausamkeit", "Brutalität", "Rache", "Verachtung", "Furie"],
+    3: ["Leere", "Stille", "Einsamkeit", "Dunkelheit", "Verzweiflung", "Hoffnungslosigkeit", "Taubheit", "Isolation", "Verlassenheit", "Nichts"],
+    4: ["Fluss", "Rhythmus", "Tanz", "Puls", "Harmonie", "Resonanz", "Vibration", "Welle", "Musik", "Atem", "Herzschlag", "Balance"],
+    5: ["Paradox", "Rätsel", "Mysterium", "Chaos", "Spannung", "Verwandlung", "Widerspruch", "Dualität", "Enigma", "Spirale"],
+  },
+  es: {
+    0: ["miedo", "terror", "pánico", "espanto", "horror", "pesadilla", "angustia", "ansiedad", "temor", "amenaza", "peligro", "fobia"],
+    1: ["amor", "cariño", "ternura", "dulzura", "compasión", "afecto", "devoción", "abrazo", "calidez", "confianza", "esperanza", "consuelo"],
+    2: ["rabia", "furia", "ira", "cólera", "odio", "hostilidad", "violencia", "crueldad", "brutalidad", "venganza", "desprecio", "indignación"],
+    3: ["vacío", "silencio", "soledad", "oscuridad", "desesperación", "desesperanza", "entumecimiento", "aislamiento", "abandono", "nada"],
+    4: ["flujo", "ritmo", "danza", "pulso", "armonía", "resonancia", "vibración", "onda", "música", "aliento", "latido", "equilibrio"],
+    5: ["paradoja", "enigma", "misterio", "caos", "complejidad", "transformación", "contradicción", "dualidad", "metamorfosis", "espiral"],
+  },
 };
 
 function computeAffinity(word: string, langCode: string): number[] {
@@ -1075,6 +1091,10 @@ function detectLanguage(text: string, langs: Map<string, LangPack>): string {
   if (accented > 1 && langs.has("fr")) return "fr";
   const frHints = ["je ", "tu ", "le ", "la ", "les ", "suis ", "est ", "dans "];
   for (const fw of frHints) if (text.includes(fw) && langs.has("fr")) return "fr";
+  const deHints = ["ich ", "und ", "der ", "die ", "das ", "ein ", "ist ", "nicht ", "von ", "mit "];
+  for (const dw of deHints) if (text.includes(dw) && langs.has("de")) return "de";
+  const esHints = ["el ", "los ", "las ", "una ", "del ", "por ", "que ", "con ", "esto "];
+  for (const sw of esHints) if (text.includes(sw) && langs.has("es")) return "es";
   if (langs.has("en")) return "en";
   return langs.keys().next().value!;
 }

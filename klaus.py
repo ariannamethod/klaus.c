@@ -394,6 +394,10 @@ class Klaus:
         if ac>1 and "fr" in self.lang_packs: return "fr"
         for fw in ["je ","tu ","le ","la ","suis ","est "]:
             if fw in text and "fr" in self.lang_packs: return "fr"
+        for dw in ["ich ","und ","der ","die ","das ","ein ","ist ","nicht ","von ","mit "]:
+            if dw in text and "de" in self.lang_packs: return "de"
+        for sw in ["el ","los ","las ","una ","del ","por ","que ","con ","esto "]:
+            if sw in text and "es" in self.lang_packs: return "es"
         return "en" if "en" in self.lang_packs else list(self.lang_packs.keys())[0]
 
     # ── HyperKuramoto (24 oscillators) ──

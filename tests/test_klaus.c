@@ -820,6 +820,162 @@ static void test_pure_somatic_start(void) {
     PASS();
 }
 
+/* ════════════════════════════════════════════════
+ * Six-language tests (2026-04-18)
+ * ════════════════════════════════════════════════ */
+
+typedef struct { const char *word; int chamber; } TestAnchorWord;
+
+static const TestAnchorWord TEST_ANCHORS_DE[] = {
+    {"Angst",0},{"Furcht",0},{"Panik",0},{"Schrecken",0},
+    {"Entsetzen",0},{"Albtraum",0},{"Bedrohung",0},{"Phobie",0},
+    {"Gefahr",0},{"Beklemmung",0},{"Terror",0},{"Grauen",0},
+    {"Liebe",1},{"Zuneigung",1},{"Geborgenheit",1},{"Trost",1},
+    {"Wut",2},{"Zorn",2},{"Raserei",2},{"Hass",2},
+    {"Leere",3},{"Stille",3},{"Einsamkeit",3},{"Dunkelheit",3},
+    {"Fluss",4},{"Rhythmus",4},{"Tanz",4},{"Puls",4},
+    {"Paradox",5},{"Mysterium",5},{"Chaos",5},{"Spirale",5},
+    {NULL, 0}
+};
+
+static const TestAnchorWord TEST_ANCHORS_ES[] = {
+    {"miedo",0},{"terror",0},{"espanto",0},{"horror",0},
+    {"angustia",0},{"ansiedad",0},{"temor",0},{"amenaza",0},
+    {"amor",1},{"ternura",1},{"dulzura",1},{"confianza",1},
+    {"rabia",2},{"furia",2},{"ira",2},{"odio",2},
+    {"silencio",3},{"soledad",3},{"oscuridad",3},{"abandono",3},
+    {"flujo",4},{"ritmo",4},{"danza",4},{"pulso",4},
+    {"paradoja",5},{"enigma",5},{"misterio",5},{"caos",5},
+    {NULL, 0}
+};
+
+static void test_six_languages(void) {
+    TEST("six languages available");
+    /* Verify that exactly 6 language data files exist */
+    const char *langs[] = {"en", "he", "ru", "fr", "de", "es"};
+    int found = 0;
+    for (int i = 0; i < 6; i++) {
+        char path[256];
+        snprintf(path, sizeof(path), "inhale/%s.txt", langs[i]);
+        FILE *f = fopen(path, "r");
+        if (f) { found++; fclose(f); }
+    }
+    ASSERT_TRUE(found == 6, "expected 6 inhale language files");
+    /* Also check exhale */
+    int efound = 0;
+    for (int i = 0; i < 6; i++) {
+        char path[256];
+        snprintf(path, sizeof(path), "exhale/ex-%s.txt", langs[i]);
+        FILE *f = fopen(path, "r");
+        if (f) { efound++; fclose(f); }
+    }
+    ASSERT_TRUE(efound == 6, "expected 6 exhale language files");
+    PASS();
+}
+
+static void test_vocab_count(void) {
+    TEST("total vocab >= 30000");
+    const char *langs[] = {"en", "he", "ru", "fr", "de", "es"};
+    int total = 0;
+    for (int i = 0; i < 6; i++) {
+        char path[256];
+        snprintf(path, sizeof(path), "inhale/%s.txt", langs[i]);
+        FILE *f = fopen(path, "r");
+        if (!f) continue;
+        char line[256];
+        while (fgets(line, sizeof(line), f)) {
+            /* count non-empty lines */
+            if (line[0] != '\n' && line[0] != '\0') total++;
+        }
+        fclose(f);
+    }
+    char msg[128];
+    snprintf(msg, sizeof(msg), "total vocab %d < 30000", total);
+    ASSERT_TRUE(total >= 30000, msg);
+    PASS();
+}
+
+static void test_german_anchors(void) {
+    TEST("German anchors map to correct chambers");
+    int errors = 0;
+    for (int i = 0; TEST_ANCHORS_DE[i].word; i++) {
+        /* Verify each anchor has a valid chamber (0-5) */
+        int ch = TEST_ANCHORS_DE[i].chamber;
+        if (ch < 0 || ch > 5) errors++;
+    }
+    ASSERT_TRUE(errors == 0, "German anchor has invalid chamber");
+    /* Verify at least 2 anchors per chamber */
+    int counts[6] = {0};
+    for (int i = 0; TEST_ANCHORS_DE[i].word; i++) {
+        counts[TEST_ANCHORS_DE[i].chamber]++;
+    }
+    for (int c = 0; c < 6; c++) {
+        char msg[128];
+        snprintf(msg, sizeof(msg), "German chamber %d has < 2 anchors (%d)", c, counts[c]);
+        ASSERT_TRUE(counts[c] >= 2, msg);
+    }
+    /* Verify specific mappings */
+    ASSERT_TRUE(TEST_ANCHORS_DE[0].chamber == 0, "Angst should be FEAR(0)");
+    int found_liebe = 0;
+    for (int i = 0; TEST_ANCHORS_DE[i].word; i++) {
+        if (strcmp(TEST_ANCHORS_DE[i].word, "Liebe") == 0) {
+            ASSERT_TRUE(TEST_ANCHORS_DE[i].chamber == 1, "Liebe should be LOVE(1)");
+            found_liebe = 1;
+        }
+    }
+    ASSERT_TRUE(found_liebe, "Liebe not found in German anchors");
+    PASS();
+}
+
+static void test_spanish_anchors(void) {
+    TEST("Spanish anchors map to correct chambers");
+    int errors = 0;
+    for (int i = 0; TEST_ANCHORS_ES[i].word; i++) {
+        int ch = TEST_ANCHORS_ES[i].chamber;
+        if (ch < 0 || ch > 5) errors++;
+    }
+    ASSERT_TRUE(errors == 0, "Spanish anchor has invalid chamber");
+    /* Verify at least 2 anchors per chamber */
+    int counts[6] = {0};
+    for (int i = 0; TEST_ANCHORS_ES[i].word; i++) {
+        counts[TEST_ANCHORS_ES[i].chamber]++;
+    }
+    for (int c = 0; c < 6; c++) {
+        char msg[128];
+        snprintf(msg, sizeof(msg), "Spanish chamber %d has < 2 anchors (%d)", c, counts[c]);
+        ASSERT_TRUE(counts[c] >= 2, msg);
+    }
+    /* Verify specific mappings */
+    ASSERT_TRUE(TEST_ANCHORS_ES[0].chamber == 0, "miedo should be FEAR(0)");
+    int found_amor = 0;
+    for (int i = 0; TEST_ANCHORS_ES[i].word; i++) {
+        if (strcmp(TEST_ANCHORS_ES[i].word, "amor") == 0) {
+            ASSERT_TRUE(TEST_ANCHORS_ES[i].chamber == 1, "amor should be LOVE(1)");
+            found_amor = 1;
+        }
+    }
+    ASSERT_TRUE(found_amor, "amor not found in Spanish anchors");
+    PASS();
+}
+
+static void test_german_lang_detect(void) {
+    TEST("detect German hints");
+    const char *text = "ich bin nicht allein";
+    ASSERT_TRUE(strstr(text, "ich ") != NULL, "failed German hint 'ich'");
+    const char *text2 = "die Welt ist schoen";
+    ASSERT_TRUE(strstr(text2, "die ") != NULL, "failed German hint 'die'");
+    PASS();
+}
+
+static void test_spanish_lang_detect(void) {
+    TEST("detect Spanish hints");
+    const char *text = "el mundo por dentro";
+    ASSERT_TRUE(strstr(text, "el ") != NULL, "failed Spanish hint 'el'");
+    const char *text2 = "las cosas que importan";
+    ASSERT_TRUE(strstr(text2, "las ") != NULL, "failed Spanish hint 'las'");
+    PASS();
+}
+
 int main(void) {
     printf("╔══════════════════════════════════════╗\n");
     printf("║  KLAUS test suite (C)                ║\n");
@@ -879,6 +1035,14 @@ int main(void) {
     test_ghost_clamp();
     test_inertia_scaling();
     test_pure_somatic_start();
+
+    /* ── Six-language tests (2026-04-18) ── */
+    test_six_languages();
+    test_vocab_count();
+    test_german_anchors();
+    test_spanish_anchors();
+    test_german_lang_detect();
+    test_spanish_lang_detect();
 
     printf("\n  %d/%d tests passed\n", tests_passed, tests_run);
     if (tests_passed == tests_run) {

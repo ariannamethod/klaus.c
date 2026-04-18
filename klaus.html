@@ -657,6 +657,10 @@ function detectLanguage(text) {
   if (accented > 1 && langPacks.fr) return 'fr';
   let frWords = ['je ','tu ','le ','la ','les ','suis ','est ','dans '];
   for (const fw of frWords) if (text.includes(fw) && langPacks.fr) return 'fr';
+  let deWords = ['ich ','und ','der ','die ','das ','ein ','ist ','nicht ','von ','mit '];
+  for (const dw of deWords) if (text.includes(dw) && langPacks.de) return 'de';
+  let esWords = ['el ','los ','las ','una ','del ','por ','que ','con ','esto '];
+  for (const sw of esWords) if (text.includes(sw) && langPacks.es) return 'es';
   if (langPacks.en) return 'en';
   return Object.keys(langPacks)[0] || 'en';
 }

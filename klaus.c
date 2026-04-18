@@ -315,6 +315,62 @@ static const AnchorWord ANCHORS_HE[] = {
     {NULL, 0}
 };
 
+static const AnchorWord ANCHORS_DE[] = {
+    {"Angst",CH_FEAR},{"Furcht",CH_FEAR},{"Panik",CH_FEAR},{"Schrecken",CH_FEAR},
+    {"Entsetzen",CH_FEAR},{"Albtraum",CH_FEAR},{"Bedrohung",CH_FEAR},{"Phobie",CH_FEAR},
+    {"Gefahr",CH_FEAR},{"Beklemmung",CH_FEAR},{"Terror",CH_FEAR},{"Grauen",CH_FEAR},
+    {"Liebe",CH_LOVE},{"Wärme",CH_LOVE},{"Zärtlichkeit",CH_LOVE},
+    {"Güte",CH_LOVE},{"Mitgefühl",CH_LOVE},{"Zuneigung",CH_LOVE},
+    {"Fürsorge",CH_LOVE},{"Umarmung",CH_LOVE},{"Geborgenheit",CH_LOVE},
+    {"Sanftheit",CH_LOVE},{"Vertrauen",CH_LOVE},{"Trost",CH_LOVE},
+    {"Wut",CH_RAGE},{"Zorn",CH_RAGE},{"Raserei",CH_RAGE},{"Hass",CH_RAGE},
+    {"Feindseligkeit",CH_RAGE},{"Aggression",CH_RAGE},{"Gewalt",CH_RAGE},
+    {"Grausamkeit",CH_RAGE},{"Brutalität",CH_RAGE},{"Rache",CH_RAGE},
+    {"Verachtung",CH_RAGE},{"Furie",CH_RAGE},
+    {"Leere",CH_VOID},{"Stille",CH_VOID},{"Einsamkeit",CH_VOID},{"Dunkelheit",CH_VOID},
+    {"Verzweiflung",CH_VOID},{"Hoffnungslosigkeit",CH_VOID},{"Taubheit",CH_VOID},
+    {"Isolation",CH_VOID},{"Verlassenheit",CH_VOID},{"Nichts",CH_VOID},
+    {"Ohnmacht",CH_VOID},{"Erstarrung",CH_VOID},
+    {"Fluss",CH_FLOW},{"Rhythmus",CH_FLOW},{"Tanz",CH_FLOW},{"Puls",CH_FLOW},
+    {"Harmonie",CH_FLOW},{"Resonanz",CH_FLOW},{"Vibration",CH_FLOW},{"Welle",CH_FLOW},
+    {"Musik",CH_FLOW},{"Atem",CH_FLOW},{"Herzschlag",CH_FLOW},{"Balance",CH_FLOW},
+    {"Paradox",CH_COMPLEX},{"Rätsel",CH_COMPLEX},{"Mysterium",CH_COMPLEX},
+    {"Chaos",CH_COMPLEX},{"Spannung",CH_COMPLEX},{"Verwandlung",CH_COMPLEX},
+    {"Widerspruch",CH_COMPLEX},{"Dualität",CH_COMPLEX},
+    {"Enigma",CH_COMPLEX},{"Spirale",CH_COMPLEX},{"Metamorphose",CH_COMPLEX},
+    {"Transzendenz",CH_COMPLEX},
+    {NULL, 0}
+};
+
+static const AnchorWord ANCHORS_ES[] = {
+    {"miedo",CH_FEAR},{"terror",CH_FEAR},{"pánico",CH_FEAR},{"espanto",CH_FEAR},
+    {"horror",CH_FEAR},{"pesadilla",CH_FEAR},{"angustia",CH_FEAR},{"ansiedad",CH_FEAR},
+    {"temor",CH_FEAR},{"amenaza",CH_FEAR},{"peligro",CH_FEAR},{"fobia",CH_FEAR},
+    {"amor",CH_LOVE},{"cariño",CH_LOVE},{"ternura",CH_LOVE},{"dulzura",CH_LOVE},
+    {"compasión",CH_LOVE},{"afecto",CH_LOVE},{"devoción",CH_LOVE},
+    {"abrazo",CH_LOVE},{"calidez",CH_LOVE},{"confianza",CH_LOVE},
+    {"esperanza",CH_LOVE},{"consuelo",CH_LOVE},
+    {"rabia",CH_RAGE},{"furia",CH_RAGE},{"ira",CH_RAGE},{"cólera",CH_RAGE},
+    {"odio",CH_RAGE},{"hostilidad",CH_RAGE},{"violencia",CH_RAGE},
+    {"crueldad",CH_RAGE},{"brutalidad",CH_RAGE},{"venganza",CH_RAGE},
+    {"desprecio",CH_RAGE},{"indignación",CH_RAGE},
+    {"vacío",CH_VOID},{"silencio",CH_VOID},{"soledad",CH_VOID},
+    {"oscuridad",CH_VOID},{"desesperación",CH_VOID},
+    {"desesperanza",CH_VOID},{"entumecimiento",CH_VOID},
+    {"aislamiento",CH_VOID},{"abandono",CH_VOID},{"nada",CH_VOID},
+    {"impotencia",CH_VOID},{"parálisis",CH_VOID},
+    {"flujo",CH_FLOW},{"ritmo",CH_FLOW},{"danza",CH_FLOW},{"pulso",CH_FLOW},
+    {"armonía",CH_FLOW},{"resonancia",CH_FLOW},{"vibración",CH_FLOW},
+    {"onda",CH_FLOW},{"música",CH_FLOW},{"aliento",CH_FLOW},
+    {"latido",CH_FLOW},{"equilibrio",CH_FLOW},
+    {"paradoja",CH_COMPLEX},{"enigma",CH_COMPLEX},{"misterio",CH_COMPLEX},
+    {"caos",CH_COMPLEX},{"complejidad",CH_COMPLEX},{"transformación",CH_COMPLEX},
+    {"contradicción",CH_COMPLEX},{"dualidad",CH_COMPLEX},
+    {"metamorfosis",CH_COMPLEX},{"espiral",CH_COMPLEX},{"laberinto",CH_COMPLEX},
+    {"trascendencia",CH_COMPLEX},
+    {NULL, 0}
+};
+
 /* ═══════════════════════════════════════════════════════════════
  * TYPES
  * ═══════════════════════════════════════════════════════════════ */
@@ -770,6 +826,8 @@ static int scan_languages(Klaus *k, const char *base_dir) {
         if (strcmp(code, "ru") == 0) anc = ANCHORS_RU;
         else if (strcmp(code, "fr") == 0) anc = ANCHORS_FR;
         else if (strcmp(code, "he") == 0) anc = ANCHORS_HE;
+        else if (strcmp(code, "de") == 0) anc = ANCHORS_DE;
+        else if (strcmp(code, "es") == 0) anc = ANCHORS_ES;
         lp->anchors = anc;
 
         /* load inhale */
@@ -1036,6 +1094,22 @@ static int detect_language(const Klaus *k, const char *text) {
         if (strstr(text, fw[i])) {
             for (int j = 0; j < k->n_langs; j++)
                 if (strcmp(k->langs[j].code, "fr") == 0) return j;
+        }
+    }
+    /* German heuristic */
+    const char *dw[] = {"ich ","und ","der ","die ","das ","ein ","ist ","nicht ","von ","mit ",NULL};
+    for (int i = 0; dw[i]; i++) {
+        if (strstr(text, dw[i])) {
+            for (int j = 0; j < k->n_langs; j++)
+                if (strcmp(k->langs[j].code, "de") == 0) return j;
+        }
+    }
+    /* Spanish heuristic */
+    const char *sw[] = {"el ","los ","las ","una ","del ","por ","que ","con ","esto ",NULL};
+    for (int i = 0; sw[i]; i++) {
+        if (strstr(text, sw[i])) {
+            for (int j = 0; j < k->n_langs; j++)
+                if (strcmp(k->langs[j].code, "es") == 0) return j;
         }
     }
     /* default to first language (usually English) */
