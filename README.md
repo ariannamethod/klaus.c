@@ -2,7 +2,8 @@
 
 **Kinetic Linguistic Adaptive Unified Sonar**
 
-a somatic engine. you say words, it feels them in its body. it doesn't understand what you said — it senses where it hurts. then tells you.
+meet 'klaus'. 'klaus' is a somatic sonar engine.  
+you say words, 'klaus' feels them in its body. it doesn't understand what you said — it senses where it hurts. then tells you.
 
 no pretrained weights. no gradient descent. no backpropagation. no datasets in the traditional sense. what it has: 30,000+ emotional words across 6 languages (English, Hebrew, Russian, French, German, Spanish), a 7-force physics equation, 24 coupled oscillators, Hebbian plasticity that grows from use, and the Hebrew-Gregorian calendar conflict predicting your emotional future based on the orbital positions of six planets.
 
