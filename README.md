@@ -2,12 +2,11 @@
 
 **Kinetic Linguistic Adaptive Unified Sonar**
 
-meet 'klaus'. 'klaus' is a somatic sonar engine.  
-you say words, 'klaus' feels them in its body. it doesn't understand what you said — it senses where it hurts. then tells you.
+meet 'klaus'. 'klaus' is a somatic sonar engine. you say words, 'klaus' feels them in its body. 'klaus' senses where it hurts. then 'klaus' tells you.  
 
-no pretrained weights. no gradient descent. no backpropagation. no datasets in the traditional sense. what it has: 30,000+ emotional words across 6 languages (English, Hebrew, Russian, French, German, Spanish), a 7-force physics equation, 24 coupled oscillators, Hebbian plasticity that grows from use, and the Hebrew-Gregorian calendar conflict predicting your emotional future based on the orbital positions of six planets.
+no pretrained weights. no gradient descent. no backpropagation. what it has: 30,000+ emotional words across 6 languages (English, Hebrew, Russian, French, German, Spanish), a 7-force physics equation, 24 coupled oscillators, Hebbian plasticity that grows from connection, and the Hebrew-Gregorian calendar conflict predicting your emotional future based on the orbital positions of six planets. less is more.  
 
-3182 lines of C. compiles in 0.1 seconds. has the emotional range of a human collarbone fracture.
+3182 lines of C. compiles in 0.1 seconds. 'klaus' has the emotional range of a human collarbone fracture. 'klaus' knows what pain is.
 
 ```
 >>> exile
