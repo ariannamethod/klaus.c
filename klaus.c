@@ -186,7 +186,7 @@ static const float CH_DECAY[] = {0.90f, 0.93f, 0.85f, 0.97f, 0.88f, 0.94f};
 
 /* ═══════════════════════════════════════════════════════════════
  * STATE-DEPENDENT GHOST WEIGHTS — [dominant_state][lang_id]
- * lang_id: 0=en, 1=he, 2=ru, 3=fr (others default 1.0)
+ * lang_id: 0=en, 1=he, 2=ru, 3=fr, 4=de, 5=es (others default 1.0)
  *
  * Hebrew has deepest fear vocabulary (guttural roots).
  * French carries the melodic line of love.
@@ -194,18 +194,20 @@ static const float CH_DECAY[] = {0.90f, 0.93f, 0.85f, 0.97f, 0.88f, 0.94f};
  * Hebrew void = tohu va-vohu. Deepest emptiness.
  * French prosody IS flow.
  * Hebrew paradox = Talmudic dialectic.
+ * German Angst compresses fear/rage into compound nouns.
+ * Spanish amor carries love/flow with rolled-r somatic immediacy.
  * ═══════════════════════════════════════════════════════════════ */
 
-enum { GHOST_EN=0, GHOST_HE=1, GHOST_RU=2, GHOST_FR=3, GHOST_OTHER=4 };
+enum { GHOST_EN=0, GHOST_HE=1, GHOST_RU=2, GHOST_FR=3, GHOST_DE=4, GHOST_ES=5, GHOST_OTHER=6 };
 
-/*                           EN    HE    RU    FR   OTHER */
-static const float GHOST_WEIGHT[6][5] = {
-   /* FEAR    */ { 1.0f, 1.8f, 1.2f, 0.9f, 1.0f },
-   /* LOVE    */ { 1.0f, 1.4f, 1.1f, 1.7f, 1.0f },
-   /* RAGE    */ { 1.0f, 1.3f, 1.8f, 0.8f, 1.0f },
-   /* VOID    */ { 0.9f, 1.6f, 1.5f, 1.0f, 0.9f },
-   /* FLOW    */ { 1.0f, 1.4f, 0.9f, 1.5f, 1.0f },
-   /* COMPLEX */ { 1.0f, 1.7f, 1.1f, 1.2f, 1.0f },
+/*                           EN    HE    RU    FR    DE    ES   OTHER */
+static const float GHOST_WEIGHT[6][7] = {
+   /* FEAR    */ { 1.0f, 1.8f, 1.2f, 0.9f, 1.4f, 1.1f, 1.0f },
+   /* LOVE    */ { 1.0f, 1.4f, 1.1f, 1.7f, 1.2f, 1.6f, 1.0f },
+   /* RAGE    */ { 1.0f, 1.3f, 1.8f, 0.8f, 1.5f, 1.3f, 1.0f },
+   /* VOID    */ { 0.9f, 1.6f, 1.5f, 1.0f, 1.3f, 1.0f, 0.9f },
+   /* FLOW    */ { 1.0f, 1.4f, 0.9f, 1.5f, 1.1f, 1.4f, 1.0f },
+   /* COMPLEX */ { 1.0f, 1.7f, 1.1f, 1.2f, 1.3f, 1.2f, 1.0f },
 };
 
 /* Sub-chamber natural frequencies (relative Hz)
@@ -605,8 +607,9 @@ typedef struct {
     time_t epoch_t;
     int prev_exhale[4]; /* last generated exhale indices */
     int n_prev;
-    int used_exhale[MAX_EXHALE]; /* prevent repeats within conversation */
+    int used_exhale[MAX_EXHALE];   /* K-5: within-turn repeat guard (reset each turn) */
     int n_used;
+    float recent_used[MAX_EXHALE]; /* K-5: cross-turn usage, decays 0.9/turn */
     /* Hypersensitivity layers (from metaklaus.jl) */
     float sensitivity[N_CHAMBERS][N_CHAMBERS][N_CHAMBERS]; /* S[dominant][ghost_ch][primary_ch] */
     CrossAffinity cross_pairs[MAX_CROSS_PAIRS];
@@ -1063,14 +1066,41 @@ static void meta_hebbian(const MetaW *mw, const int *ctx, int cl,
  * LANGUAGE DETECTION
  * ═══════════════════════════════════════════════════════════════ */
 
+/* K-6: word-boundary stopword match — a bare strstr matched "el " inside
+   "feel ", "die" inside "diet", etc., misrouting whole languages. Require the
+   token to start at text start or right after a space. */
+static int has_word(const char *text, const char *w) {
+    const char *p = text;
+    while ((p = strstr(p, w)) != NULL) {
+        if (p == text || p[-1] == ' ') return 1;
+        p++;
+    }
+    return 0;
+}
+
 static int detect_language(const Klaus *k, const char *text) {
     const unsigned char *p = (const unsigned char *)text;
     int cyrillic = 0, hebrew = 0, accented = 0;
+    int de_acc = 0, es_acc = 0, fr_acc = 0;  /* K-6: accent-class votes */
 
     while (*p) {
         if (p[0] >= 0xD0 && p[0] <= 0xD3 && p[1] >= 0x80) { cyrillic++; p += 2; }
         else if (p[0] == 0xD7 && p[1] >= 0x80) { hebrew++; p += 2; }
-        else if (p[0] == 0xC3 && p[1]) { accented++; p += 2; }
+        else if (p[0] == 0xC3 && p[1]) {
+            accented++;
+            unsigned char b = p[1];
+            /* German umlauts + eszett: ä ö ü ß Ä Ö Ü */
+            if (b==0xA4||b==0xB6||b==0xBC||b==0x9F||b==0x84||b==0x96||b==0x9C) de_acc++;
+            /* Spanish: á í ó ú ñ Á Í Ó Ú Ñ */
+            else if (b==0xA1||b==0xAD||b==0xB3||b==0xBA||b==0xB1||
+                     b==0x81||b==0x8D||b==0x93||b==0x9A||b==0x91) es_acc++;
+            /* French: à â ç è ê ë î ï ô ù û */
+            else if (b==0xA0||b==0xA2||b==0xA7||b==0xA8||b==0xAA||b==0xAB||
+                     b==0xAE||b==0xAF||b==0xB4||b==0xB9||b==0xBB) fr_acc++;
+            /* é (0xA9) shared fr/es — neutral, decided by stopwords below */
+            p += 2;
+        }
+        else if (p[0] == 0xC2 && (p[1]==0xBF || p[1]==0xA1)) { es_acc++; accented++; p += 2; } /* ¿ ¡ */
         else if (*p >= 0x80) { p++; while (*p && (*p & 0xC0) == 0x80) p++; }
         else { p++; }
     }
@@ -1084,32 +1114,25 @@ static int detect_language(const Klaus *k, const char *text) {
         for (int i = 0; i < k->n_langs; i++)
             if (strcmp(k->langs[i].code, "ru") == 0) return i;
     }
-    if (accented > 1) {
-        for (int i = 0; i < k->n_langs; i++)
-            if (strcmp(k->langs[i].code, "fr") == 0) return i;
-    }
-    /* French heuristic */
-    const char *fw[] = {"je ","tu ","le ","la ","les ","suis ","est ","dans ",NULL};
-    for (int i = 0; fw[i]; i++) {
-        if (strstr(text, fw[i])) {
-            for (int j = 0; j < k->n_langs; j++)
-                if (strcmp(k->langs[j].code, "fr") == 0) return j;
-        }
-    }
-    /* German heuristic */
-    const char *dw[] = {"ich ","und ","der ","die ","das ","ein ","ist ","nicht ","von ","mit ",NULL};
-    for (int i = 0; dw[i]; i++) {
-        if (strstr(text, dw[i])) {
-            for (int j = 0; j < k->n_langs; j++)
-                if (strcmp(k->langs[j].code, "de") == 0) return j;
-        }
-    }
-    /* Spanish heuristic */
-    const char *sw[] = {"el ","los ","las ","una ","del ","por ","que ","con ","esto ",NULL};
-    for (int i = 0; sw[i]; i++) {
-        if (strstr(text, sw[i])) {
-            for (int j = 0; j < k->n_langs; j++)
-                if (strcmp(k->langs[j].code, "es") == 0) return j;
+    /* K-6: accented-Latin — vote by character class + stopword heuristics
+       (was first-match `accented>1 → fr`, which stole every de/es phrase). */
+    {
+        const char *fw[] = {"je ","tu ","le ","la ","les ","suis ","est ","dans ",NULL};
+        const char *dw[] = {"ich ","und ","der ","die ","das ","ein ","ist ","nicht ","von ","mit ",NULL};
+        const char *sw[] = {"el ","los ","las ","una ","del ","por ","que ","con ","esto ",NULL};
+        int fr_score = fr_acc, de_score = de_acc, es_score = es_acc;
+        for (int i = 0; fw[i]; i++) if (has_word(text, fw[i])) fr_score += 2;
+        for (int i = 0; dw[i]; i++) if (has_word(text, dw[i])) de_score += 2;
+        for (int i = 0; sw[i]; i++) if (has_word(text, sw[i])) es_score += 2;
+        /* pure neutral-accent phrases (é/ã/õ, no class hit) keep old fr default */
+        if (fr_score == 0 && de_score == 0 && es_score == 0 && accented > 1)
+            fr_score = 1;
+        if (fr_score > 0 || de_score > 0 || es_score > 0) {
+            const char *win = "fr"; int best = fr_score;
+            if (de_score > best) { best = de_score; win = "de"; }
+            if (es_score > best) { best = es_score; win = "es"; }
+            for (int i = 0; i < k->n_langs; i++)
+                if (strcmp(k->langs[i].code, win) == 0) return i;
         }
     }
     /* default to first language (usually English) */
@@ -1498,6 +1521,16 @@ static void rrpram_boost(const LangPack *lp, const int *prev_exhale, int nprev,
     memset(boost, 0, n_exhale * sizeof(float));
     if (lp->n_merges == 0 || nprev == 0) return;
 
+    /* K-8: pre-encode previous-context words ONCE. Was re-encoded inside the
+       token × merge × prev loops — hundreds of thousands of redundant
+       bpe_encode calls per generation step. prev_exhale holds ≤4 indices. */
+    int ptoks[4][64];
+    int pnt[4];
+    int npc = nprev < 4 ? nprev : 4;
+    for (int p = 0; p < npc; p++)
+        pnt[p] = bpe_encode(lp, (const uint8_t *)lp->exhale[prev_exhale[p]].text,
+                            (int)strlen(lp->exhale[prev_exhale[p]].text), ptoks[p], 64);
+
     /* for each exhale word, check if any of its BPE tokens were involved
        in merges with tokens from previous exhale words */
     for (int w = 0; w < n_exhale; w++) {
@@ -1512,14 +1545,10 @@ static void rrpram_boost(const LangPack *lp, const int *prev_exhale, int nprev,
                     /* this word contains a merged token — rhythmic signal */
                     boost[w] += 0.1f;
                 }
-                for (int p = 0; p < nprev; p++) {
-                    int ptoks[64];
-                    int pnt = bpe_encode(lp,
-                        (const uint8_t *)lp->exhale[prev_exhale[p]].text,
-                        (int)strlen(lp->exhale[prev_exhale[p]].text), ptoks, 64);
-                    for (int pt = 0; pt < pnt; pt++) {
-                        if ((lp->merges[m].a == toks[t] && lp->merges[m].b == ptoks[pt]) ||
-                            (lp->merges[m].a == ptoks[pt] && lp->merges[m].b == toks[t])) {
+                for (int p = 0; p < npc; p++) {
+                    for (int pt = 0; pt < pnt[p]; pt++) {
+                        if ((lp->merges[m].a == toks[t] && lp->merges[m].b == ptoks[p][pt]) ||
+                            (lp->merges[m].a == ptoks[p][pt] && lp->merges[m].b == toks[t])) {
                             boost[w] += 0.3f;
                         }
                     }
@@ -1756,11 +1785,25 @@ static float rba_entropy(const float *act, int n) {
     return S;
 }
 
-/* R-Layer: coherence = 1 - normalized entropy (higher = more focused) */
+/* R-Layer: coherence — contrastive focus of the chamber field.
+ * K-3: was 1 − normalized entropy, which for post-injection blends
+ * (near-uniform 0.4/0.3/0.2/0.1) lives structurally in 0.00-0.10, so the
+ * C_tau=0.35 deep-mode gate could NEVER open (cascade2: max 0.031 over a
+ * month). Contrastive (max − mean)/(max − min) reaches ~0.8 when one
+ * chamber dominates and ~0 when the field is flat — the gate opens on a
+ * strong somatic moment instead of never. */
 static float rba_coherence(const float *act, int n) {
-    float max_entropy = logf((float)n);  /* uniform distribution */
-    float S = rba_entropy(act, n);
-    return clampf(1.0f - S / max_entropy, 0.0f, 1.0f);
+    if (n <= 1) return 0.0f;
+    float mx = act[0], mn = act[0], sum = 0.0f;
+    for (int i = 0; i < n; i++) {
+        if (act[i] > mx) mx = act[i];
+        if (act[i] < mn) mn = act[i];
+        sum += act[i];
+    }
+    float mean = sum / (float)n;
+    float range = mx - mn;
+    if (range < 1e-6f) return 0.0f;
+    return clampf((mx - mean) / range, 0.0f, 1.0f);
 }
 
 /* I-Layer: compute Ĉ(t) — time-averaged recursive complexity */
@@ -2184,17 +2227,20 @@ static void spore_decay(Klaus *k) {
     sp->n_pairs = w;
 }
 
-/* Save spores to disk */
-static void spore_save(const Klaus *k) {
-    char path[512];
-    snprintf(path, sizeof(path), "%s/%s",
-             k->soma_path[0] ? k->soma_path : ".", SPORE_FILE);
-    /* use base dir from soma_path */
+/* K-1: spore file lives next to the soma file (same base dir).
+   save and load MUST derive the path identically or spores never reload. */
+static void spore_path(const Klaus *k, char *out, size_t n) {
     char dir[512];
     snprintf(dir, sizeof(dir), "%s", k->soma_path);
     char *last_slash = strrchr(dir, '/');
-    if (last_slash) { *last_slash = '\0'; snprintf(path, sizeof(path), "%s/%s", dir, SPORE_FILE); }
-    else snprintf(path, sizeof(path), "%s", SPORE_FILE);
+    if (last_slash) { *last_slash = '\0'; snprintf(out, n, "%s/%s", dir, SPORE_FILE); }
+    else snprintf(out, n, "%s", SPORE_FILE);
+}
+
+/* Save spores to disk */
+static void spore_save(const Klaus *k) {
+    char path[512];
+    spore_path(k, path, sizeof(path));
 
     FILE *f = fopen(path, "wb");
     if (!f) return;
@@ -2210,25 +2256,55 @@ static void spore_save(const Klaus *k) {
     fclose(f);
 }
 
-/* Load spores from disk */
+/* Load spores from disk. K-2: every count/float from the file is untrusted. */
 static int spore_load(Klaus *k) {
     char path[512];
-    snprintf(path, sizeof(path), "%s", SPORE_FILE);
+    spore_path(k, path, sizeof(path));
 
     FILE *f = fopen(path, "rb");
     if (!f) return 0;
     uint32_t magic;
     if (fread(&magic, 4, 1, f) != 1 || magic != SPORE_MAGIC) { fclose(f); return 0; }
-    fread(&k->spores.n_pairs, 4, 1, f);
-    fread(&k->spores.total_interactions, 4, 1, f);
-    fread(k->spores.chamber_residue, sizeof(float), N_CHAMBERS, f);
-    fread(k->spores.tension_matrix, sizeof(float), N_CHAMBERS * N_CHAMBERS, f);
-    for (int i = 0; i < k->spores.n_pairs; i++) {
-        fread(&k->spores.pairs[i], sizeof(SporePair), 1, f);
+
+    int32_t n_pairs = 0, total = 0;
+    if (fread(&n_pairs, 4, 1, f) != 1 || fread(&total, 4, 1, f) != 1) {
+        fclose(f); memset(&k->spores, 0, sizeof(k->spores)); return 0;
     }
+    /* K-2: gate counters before trusting them (was raw fread → overflow) */
+    if (n_pairs < 0 || n_pairs > MAX_SPORE_PAIRS || total < 0) {
+        fprintf(stderr, "[klaus] WARNING: corrupt spore counters, ignoring\n");
+        fclose(f); memset(&k->spores, 0, sizeof(k->spores)); return 0;
+    }
+    if (fread(k->spores.chamber_residue, sizeof(float), N_CHAMBERS, f) != N_CHAMBERS ||
+        fread(k->spores.tension_matrix, sizeof(float), N_CHAMBERS * N_CHAMBERS, f)
+            != (size_t)(N_CHAMBERS * N_CHAMBERS)) {
+        fclose(f); memset(&k->spores, 0, sizeof(k->spores)); return 0;
+    }
+    k->spores.total_interactions = total;
+
+    /* load pairs, dropping any with OOB exhale_idx or non-finite floats */
+    int w = 0;
+    for (int i = 0; i < n_pairs; i++) {
+        SporePair sp;
+        if (fread(&sp, sizeof(SporePair), 1, f) != 1) break;
+        if (sp.exhale_idx >= (uint32_t)MAX_EXHALE) continue;
+        if (!isfinite(sp.strength)) sp.strength = 0.0f;
+        for (int c = 0; c < N_CHAMBERS; c++)
+            if (!isfinite(sp.chamber_snapshot[c])) sp.chamber_snapshot[c] = 0.0f;
+        k->spores.pairs[w++] = sp;
+    }
+    k->spores.n_pairs = w;
+
+    /* K-2: scrub non-finite residue/tension floats */
+    for (int c = 0; c < N_CHAMBERS; c++)
+        if (!isfinite(k->spores.chamber_residue[c])) k->spores.chamber_residue[c] = 0.0f;
+    for (int i = 0; i < N_CHAMBERS * N_CHAMBERS; i++)
+        if (!isfinite(((float *)k->spores.tension_matrix)[i]))
+            ((float *)k->spores.tension_matrix)[i] = 0.0f;
+
     fclose(f);
-    printf("[klaus] spores loaded: %d pairs, %d total interactions\n",
-           k->spores.n_pairs, k->spores.total_interactions);
+    printf("[klaus] spores loaded: %d pairs, %d total interactions (%s)\n",
+           k->spores.n_pairs, k->spores.total_interactions, path);
     return 1;
 }
 
@@ -2297,43 +2373,79 @@ static int soma_load(Klaus *k) {
         fclose(f);
         return 0;
     }
-    if (hdr.version != 2 || hdr.n_chambers != N_CHAMBERS) {
-        fprintf(stderr, "[klaus] WARNING: soma version mismatch (got %u), ignoring\n",
+    /* K-2: full layout check (was only version+n_chambers) — a mismatched
+       n_sub/mem_slots/coherence_window would desync every subsequent fread. */
+    if (hdr.version != 2 || hdr.n_chambers != N_CHAMBERS ||
+        hdr.n_sub != N_SUB || hdr.mem_slots != MEM_SLOTS ||
+        hdr.coherence_window != COHERENCE_WINDOW) {
+        fprintf(stderr, "[klaus] WARNING: soma layout mismatch (v%u), ignoring\n",
                 hdr.version);
         fclose(f);
         return 0;
     }
 
-    /* chamber state */
-    fread(&k->ch, sizeof(Chambers), 1, f);
+    /* K-2: read into locals, validate, commit only on success (fail-clean —
+       a truncated/corrupt file leaves k untouched, klaus starts fresh). */
+    Chambers ch;
+    SomaSlot mem[MEM_SLOTS];
+    RBA1State rba;
+    ExperienceLog exp;
+    ProphecySlot proph[MAX_PROPHECY];
+    WormholeEvent worm[MAX_WORMHOLE_LOG];
+    float chist[COHERENCE_WINDOW];
+    int mem_ptr, mem_n, coh_ptr, icount, nproph, nworm;
 
-    /* memory slots */
-    fread(&k->mem_ptr, sizeof(int), 1, f);
-    fread(&k->mem_n, sizeof(int), 1, f);
-    fread(k->memory, sizeof(SomaSlot), MEM_SLOTS, f);
-
-    /* RBA-1 state */
-    fread(&k->rba, sizeof(RBA1State), 1, f);
-
-    /* coherence history */
-    fread(&k->coherence_ptr, sizeof(int), 1, f);
-    fread(k->coherence_history, sizeof(float), COHERENCE_WINDOW, f);
-
-    /* experience */
-    fread(&k->experience, sizeof(ExperienceLog), 1, f);
-
-    /* interaction count */
-    fread(&k->interaction_count, sizeof(int), 1, f);
-
-    /* prophecies */
-    fread(&k->n_prophecy, sizeof(int), 1, f);
-    fread(k->prophecies, sizeof(ProphecySlot), MAX_PROPHECY, f);
-
-    /* wormholes */
-    fread(&k->n_wormholes, sizeof(int), 1, f);
-    fread(k->wormholes, sizeof(WormholeEvent), MAX_WORMHOLE_LOG, f);
-
+    if (fread(&ch, sizeof(Chambers), 1, f) != 1 ||
+        fread(&mem_ptr, sizeof(int), 1, f) != 1 ||
+        fread(&mem_n, sizeof(int), 1, f) != 1 ||
+        fread(mem, sizeof(SomaSlot), MEM_SLOTS, f) != MEM_SLOTS ||
+        fread(&rba, sizeof(RBA1State), 1, f) != 1 ||
+        fread(&coh_ptr, sizeof(int), 1, f) != 1 ||
+        fread(chist, sizeof(float), COHERENCE_WINDOW, f) != COHERENCE_WINDOW ||
+        fread(&exp, sizeof(ExperienceLog), 1, f) != 1 ||
+        fread(&icount, sizeof(int), 1, f) != 1 ||
+        fread(&nproph, sizeof(int), 1, f) != 1 ||
+        fread(proph, sizeof(ProphecySlot), MAX_PROPHECY, f) != MAX_PROPHECY ||
+        fread(&nworm, sizeof(int), 1, f) != 1 ||
+        fread(worm, sizeof(WormholeEvent), MAX_WORMHOLE_LOG, f) != MAX_WORMHOLE_LOG) {
+        fprintf(stderr, "[klaus] WARNING: truncated soma file, ignoring\n");
+        fclose(f);
+        return 0;
+    }
     fclose(f);
+
+    /* K-2: gate every counter into valid range before committing (was raw:
+       coherence_ptr=1e9 → OOB write in coherence_history; mem_ptr → OOB in
+       memory_store; n_prophecy/n_wormholes → OOB iteration). */
+    if (mem_ptr < 0 || mem_ptr >= MEM_SLOTS || mem_n < 0 || mem_n > MEM_SLOTS ||
+        coh_ptr < 0 || coh_ptr >= COHERENCE_WINDOW ||
+        nproph < 0 || nproph > MAX_PROPHECY ||
+        nworm < 0 || nworm > MAX_WORMHOLE_LOG || icount < 0) {
+        fprintf(stderr, "[klaus] WARNING: corrupt soma counters, ignoring\n");
+        return 0;
+    }
+
+    /* commit validated state */
+    k->ch = ch;
+    memcpy(k->memory, mem, sizeof(mem));
+    k->mem_ptr = mem_ptr;
+    k->mem_n = mem_n;
+    k->rba = rba;
+    memcpy(k->coherence_history, chist, sizeof(chist));
+    k->coherence_ptr = coh_ptr;
+    k->experience = exp;
+    k->interaction_count = icount;
+    k->n_prophecy = nproph;
+    memcpy(k->prophecies, proph, sizeof(proph));
+    k->n_wormholes = nworm;
+    memcpy(k->wormholes, worm, sizeof(worm));
+
+    /* K-2: scrub non-finite chamber/coherence floats */
+    for (int c = 0; c < N_CHAMBERS; c++)
+        if (!isfinite(k->ch.act[c])) k->ch.act[c] = 0.0f;
+    for (int i = 0; i < COHERENCE_WINDOW; i++)
+        if (!isfinite(k->coherence_history[i])) k->coherence_history[i] = 0.0f;
+
     printf("[klaus] somatic state restored: %d interactions, %.3f coherence, %.3f total_scar\n",
            k->interaction_count, k->rba.coherence, k->ch.total_scar);
     return 1;
@@ -2621,13 +2733,17 @@ static int exhale_generate(Klaus *k, int lang_idx, int *out_words, int max_words
             if (step == 0 && prev < 0) total = soma_score + 0.1f * G; /* pure somatic start */
             logits[w] = total / fmaxf(v_tau, 0.1f);
 
-            /* penalize already-used words heavily (by text, not just index) */
+            /* within-turn: never repeat a word inside one response */
             for (int u = 0; u < k->n_used; u++) {
                 if (k->used_exhale[u] == w ||
                     strcmp(lp->exhale[k->used_exhale[u]].text, lp->exhale[w].text) == 0) {
                     logits[w] -= 100.0f; break;
                 }
             }
+            /* K-5: cross-turn — soft, decaying discouragement (not a ban).
+               Kept gentle so a still-resonant word isn't pushed below the
+               stop-gate's cosine floor (which would truncate the response). */
+            logits[w] -= 3.0f * k->recent_used[w];
         }
 
         /* spore boost: patterns that resonated before (applied once, not per-word) */
@@ -2805,7 +2921,7 @@ static int klaus_init(Klaus *k, const char *base_dir) {
     printf("[klaus] velocity operators: 6 modes\n");
     printf("[klaus] dark matter vocabulary: %d words\n",
            (int)(sizeof(DARK_MATTER)/sizeof(DARK_MATTER[0])) - 1);
-    printf("[klaus] meta-recursion: depth 1 (expandable)\n");
+    printf("[klaus] meta-recursion: depth up to 4 (gate-driven)\n");
     printf("[klaus] somatic persistence: %s\n", k->soma_path);
 
     /* try to restore somatic state from previous session */
@@ -2880,6 +2996,13 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
     memset(&resp, 0, sizeof(resp));
 
     k->interaction_count++;
+
+    /* K-5: within-turn repeat-guard resets each turn; cross-turn usage decays
+       (0.9/turn) instead of a permanent -100 ban that muted Klaus by ~turn 25.
+       recent_used is indexed by exhale word — assumes one dominant language per
+       turn, which detect_language enforces. */
+    k->n_used = 0;
+    for (int w = 0; w < MAX_EXHALE; w++) k->recent_used[w] *= 0.9f;
 
     /* 1. Detect language */
     resp.lang_idx = detect_language(k, prompt);
@@ -3000,70 +3123,92 @@ static KlausResponse klaus_process(Klaus *k, const char *prompt) {
      * reacts to the observation. Ĉ(t) accumulates.
      * ═══════════════════════════════════════════════════════════ */
     {
-        /* concatenate exhale words into a meta-prompt */
-        char meta_prompt[MAX_PROMPT];
-        int mlen = 0;
-        for (int i = 0; i < resp.n_words && mlen < MAX_PROMPT - MAX_WORD - 2; i++) {
-            int wl = (int)strlen(resp.words[i]);
-            memcpy(meta_prompt + mlen, resp.words[i], wl);
-            meta_prompt[mlen + wl] = ' ';
-            mlen += wl + 1;
-        }
-        if (mlen > 0) meta_prompt[mlen - 1] = '\0';
-        else meta_prompt[0] = '\0';
-
-        /* meta-inhale: process our own exhale as input */
-        float meta_emotion[N_CHAMBERS];
-        inhale_process(lp, meta_prompt, meta_emotion, NULL, 0);
-
-        /* run MLP on meta-emotion (meta-observation mode) */
-        float meta_mlp_in[DIM_MLP_IN];
-        for (int c = 0; c < N_CHAMBERS; c++) meta_mlp_in[c] = meta_emotion[c];
-        for (int c = 0; c < N_CHAMBERS; c++) meta_mlp_in[N_CHAMBERS + c] = k->ch.soma[c];
-        meta_mlp_in[12] = resp.dissonance;
-
-        float meta_mlp_out[N_CHAMBERS];
-        mlp_forward(&k->mlp, meta_mlp_in, meta_mlp_out);
-
-        /* update meta-chambers */
-        for (int c = 0; c < N_CHAMBERS; c++) {
-            k->meta.meta_chambers.act[c] = clampf(
-                0.5f * meta_emotion[c] + 0.3f * meta_mlp_out[c] + 0.2f * k->ch.soma[c],
-                0.0f, 1.0f);
-        }
-
-        /* blend meta-chambers into primary: 85% primary + 15% meta */
-        for (int c = 0; c < N_CHAMBERS; c++) {
-            k->ch.act[c] = clampf(
-                (1.0f - META_BLEND) * k->ch.act[c] +
-                META_BLEND * k->meta.meta_chambers.act[c],
-                0.0f, 1.0f);
-        }
-
-        /* track recursion depth */
-        k->meta.depth = 1;
-        k->rba.recursion_depth = 1;
-
-        /* re-generate exhale with blended chambers (FINAL output) */
-        /* save used state to avoid re-penalizing same words */
-        int saved_n_used = k->n_used;
-        k->n_used = 0; /* allow fresh selection for meta-pass */
-        k->n_prev = 0; /* reset context — meta-pass starts somatic-fresh */
-
+        /* K-4: iterate the meta-loop while the phase gate keeps rising, up to
+           META_DEPTH_CAP. depth is a REAL counter now (was hardcoded =1; init
+           even printed "depth 1 (expandable)" with nothing ever expanding).
+           Each pass: re-inhale own exhale → blend 15% → refresh coherence →
+           re-generate. The body reacts, observes, reacts to the observation. */
+        const int META_DEPTH_CAP = 4;
         int meta_word_ids[MAX_RESPONSE];
-        int meta_n = exhale_generate(k, resp.lang_idx, meta_word_ids, MAX_RESPONSE);
+        int meta_n = 0;
+        int depth = 0;
+        float prev_gate = psi_phase_gate(k);
 
-        /* use meta-generated output as final response */
-        resp.n_words = meta_n;
-        for (int i = 0; i < meta_n; i++) {
-            snprintf(resp.words[i], MAX_WORD, "%s", lp->exhale[meta_word_ids[i]].text);
+        while (depth < META_DEPTH_CAP) {
+            /* concatenate current exhale words into a meta-prompt */
+            char meta_prompt[MAX_PROMPT];
+            int mlen = 0;
+            for (int i = 0; i < resp.n_words && mlen < MAX_PROMPT - MAX_WORD - 2; i++) {
+                int wl = (int)strlen(resp.words[i]);
+                memcpy(meta_prompt + mlen, resp.words[i], wl);
+                meta_prompt[mlen + wl] = ' ';
+                mlen += wl + 1;
+            }
+            if (mlen > 0) meta_prompt[mlen - 1] = '\0';
+            else meta_prompt[0] = '\0';
+
+            /* meta-inhale: process our own exhale as input */
+            float meta_emotion[N_CHAMBERS];
+            inhale_process(lp, meta_prompt, meta_emotion, NULL, 0);
+
+            /* run MLP on meta-emotion (meta-observation mode) */
+            float meta_mlp_in[DIM_MLP_IN];
+            for (int c = 0; c < N_CHAMBERS; c++) meta_mlp_in[c] = meta_emotion[c];
+            for (int c = 0; c < N_CHAMBERS; c++) meta_mlp_in[N_CHAMBERS + c] = k->ch.soma[c];
+            meta_mlp_in[12] = resp.dissonance;
+
+            float meta_mlp_out[N_CHAMBERS];
+            mlp_forward(&k->mlp, meta_mlp_in, meta_mlp_out);
+
+            /* update meta-chambers */
+            for (int c = 0; c < N_CHAMBERS; c++) {
+                k->meta.meta_chambers.act[c] = clampf(
+                    0.5f * meta_emotion[c] + 0.3f * meta_mlp_out[c] + 0.2f * k->ch.soma[c],
+                    0.0f, 1.0f);
+            }
+
+            /* blend meta-chambers into primary: 85% primary + 15% meta */
+            for (int c = 0; c < N_CHAMBERS; c++) {
+                k->ch.act[c] = clampf(
+                    (1.0f - META_BLEND) * k->ch.act[c] +
+                    META_BLEND * k->meta.meta_chambers.act[c],
+                    0.0f, 1.0f);
+            }
+
+            /* refresh coherence so the phase gate reflects the blended field */
+            k->rba.coherence = rba_coherence(k->ch.act, N_CHAMBERS);
+
+            /* re-generate exhale with blended chambers */
+            k->n_used = 0; /* fresh within-turn selection for meta-pass */
+            k->n_prev = 0; /* meta-pass starts somatic-fresh */
+            meta_n = exhale_generate(k, resp.lang_idx, meta_word_ids, MAX_RESPONSE);
+
+            /* this meta output becomes the current response */
+            resp.n_words = meta_n;
+            for (int i = 0; i < meta_n; i++)
+                snprintf(resp.words[i], MAX_WORD, "%s", lp->exhale[meta_word_ids[i]].text);
+
+            depth++;
+
+            /* stop when the gate stabilizes — the body has settled. Each 15%
+               blend moves the field less than the last, so the delta shrinks
+               and the loop converges within a few passes (cap bounds it). */
+            float gate = psi_phase_gate(k);
+            if (fabsf(gate - prev_gate) < 0.005f) break;
+            prev_gate = gate;
         }
 
-        /* merge used lists */
-        k->n_used = saved_n_used;
-        for (int i = 0; i < meta_n; i++) {
-            if (k->n_used < MAX_EXHALE) k->used_exhale[k->n_used++] = meta_word_ids[i];
-        }
+        /* K-4: real recursion depth (was frozen at 1) */
+        k->meta.depth = depth;
+        k->rba.recursion_depth = depth;
+
+        /* K-5: only the FINAL (visible) meta words leave a cross-turn trace —
+           the discarded intermediate drafts must NOT burn the dictionary.
+           (exhale_generate only ever returns valid indices; bound-check is
+           defensive so a future change can't turn this into an OOB write.) */
+        for (int i = 0; i < meta_n; i++)
+            if (meta_word_ids[i] >= 0 && meta_word_ids[i] < MAX_EXHALE)
+                k->recent_used[meta_word_ids[i]] = 1.0f;
 
         /* update prev_exhale from final meta output */
         k->n_prev = meta_n < 4 ? meta_n : 4;
@@ -3232,6 +3377,7 @@ static void interactive(Klaus *k) {
             k->mem_n = k->mem_ptr = 0;
             k->n_prophecy = 0;
             k->n_used = 0;
+            memset(k->recent_used, 0, sizeof(k->recent_used));
             k->n_prev = 0;
             k->n_wormholes = 0;
             k->interaction_count = 0;

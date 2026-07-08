@@ -173,9 +173,13 @@ static void kk_text_mood(const char *text,
                          int n_inhale, float *mood) {
     memset(mood, 0, N_CHAMBERS * sizeof(float));
     int total = 0;
-    char buf[8192];
-    snprintf(buf, sizeof(buf), "%s", text);
-    char *saveptr;
+    /* KK-1: work on a full-length mutable copy — a fixed buf[8192] silently
+       truncated docs (up to 100KB), so their tail never reached doc->mood. */
+    size_t tlen = strlen(text);
+    char *buf = (char *)malloc(tlen + 1);
+    if (!buf) return;
+    memcpy(buf, text, tlen + 1);
+    char *saveptr = NULL;
     char *tok = strtok_r(buf, " \t\n\r.,!?;:\"'()-", &saveptr);
     while (tok) {
         char lower[80];
@@ -191,6 +195,7 @@ static void kk_text_mood(const char *text,
         }
         tok = strtok_r(NULL, " \t\n\r.,!?;:\"'()-", &saveptr);
     }
+    free(buf);
     if (total > 0)
         for (int c = 0; c < N_CHAMBERS; c++) mood[c] /= (float)total;
 }
@@ -214,7 +219,10 @@ int kk_load(KK *kk, const char *base_dir,
         if (sz <= 0 || sz > 100000) { fclose(f); continue; }
         char *text = (char *)malloc(sz + 1);
         if (!text) { fclose(f); continue; }
-        fread(text, 1, sz, f); text[sz] = '\0'; fclose(f);
+        size_t rd = fread(text, 1, sz, f);  /* KK-2: check the return */
+        fclose(f);
+        if (rd == 0) { free(text); continue; }
+        text[rd] = '\0';
 
         KKDoc *doc = &kk->docs[kk->n_docs];
         snprintf(doc->name, sizeof(doc->name), "%s", ent->d_name);

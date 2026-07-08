@@ -2,7 +2,7 @@ CC = cc
 CFLAGS = -O2 -Wall -Wextra -std=c11
 LDFLAGS = -lm
 
-.PHONY: all clean test test-c test-py test-prompt
+.PHONY: all clean test test-c test-py test-prompt test-fixes
 
 all: klaus
 
@@ -12,7 +12,7 @@ klaus: klaus.c
 tests/test_klaus: tests/test_klaus.c
 	$(CC) $(CFLAGS) -w -o $@ $< $(LDFLAGS)
 
-test: test-c test-py test-prompt
+test: test-c test-fixes test-py test-prompt
 	@echo ""
 	@echo "=== Integration tests ==="
 	./klaus --prompt "I am terrified and alone"
@@ -33,6 +33,9 @@ test-py:
 
 test-prompt:
 	@tests/test_prompt_multiline.sh
+
+test-fixes: klaus
+	@tests/test_fixes.sh
 
 clean:
 	rm -f klaus tests/test_klaus
