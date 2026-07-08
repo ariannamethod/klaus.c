@@ -1205,6 +1205,8 @@ static int ghost_lang_id(const char *code) {
     if (strcmp(code, "he") == 0) return GHOST_HE;
     if (strcmp(code, "ru") == 0) return GHOST_RU;
     if (strcmp(code, "fr") == 0) return GHOST_FR;
+    if (strcmp(code, "de") == 0) return GHOST_DE;  /* K-7: wire de → its column */
+    if (strcmp(code, "es") == 0) return GHOST_ES;  /* K-7: wire es → its column */
     return GHOST_OTHER;
 }
 
