@@ -327,14 +327,14 @@ const N_PLANETS = 6;
 const J2000_EPOCH_MS = 946728000000; // Jan 1, 2000 12:00 UTC in ms
 
 // Ghost weight matrix: GHOST_WEIGHT[dominant_state][lang_id]
-// lang_id: 0=en, 1=he, 2=ru, 3=fr, 4=other
+// K-7: lang_id 0=en, 1=he, 2=ru, 3=fr, 4=de, 5=es, 6=other (de/es before other)
 const GHOST_WEIGHT = [
-  /* FEAR    */ [1.0, 1.8, 1.2, 0.9, 1.0],
-  /* LOVE    */ [1.0, 1.4, 1.1, 1.7, 1.0],
-  /* RAGE    */ [1.0, 1.3, 1.8, 0.8, 1.0],
-  /* VOID    */ [0.9, 1.6, 1.5, 1.0, 0.9],
-  /* FLOW    */ [1.0, 1.4, 0.9, 1.5, 1.0],
-  /* COMPLEX */ [1.0, 1.7, 1.1, 1.2, 1.0],
+  /* FEAR    */ [1.0, 1.8, 1.2, 0.9, 1.4, 1.1, 1.0],
+  /* LOVE    */ [1.0, 1.4, 1.1, 1.7, 1.2, 1.6, 1.0],
+  /* RAGE    */ [1.0, 1.3, 1.8, 0.8, 1.5, 1.3, 1.0],
+  /* VOID    */ [0.9, 1.6, 1.5, 1.0, 1.3, 1.0, 0.9],
+  /* FLOW    */ [1.0, 1.4, 0.9, 1.5, 1.1, 1.4, 1.0],
+  /* COMPLEX */ [1.0, 1.7, 1.1, 1.2, 1.3, 1.2, 1.0],
 ];
 
 // Sub-chamber natural frequencies: SUB_FREQ[sub][primary]
@@ -411,7 +411,8 @@ let chambers = {
 };
 let memory = []; let memPtr = 0;
 let mlpWeights = null;
-let usedExhale = new Set();
+let usedExhale = new Set();        // K-5: within-turn repeat guard (reset each turn)
+let recentUsed = new Map();        // K-5: cross-turn usage by exhale idx, decays 0.9/turn
 let prevExhale = [];
 let prophecies = [];
 let rngState = BigInt(Date.now());
@@ -644,23 +645,58 @@ function metaHebbian(meta, ctx, V) {
 }
 
 // ── Language detection ──
+// K-6: word-boundary stopword match — a bare includes() matched "el " inside
+// "feel ", "die" inside "diet", etc., misrouting whole languages. Require the
+// token to start at text start or right after a space.
+function hasWord(text, w) {
+  let p = text.indexOf(w);
+  while (p !== -1) {
+    if (p === 0 || text[p-1] === ' ') return true;
+    p = text.indexOf(w, p + 1);
+  }
+  return false;
+}
+
 function detectLanguage(text) {
   let cyrillic=0, hebrew=0, accented=0;
+  let deAcc=0, esAcc=0, frAcc=0;  // K-6: accent-class votes
   for (let i = 0; i < text.length; i++) {
     let c = text.charCodeAt(i);
     if (c >= 0x0400 && c <= 0x04FF) cyrillic++;
     else if (c >= 0x0590 && c <= 0x05FF) hebrew++;
-    else if (c >= 0x00C0 && c <= 0x00FF) accented++;
+    else if (c >= 0x00C0 && c <= 0x00FF) {
+      accented++;
+      // German umlauts + eszett: ä ö ü ß Ä Ö Ü
+      if (c===0xE4||c===0xF6||c===0xFC||c===0xDF||c===0xC4||c===0xD6||c===0xDC) deAcc++;
+      // Spanish: á í ó ú ñ Á Í Ó Ú Ñ
+      else if (c===0xE1||c===0xED||c===0xF3||c===0xFA||c===0xF1||
+               c===0xC1||c===0xCD||c===0xD3||c===0xDA||c===0xD1) esAcc++;
+      // French: à â ç è ê ë î ï ô ù û
+      else if (c===0xE0||c===0xE2||c===0xE7||c===0xE8||c===0xEA||c===0xEB||
+               c===0xEE||c===0xEF||c===0xF4||c===0xF9||c===0xFB) frAcc++;
+      // é (0xE9) shared fr/es — neutral, decided by stopwords below
+    }
+    else if (c === 0xBF || c === 0xA1) { esAcc++; accented++; }  // ¿ ¡
   }
   if (hebrew > 2 && langPacks.he) return 'he';
   if (cyrillic > 2 && langPacks.ru) return 'ru';
-  if (accented > 1 && langPacks.fr) return 'fr';
+  // K-6: accented-Latin — vote by character class + stopword heuristics
+  // (was first-match `accented>1 → fr`, which stole every de/es phrase).
   let frWords = ['je ','tu ','le ','la ','les ','suis ','est ','dans '];
-  for (const fw of frWords) if (text.includes(fw) && langPacks.fr) return 'fr';
   let deWords = ['ich ','und ','der ','die ','das ','ein ','ist ','nicht ','von ','mit '];
-  for (const dw of deWords) if (text.includes(dw) && langPacks.de) return 'de';
   let esWords = ['el ','los ','las ','una ','del ','por ','que ','con ','esto '];
-  for (const sw of esWords) if (text.includes(sw) && langPacks.es) return 'es';
+  let frScore = frAcc, deScore = deAcc, esScore = esAcc;
+  for (const w of frWords) if (hasWord(text, w)) frScore += 2;
+  for (const w of deWords) if (hasWord(text, w)) deScore += 2;
+  for (const w of esWords) if (hasWord(text, w)) esScore += 2;
+  // pure neutral-accent phrases (é etc, no class hit) keep old fr default
+  if (frScore === 0 && deScore === 0 && esScore === 0 && accented > 1) frScore = 1;
+  if (frScore > 0 || deScore > 0 || esScore > 0) {
+    let win = 'fr', best = frScore;
+    if (deScore > best) { best = deScore; win = 'de'; }
+    if (esScore > best) { best = esScore; win = 'es'; }
+    if (langPacks[win]) return win;
+  }
   if (langPacks.en) return 'en';
   return Object.keys(langPacks)[0] || 'en';
 }
@@ -671,7 +707,9 @@ function ghostLangId(code) {
   if (code === 'he') return 1;
   if (code === 'ru') return 2;
   if (code === 'fr') return 3;
-  return 4;
+  if (code === 'de') return 4;   // K-7
+  if (code === 'es') return 5;   // K-7
+  return 6;
 }
 
 // ── MLP ──
@@ -951,10 +989,20 @@ function rbaEntropy(act, n) {
   return S;
 }
 
+// K-3: contrastive focus — how sharply one chamber leads the field,
+// (max - mean) / (max - min). Was (1 - normalized entropy).
 function rbaCoherence(act, n) {
-  let maxEntropy = Math.log(n);
-  let S = rbaEntropy(act, n);
-  return clampf(1 - S / maxEntropy, 0, 1);
+  if (n <= 1) return 0;
+  let mx = act[0], mn = act[0], sum = 0;
+  for (let i = 0; i < n; i++) {
+    if (act[i] > mx) mx = act[i];
+    if (act[i] < mn) mn = act[i];
+    sum += act[i];
+  }
+  let mean = sum / n;
+  let range = mx - mn;
+  if (range < 1e-6) return 0;
+  return clampf((mx - mean) / range, 0, 1);
 }
 
 function rbaChatC(history, n, ptr) {
@@ -1497,7 +1545,10 @@ function exhaleGenerate(langCode) {
       if (step === 0 && prev < 0) total = somaScore + 0.1 * G; // pure somatic start
       logits[w] = total / Math.max(vTau, 0.1);
 
+      // within-turn: never repeat a word inside one response
       if (localUsed.has(w) || localUsed.has(lp.exhale[w].text)) logits[w] -= 100;
+      // K-5: cross-turn — soft, decaying discouragement (not a ban)
+      logits[w] -= 3.0 * (recentUsed.get(w) || 0);
     }
 
     // spore boost
@@ -1552,42 +1603,55 @@ function exhaleGenerate(langCode) {
   return result.map(i => ({ idx: i, text: lp.exhale[i].text }));
 }
 
-// ── Meta-recursion ──
+// ── Meta-recursion (K-4: real loop, cap 4, gate-driven) ──
+// Was a single hardcoded pass (depth frozen at 1). Now iterates while the
+// phase gate keeps moving, up to META_DEPTH_CAP: each pass re-inhales its own
+// exhale, blends 15% meta into primary, refreshes coherence, regenerates.
 function metaRecursion(langCode, firstResult) {
   let lp = langPacks[langCode];
-  // concatenate first exhale as meta-prompt
-  let metaPrompt = firstResult.map(r => r.text).join(' ');
-  if (!metaPrompt) return firstResult;
+  const META_DEPTH_CAP = 4;
+  let result = firstResult;
+  let depth = 0;
+  let prevGate = psiPhaseGate();
 
-  // meta-inhale
-  let { emotion: metaEmotion } = inhaleProcess(lp, metaPrompt);
+  while (depth < META_DEPTH_CAP) {
+    // concatenate current exhale words into a meta-prompt
+    let metaPrompt = result.map(r => r.text).join(' ');
+    if (!metaPrompt) break;
 
-  // MLP on meta-emotion
-  let metaMlpIn = new Float64Array(13);
-  for (let c = 0; c < 6; c++) metaMlpIn[c] = metaEmotion[c];
-  for (let c = 0; c < 6; c++) metaMlpIn[6+c] = chambers.soma[c];
-  metaMlpIn[12] = calendarDissonance();
-  let metaMlpOut = mlpForward(mlpWeights, metaMlpIn);
+    // meta-inhale: process our own exhale as input
+    let { emotion: metaEmotion } = inhaleProcess(lp, metaPrompt);
 
-  // blend meta into primary: 85/15
-  for (let c = 0; c < 6; c++) {
-    let metaCh = clampf(0.5 * metaEmotion[c] + 0.3 * metaMlpOut[c] + 0.2 * chambers.soma[c], 0, 1);
-    chambers.act[c] = clampf((1 - META_BLEND) * chambers.act[c] + META_BLEND * metaCh, 0, 1);
+    // MLP on meta-emotion (meta-observation mode)
+    let metaMlpIn = new Float64Array(13);
+    for (let c = 0; c < 6; c++) metaMlpIn[c] = metaEmotion[c];
+    for (let c = 0; c < 6; c++) metaMlpIn[6+c] = chambers.soma[c];
+    metaMlpIn[12] = calendarDissonance();
+    let metaMlpOut = mlpForward(mlpWeights, metaMlpIn);
+
+    // blend meta into primary: 85% primary + 15% meta
+    for (let c = 0; c < 6; c++) {
+      let metaCh = clampf(0.5 * metaEmotion[c] + 0.3 * metaMlpOut[c] + 0.2 * chambers.soma[c], 0, 1);
+      chambers.act[c] = clampf((1 - META_BLEND) * chambers.act[c] + META_BLEND * metaCh, 0, 1);
+    }
+
+    // refresh coherence so the phase gate reflects the blended field
+    rba.coherence = rbaCoherence(chambers.act, N_CHAMBERS);
+
+    // re-generate exhale with blended chambers (fresh within-turn, somatic-fresh)
+    usedExhale = new Set();
+    prevExhale = [];
+    result = exhaleGenerate(langCode);
+
+    depth++;
+
+    // stop when the phase gate stabilizes — the body has settled
+    let gate = psiPhaseGate();
+    if (Math.abs(gate - prevGate) < 0.005) break;
+    prevGate = gate;
   }
 
-  // re-generate with blended chambers
-  let savedUsed = new Set(usedExhale);
-  usedExhale = new Set();
-  prevExhale = []; // reset context — meta-pass starts somatic-fresh
-  let metaResult = exhaleGenerate(langCode);
-  // merge used
-  for (const u of savedUsed) usedExhale.add(u);
-  for (const r of metaResult) { usedExhale.add(r.idx); usedExhale.add(r.text); }
-
-  // update prev_exhale from meta output
-  prevExhale = metaResult.slice(-4).map(r => r.idx);
-
-  return metaResult;
+  return { result, depth };
 }
 
 // ── Full pipeline ──
@@ -1597,6 +1661,11 @@ function klausProcess(prompt) {
   if (!lp) return null;
 
   interactionCount++;
+
+  // K-5: within-turn repeat-guard resets each turn; cross-turn usage decays
+  // (0.9/turn) instead of a permanent -100 ban that muted Klaus by ~turn 25.
+  usedExhale = new Set();
+  for (const [w, v] of recentUsed) recentUsed.set(w, v * 0.9);
 
   // Dark matter detection
   let dm = detectDarkMatter(prompt);
@@ -1668,8 +1737,13 @@ function klausProcess(prompt) {
   // Exhale (first pass)
   let words = exhaleGenerate(lang);
 
-  // Meta-recursion: re-inhale own output, blend 85/15, re-generate
-  words = metaRecursion(lang, words);
+  // Meta-recursion: re-inhale own output, blend 85/15, re-generate (K-4: real loop)
+  let meta = metaRecursion(lang, words);
+  words = meta.result;
+
+  // K-5: only the FINAL (visible) meta words leave a cross-turn trace —
+  // the discarded intermediate drafts must NOT burn the dictionary.
+  for (const r of words) recentUsed.set(r.idx, 1.0);
 
   // Store memory
   memoryStore(disc);
@@ -1705,7 +1779,7 @@ function klausProcess(prompt) {
     totalScar: chambers.totalScar,
     scars: Array.from(chambers.scar),
     darkMatterActive,
-    metaRecursionDepth: 1,
+    metaRecursionDepth: meta.depth,
     phaseGate: psiPhaseGate(),
     sustainedResonance: rba.sustainedResonance,
     wormholeHit: wormhole.hit,

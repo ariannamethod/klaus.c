@@ -64,12 +64,14 @@ COUPLING = [
     [-0.2,0.4,-0.2,-0.3,0.0,0.3],[0.1,0.2,0.3,0.4,0.3,0.0],
 ]
 
-# Ghost weights [dominant][lang_idx: en=0,he=1,ru=2,fr=3,other=4]
+# Ghost weights [dominant][lang_idx: en=0,he=1,ru=2,fr=3,de=4,es=5,other=6]
+# K-7: de/es columns (README values); mirrors klaus.c GHOST_WEIGHT order en,he,ru,fr,de,es,other.
 GHOST_WEIGHT = [
-    [1.0,1.8,1.2,0.9,1.0],[1.0,1.4,1.1,1.7,1.0],[1.0,1.3,1.8,0.8,1.0],
-    [0.9,1.6,1.5,1.0,0.9],[1.0,1.4,0.9,1.5,1.0],[1.0,1.7,1.1,1.2,1.0],
+    [1.0,1.8,1.2,0.9,1.4,1.1,1.0],[1.0,1.4,1.1,1.7,1.2,1.6,1.0],[1.0,1.3,1.8,0.8,1.5,1.3,1.0],
+    [0.9,1.6,1.5,1.0,1.3,1.0,0.9],[1.0,1.4,0.9,1.5,1.1,1.4,1.0],[1.0,1.7,1.1,1.2,1.3,1.2,1.0],
 ]
-GHOST_LANG = {"en":0,"he":1,"ru":2,"fr":3}
+# klaus.c ghost_lang_id maps only en/he/ru/fr; de/es fall to OTHER (=6).
+GHOST_LANG = {"en":0,"he":1,"ru":2,"fr":3,"de":4,"es":5}
 
 SUB_FREQ = [
     [0.3,0.4,0.8,0.1,0.5,0.35],[1.2,0.6,1.5,0.2,0.7,0.55],
@@ -149,6 +151,17 @@ def compute_affinity(word, lang):
     for c in range(N_CH): aff[c] = ((h>>(c*8))&0xFF)/255.0
     mx = max(aff)
     return [a/mx for a in aff] if mx>0 else aff
+
+def rba_coherence(act):
+    # K-3: contrastive focus of the chamber field (was 1 - normalized entropy,
+    # which lived structurally in 0.00-0.10 so the deep-mode gate never opened).
+    # (max - mean) / (max - min): ~0.8 when one chamber dominates, ~0 when flat.
+    n = len(act)
+    if n <= 1: return 0.0
+    mx = max(act); mn = min(act); mean = sum(act)/n
+    rng_ = mx - mn
+    if rng_ < 1e-6: return 0.0
+    return max(0.0, min(1.0, (mx-mean)/rng_))
 
 # ═══════════════════════════════════════════════════
 # BPE + METAWEIGHTS
@@ -288,7 +301,7 @@ class Klaus:
         self.mlp = MLP()
         self.sensitivity = build_sensitivity()
         self.cross_aff = {}
-        self.prev_exhale = []; self.used_exhale = set()
+        self.prev_exhale = []; self.recent_used = {}  # K-5: cross-turn usage, decays 0.9/turn
         self.prophecies = []
         # v2.0.0: Schectman + RBA-1
         self.scars = [0.0]*N_CH; self.scar_total = 0.0
@@ -344,7 +357,7 @@ class Klaus:
             self.kk.load()
         pd = planetary_dissonance()
         print(f"[klaus] planetary dissonance: {pd:.3f}")
-        print(f"[klaus] meta-recursion: depth 1")
+        print("[klaus] meta-recursion: depth up to 4 (gate-driven)")
         print("[klaus] ready. inhale.\n")
         return True
 
@@ -382,22 +395,51 @@ class Klaus:
         print(f"[klaus] {code}: BPE {len(merges)} merges, meta {len(meta.bigrams)} bi {len(meta.hebbs)} hebb")
 
     # ── Language detection ──
+    @staticmethod
+    def _has_word(text, w):
+        # K-6: word-boundary stopword match — token must start at text start or
+        # right after a space (a bare substring matched "el " inside "feel ").
+        idx = text.find(w)
+        while idx != -1:
+            if idx == 0 or text[idx-1] == ' ': return True
+            idx = text.find(w, idx+1)
+        return False
+
     def _detect_lang(self, text):
         cy=he=ac=0
+        de_acc=es_acc=fr_acc=0  # K-6: accent-class votes
         for ch in text:
             cp=ord(ch)
             if 0x0400<=cp<=0x04FF: cy+=1
             elif 0x0590<=cp<=0x05FF: he+=1
-            elif 0x00C0<=cp<=0x00FF: ac+=1
+            elif 0x00C0<=cp<=0x00FF:
+                ac+=1
+                if cp in (0xE4,0xF6,0xFC,0xDF,0xC4,0xD6,0xDC): de_acc+=1        # ä ö ü ß Ä Ö Ü
+                elif cp in (0xE1,0xED,0xF3,0xFA,0xF1,0xC1,0xCD,0xD3,0xDA,0xD1): es_acc+=1  # á í ó ú ñ + upper
+                elif cp in (0xE0,0xE2,0xE7,0xE8,0xEA,0xEB,0xEE,0xEF,0xF4,0xF9,0xFB): fr_acc+=1  # à â ç è ê ë î ï ô ù û
+                # é (0xE9) shared fr/es — neutral, decided by stopwords below
+            elif cp==0xBF or cp==0xA1: es_acc+=1; ac+=1  # ¿ ¡
         if he>2 and "he" in self.lang_packs: return "he"
         if cy>2 and "ru" in self.lang_packs: return "ru"
-        if ac>1 and "fr" in self.lang_packs: return "fr"
-        for fw in ["je ","tu ","le ","la ","suis ","est "]:
-            if fw in text and "fr" in self.lang_packs: return "fr"
-        for dw in ["ich ","und ","der ","die ","das ","ein ","ist ","nicht ","von ","mit "]:
-            if dw in text and "de" in self.lang_packs: return "de"
-        for sw in ["el ","los ","las ","una ","del ","por ","que ","con ","esto "]:
-            if sw in text and "es" in self.lang_packs: return "es"
+        # K-6: accented-Latin — vote by character class + word-boundary stopwords
+        # (was first-match `ac>1 -> fr`, which stole every de/es phrase).
+        fw = ["je ","tu ","le ","la ","les ","suis ","est ","dans "]
+        dw = ["ich ","und ","der ","die ","das ","ein ","ist ","nicht ","von ","mit "]
+        sw = ["el ","los ","las ","una ","del ","por ","que ","con ","esto "]
+        fr_score, de_score, es_score = fr_acc, de_acc, es_acc
+        for w in fw:
+            if self._has_word(text, w): fr_score += 2
+        for w in dw:
+            if self._has_word(text, w): de_score += 2
+        for w in sw:
+            if self._has_word(text, w): es_score += 2
+        # pure neutral-accent phrases (é, no class hit) keep old fr default
+        if fr_score==0 and de_score==0 and es_score==0 and ac>1: fr_score = 1
+        if fr_score>0 or de_score>0 or es_score>0:
+            win, best = "fr", fr_score
+            if de_score>best: best, win = de_score, "de"
+            if es_score>best: best, win = es_score, "es"
+            if win in self.lang_packs: return win
         return "en" if "en" in self.lang_packs else list(self.lang_packs.keys())[0]
 
     # ── HyperKuramoto (24 oscillators) ──
@@ -508,13 +550,12 @@ class Klaus:
     # ── RBA-1 + Schectman ──
     def _rba_update(self, disc):
         r = self.rba
-        # R-Layer: entropy-based coherence
+        # R-Layer: entropy (kept for E-Layer buffer) + K-3 contrastive coherence
         total = sum(self.chambers)+1e-12
         probs = [c/total for c in self.chambers]
         entropy = -sum(p*math.log(p+1e-12) for p in probs)
-        max_entropy = math.log(N_CH)
-        local_coh = 1.0 - entropy/max_entropy if max_entropy>0 else 0
-        r["coherence"] = max(0,min(1, 0.84*r["coherence"]+0.16*local_coh))
+        r["coherence"] = rba_coherence(self.chambers)  # K-3: direct, matches klaus.c rba_update
+        r["env_pressure"] = disc  # A-Layer: env pressure = dissonance (for K-4 phase gate)
         # store in history for Ĉ(t)
         self.coherence_history[self.coh_ptr] = r["coherence"]
         self.coh_ptr = (self.coh_ptr+1)%COHERENCE_WINDOW
@@ -585,7 +626,7 @@ class Klaus:
             key = f"{primary_lang}:{code}"
             ca = self.cross_aff.get(key)
             if not ca: continue
-            wl = GHOST_WEIGHT[dom][GHOST_LANG.get(code,4)]
+            wl = GHOST_WEIGHT[dom][GHOST_LANG.get(code,6)]  # K-7: de=4/es=5, unknown -> OTHER(6), mirrors klaus.c ghost_lang_id
             if self.dark_active: wl *= 1.5
             # best match in other lang
             best_j, best_sim = 0, -1
@@ -669,7 +710,7 @@ class Klaus:
     # ── Exhale (Full Dario 7-force + Parliament) ──
     def _exhale(self, lang, ghost):
         lp=self.lang_packs[lang]; nex=len(lp["exhale"])
-        if nex==0: return []
+        if nex==0: return [], []
         self.ghost_cache = ghost  # for parliament ghost expert
         hebb=lp["meta"].hebbian(self.prev_exhale,nex)
         max_gen,temp,topk = self._vel_params()
@@ -691,7 +732,7 @@ class Klaus:
         scar_prop = 1.0 + self.scar_total * 0.3
         dark_mult = 1.5 if self.dark_active else 1.0
         result=[]; prev=self.prev_exhale[-1] if self.prev_exhale else -1
-        local_used=set(self.used_exhale)
+        local_used=set()  # K-5: within-turn repeat guard, fresh each generation
         for step in range(max_gen):
             logits=[0.0]*nex
             for w in range(nex):
@@ -712,8 +753,11 @@ class Klaus:
                 total = B + H + F + A + V + G + T + K + soma
                 if step==0 and prev<0: total = soma + 0.1*G  # pure somatic start
                 logits[w] = total / v_tau
+                # within-turn: never repeat a word inside one response
                 if str(w) in local_used or lp["exhale"][w]["text"] in local_used:
                     logits[w] -= 100
+                # K-5: cross-turn — soft, decaying discouragement (not a ban)
+                logits[w] -= 3.0 * self.recent_used.get(w, 0.0)
             # spore boost
             self._spore_boost(lang, logits, nex)
             # parliament vote
@@ -728,12 +772,13 @@ class Klaus:
                 sc=sum(C[c]*lp["exhale"][chosen]["aff"][c] for c in range(N_CH))
                 if sc<0.1: break
         self.prev_exhale=result[-4:]
-        for w in result: self.used_exhale.add(str(w)); self.used_exhale.add(lp["exhale"][w]["text"])
+        # K-5: exhale_generate leaves NO cross-turn trace; only the final visible
+        # words mark recent_used (done in _meta_recurse after the meta loop settles).
         # NOTORCH: learn inhale→exhale spore pairs
         for g in result:
             for mh in self.matched_inhale_hashes:
                 self._spore_learn(mh, g, lang)
-        return [lp["exhale"][i]["text"] for i in result]
+        return result, [lp["exhale"][i]["text"] for i in result]  # (indices, texts)
 
     # ── Spore system (NOTORCH) ──
     def _spore_learn(self, inhale_hash, exhale_idx, lang):
@@ -781,15 +826,46 @@ class Klaus:
             return True
         except: return False
 
-    # ── Meta-recursion ──
-    def _meta_recurse(self, lang, words):
-        if not words: return
-        meta_prompt = ". ".join(words)
+    # ── Ψ-Layer phase gate (K-4 stabilization signal) ──
+    def _psi_phase_gate(self):
+        # mirrors klaus.c psi_phase_gate: threshold vs signal, clamped [0,1]
+        scar = self.scar_total / N_CH
+        threshold = 0.42 + 0.18*self.rba["threshold_bias"] + 0.06*scar
+        signal = (0.50*self.rba["coherence"] + 0.34*self.rba["phase_lock"]
+                  + 0.12*self.rba.get("env_pressure",0.0) + 0.06*self.presence - 0.08*self.trauma)
+        return max(0.0, min(1.0, 0.5 + 1.35*(signal-threshold)))
+
+    # ── Meta-recursion (K-4: live depth loop, cap 4, gate-driven) ──
+    def _meta_recurse(self, lang, words, disc):
+        if not words: return words, 0
         lp = self.lang_packs[lang]
-        meta_emotion = self._inhale(lp, meta_prompt)
-        meta_mlp = self.mlp.forward(meta_emotion + [0]*6 + [0])
-        for c in range(N_CH):
-            self.chambers[c] = (1-META_BLEND)*self.chambers[c] + META_BLEND*meta_mlp[c]
+        META_DEPTH_CAP = 4
+        depth = 0
+        prev_gate = self._psi_phase_gate()
+        meta_ids = []
+        cur_words = words
+        while depth < META_DEPTH_CAP:
+            # re-inhale our own exhale as input (body observes its reaction)
+            meta_prompt = " ".join(cur_words)
+            meta_emotion = self._inhale(lp, meta_prompt)
+            meta_mlp = self.mlp.forward(meta_emotion + list(self.soma) + [disc])
+            for c in range(N_CH):
+                meta_ch = max(0,min(1, 0.5*meta_emotion[c]+0.3*meta_mlp[c]+0.2*self.soma[c]))
+                self.chambers[c] = max(0,min(1, (1-META_BLEND)*self.chambers[c]+META_BLEND*meta_ch))
+            # refresh coherence so the phase gate reflects the blended field
+            self.rba["coherence"] = rba_coherence(self.chambers)
+            # re-generate exhale with blended chambers (meta-pass starts somatic-fresh)
+            self.prev_exhale = []
+            meta_ids, cur_words = self._exhale(lang, self.ghost_cache)
+            depth += 1
+            # stop when the gate stabilizes — the body has settled
+            gate = self._psi_phase_gate()
+            if abs(gate - prev_gate) < 0.005: break
+            prev_gate = gate
+        # K-5: only the FINAL (visible) meta words leave a cross-turn trace
+        for wid in meta_ids:
+            self.recent_used[wid] = 1.0
+        return cur_words, depth
 
     # ── Somatic persistence ──
     def _soma_save(self):
@@ -840,6 +916,10 @@ class Klaus:
     # ── Process ──
     def process(self, prompt):
         self.interaction_count += 1
+        # K-5: within-turn guard is fresh per _exhale; cross-turn usage decays 0.9/turn
+        for w in list(self.recent_used):
+            self.recent_used[w] *= 0.9
+            if self.recent_used[w] < 1e-4: del self.recent_used[w]
         lang = self._detect_lang(prompt)
         lp = self.lang_packs[lang]
         dark = self._detect_dark(prompt)
@@ -865,9 +945,9 @@ class Klaus:
         is_prophetic = disc>0.3 and len(self.memory)>=2
         ghost, ghost_interf = self._metaklaus(lang)
         if self.kk: self.kk.compute_signal(self.chambers, lang, lp["exhale"])
-        words = self._exhale(lang, ghost)
-        # meta-recursion
-        self._meta_recurse(lang, words)
+        _, words = self._exhale(lang, ghost)
+        # meta-recursion (K-4: gate-driven depth loop replaces the final words)
+        words, meta_depth = self._meta_recurse(lang, words, disc)
         self._scars_update()
         self._mem_store(disc)
         # tick prophecies
@@ -883,7 +963,7 @@ class Klaus:
                 "prem":prem,"disc":disc,"ghost_strength":ghost_interf,"is_prophetic":is_prophetic,
                 "velocity":VEL_NAMES[vel],"vel_mult":self._vel_params()[0]/MAX_RESPONSE,
                 "dark":dark,"scars":list(self.scars),"scar_total":self.scar_total,
-                "rba":dict(self.rba),"meta_depth":1}
+                "rba":dict(self.rba),"meta_depth":meta_depth}
 
     def print_response(self, r):
         ch_str = " ".join(f"{CH_NAMES[c]}:{r['chambers'][c]:.2f}" for c in range(N_CH))
@@ -920,7 +1000,7 @@ class Klaus:
                 continue
             if prompt=="reset":
                 self.chambers=[0.0]*N_CH; self.chambers[1]=0.15; self.chambers[4]=0.10
-                self.memory=[]; self.used_exhale=set(); self.prev_exhale=[]
+                self.memory=[]; self.recent_used={}; self.prev_exhale=[]
                 self.prophecies=[]; self.scars=[0.0]*N_CH; self.scar_total=0
                 self.rba={"coherence":0,"c_hat":0,"psi":0,"sustained":0,"phase_lock":0,"threshold_bias":0,"deep_mode":False,"deep_timer":0}
                 self.coherence_history=[0]*COHERENCE_WINDOW; self.interaction_count=0

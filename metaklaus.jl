@@ -104,16 +104,18 @@ end
 # Hebrew void = tohu va-vohu. Deepest emptiness.
 # French prosody IS flow.
 # Hebrew paradox = Talmudic dialectic.
+# German Angst compresses fear/rage into compound nouns.
+# Spanish amor carries love/flow with rolled-r somatic immediacy.
 #
 # The compiler generates 6 × N_LANGS specialized paths.
 # ═══════════════════════════════════════════════════
 
-ghost_weight(::Type{FearDominant},    lang::Symbol) = lang === :he ? 1.8f0 : lang === :ru ? 1.2f0 : lang === :fr ? 0.9f0 : 1.0f0
-ghost_weight(::Type{LoveDominant},    lang::Symbol) = lang === :fr ? 1.7f0 : lang === :he ? 1.4f0 : lang === :ru ? 1.1f0 : 1.0f0
-ghost_weight(::Type{RageDominant},    lang::Symbol) = lang === :ru ? 1.8f0 : lang === :he ? 1.3f0 : lang === :fr ? 0.8f0 : 1.0f0
-ghost_weight(::Type{VoidDominant},    lang::Symbol) = lang === :he ? 1.6f0 : lang === :ru ? 1.5f0 : lang === :fr ? 1.0f0 : 0.9f0
-ghost_weight(::Type{FlowDominant},    lang::Symbol) = lang === :fr ? 1.5f0 : lang === :he ? 1.4f0 : lang === :ru ? 0.9f0 : 1.0f0
-ghost_weight(::Type{ComplexDominant}, lang::Symbol) = lang === :he ? 1.7f0 : lang === :fr ? 1.2f0 : lang === :ru ? 1.1f0 : 1.0f0
+ghost_weight(::Type{FearDominant},    lang::Symbol) = lang === :he ? 1.8f0 : lang === :ru ? 1.2f0 : lang === :fr ? 0.9f0 : lang === :de ? 1.4f0 : lang === :es ? 1.1f0 : 1.0f0
+ghost_weight(::Type{LoveDominant},    lang::Symbol) = lang === :fr ? 1.7f0 : lang === :he ? 1.4f0 : lang === :ru ? 1.1f0 : lang === :de ? 1.2f0 : lang === :es ? 1.6f0 : 1.0f0
+ghost_weight(::Type{RageDominant},    lang::Symbol) = lang === :ru ? 1.8f0 : lang === :he ? 1.3f0 : lang === :fr ? 0.8f0 : lang === :de ? 1.5f0 : lang === :es ? 1.3f0 : 1.0f0
+ghost_weight(::Type{VoidDominant},    lang::Symbol) = lang === :he ? 1.6f0 : lang === :ru ? 1.5f0 : lang === :fr ? 1.0f0 : lang === :de ? 1.3f0 : lang === :es ? 1.0f0 : 0.9f0
+ghost_weight(::Type{FlowDominant},    lang::Symbol) = lang === :fr ? 1.5f0 : lang === :he ? 1.4f0 : lang === :ru ? 0.9f0 : lang === :de ? 1.1f0 : lang === :es ? 1.4f0 : 1.0f0
+ghost_weight(::Type{ComplexDominant}, lang::Symbol) = lang === :he ? 1.7f0 : lang === :fr ? 1.2f0 : lang === :ru ? 1.1f0 : lang === :de ? 1.3f0 : lang === :es ? 1.2f0 : 1.0f0
 
 # ═══════════════════════════════════════════════════
 # SENSITIVITY TENSOR — 6 × 6 × 6
@@ -315,8 +317,8 @@ const SUB_NAMES = [
     # FEAR       LOVE        RAGE        VOID        FLOW        COMPLEX
     "dread"      "devotion"  "fury"      "numbness"  "curiosity" "paradox";
     "panic"      "warmth"    "wrath"     "despair"   "wonder"    "ambiguity";
-    "anxiety"    "tenderness""hostility" "emptiness" "rhythm"    "tension";
-    "phobia"     "attachment""bitterness""dissociation""harmony" "enigma"
+    "anxiety"    "tenderness" "hostility" "emptiness" "rhythm"    "tension";
+    "phobia"     "attachment" "bitterness" "dissociation" "harmony" "enigma"
 ]
 
 # Sub-chamber natural frequencies (Hz-like, relative)
@@ -480,7 +482,7 @@ function load_words(path::String, lang::Symbol)
     words = ExhaleWord[]
     isfile(path) || return words
     for line in eachline(path)
-        w = strip(line)
+        w = String(strip(line))
         isempty(w) && continue
         push!(words, ExhaleWord(w, compute_affinity(w, lang)))
     end

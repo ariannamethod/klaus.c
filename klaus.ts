@@ -112,16 +112,17 @@ const COUPLING: readonly (readonly number[])[] = [
 // ═══════════════════════════════════════════════════
 // STATE-DEPENDENT GHOST WEIGHTS (from metaklaus.jl)
 // [dominant_chamber][lang_idx] → weight
-// lang indices: 0=en, 1=ru, 2=fr, 3=he, 4=other
+// lang indices: 0=en, 1=ru, 2=fr, 3=he, 4=de, 5=es, 6=other
 // ═══════════════════════════════════════════════════
 
 const GHOST_WEIGHT: readonly (readonly number[])[] = [
-  /* FEAR */ [1.0, 1.2, 0.9, 1.8, 1.0],
-  /* LOVE */ [1.0, 1.1, 1.7, 1.4, 1.0],
-  /* RAGE */ [1.0, 1.8, 0.8, 1.3, 1.0],
-  /* VOID */ [0.9, 1.5, 1.0, 1.6, 1.0],
-  /* FLOW */ [1.0, 0.9, 1.5, 1.4, 1.0],
-  /* CMPLX */ [1.0, 1.1, 1.2, 1.7, 1.0],
+  /*            en    ru    fr    he    de    es   other */
+  /* FEAR */  [1.0, 1.2, 0.9, 1.8, 1.4, 1.1, 1.0],
+  /* LOVE */  [1.0, 1.1, 1.7, 1.4, 1.2, 1.6, 1.0],
+  /* RAGE */  [1.0, 1.8, 0.8, 1.3, 1.5, 1.3, 1.0],
+  /* VOID */  [0.9, 1.5, 1.0, 1.6, 1.3, 1.0, 1.0],
+  /* FLOW */  [1.0, 0.9, 1.5, 1.4, 1.1, 1.4, 1.0],
+  /* CMPLX */ [1.0, 1.1, 1.2, 1.7, 1.3, 1.2, 1.0],
 ];
 
 function ghostLangIdx(code: string): number {
@@ -130,7 +131,9 @@ function ghostLangIdx(code: string): number {
     case "ru": return 1;
     case "fr": return 2;
     case "he": return 3;
-    default: return 4;
+    case "de": return 4;
+    case "es": return 5;
+    default: return 6;
   }
 }
 
@@ -744,9 +747,22 @@ function rbaEntropy(act: number[]): number {
 }
 
 function rbaCoherence(act: number[]): number {
-  const maxEnt = Math.log(act.length);
-  const S = rbaEntropy(act);
-  return Math.max(0, Math.min(1, 1 - S / maxEnt));
+  // K-3: contrastive focus (max − mean)/(max − min), not 1 − normalized
+  // entropy. Post-injection blends live structurally near 0, so the
+  // C_tau=0.35 deep-mode gate could never open. Contrastive reaches ~0.8
+  // when one chamber dominates and ~0 when the field is flat.
+  const n = act.length;
+  if (n <= 1) return 0;
+  let mx = act[0], mn = act[0], sum = 0;
+  for (let i = 0; i < n; i++) {
+    if (act[i] > mx) mx = act[i];
+    if (act[i] < mn) mn = act[i];
+    sum += act[i];
+  }
+  const mean = sum / n;
+  const range = mx - mn;
+  if (range < 1e-6) return 0;
+  return Math.max(0, Math.min(1, (mx - mean) / range));
 }
 
 function rbaChatC(coherenceHistory: number[], n: number, ptr: number): number {
@@ -1078,23 +1094,61 @@ function somaLoad(baseDir: string): {
 // LANGUAGE DETECTION
 // ═══════════════════════════════════════════════════
 
+// K-6: word-boundary stopword match — a bare includes() matched "el " inside
+// "feel " and misrouted whole languages. Require the token to start at text
+// start or right after a space.
+function hasWord(text: string, w: string): boolean {
+  let idx = text.indexOf(w);
+  while (idx !== -1) {
+    if (idx === 0 || text[idx - 1] === " ") return true;
+    idx = text.indexOf(w, idx + 1);
+  }
+  return false;
+}
+
 function detectLanguage(text: string, langs: Map<string, LangPack>): string {
   let cyrillic = 0, hebrew = 0, accented = 0;
+  let deAcc = 0, esAcc = 0, frAcc = 0;  // K-6: accent-class votes
   for (let i = 0; i < text.length; i++) {
     const c = text.charCodeAt(i);
     if (c >= 0x0400 && c <= 0x04ff) cyrillic++;
     else if (c >= 0x0590 && c <= 0x05ff) hebrew++;
-    else if (c >= 0x00c0 && c <= 0x00ff) accented++;
+    else if (c >= 0x00c0 && c <= 0x00ff) {
+      accented++;
+      // German umlauts + eszett: ä ö ü ß Ä Ö Ü
+      if (c === 0xe4 || c === 0xf6 || c === 0xfc || c === 0xdf ||
+          c === 0xc4 || c === 0xd6 || c === 0xdc) deAcc++;
+      // Spanish: á í ó ú ñ Á Í Ó Ú Ñ
+      else if (c === 0xe1 || c === 0xed || c === 0xf3 || c === 0xfa || c === 0xf1 ||
+               c === 0xc1 || c === 0xcd || c === 0xd3 || c === 0xda || c === 0xd1) esAcc++;
+      // French: à â ç è ê ë î ï ô ù û
+      else if (c === 0xe0 || c === 0xe2 || c === 0xe7 || c === 0xe8 || c === 0xea || c === 0xeb ||
+               c === 0xee || c === 0xef || c === 0xf4 || c === 0xf9 || c === 0xfb) frAcc++;
+      // é (0xe9) shared fr/es — neutral, decided by stopwords below
+    }
+    else if (c === 0xbf || c === 0xa1) { esAcc++; accented++; } // ¿ ¡
   }
   if (hebrew > 2 && langs.has("he")) return "he";
   if (cyrillic > 2 && langs.has("ru")) return "ru";
-  if (accented > 1 && langs.has("fr")) return "fr";
-  const frHints = ["je ", "tu ", "le ", "la ", "les ", "suis ", "est ", "dans "];
-  for (const fw of frHints) if (text.includes(fw) && langs.has("fr")) return "fr";
-  const deHints = ["ich ", "und ", "der ", "die ", "das ", "ein ", "ist ", "nicht ", "von ", "mit "];
-  for (const dw of deHints) if (text.includes(dw) && langs.has("de")) return "de";
-  const esHints = ["el ", "los ", "las ", "una ", "del ", "por ", "que ", "con ", "esto "];
-  for (const sw of esHints) if (text.includes(sw) && langs.has("es")) return "es";
+  // K-6: accented-Latin — vote by character class + stopword heuristics
+  // (was first-match accented>1 → fr, which stole every de/es phrase).
+  {
+    const fw = ["je ", "tu ", "le ", "la ", "les ", "suis ", "est ", "dans "];
+    const dw = ["ich ", "und ", "der ", "die ", "das ", "ein ", "ist ", "nicht ", "von ", "mit "];
+    const sw = ["el ", "los ", "las ", "una ", "del ", "por ", "que ", "con ", "esto "];
+    let frScore = frAcc, deScore = deAcc, esScore = esAcc;
+    for (const w of fw) if (hasWord(text, w)) frScore += 2;
+    for (const w of dw) if (hasWord(text, w)) deScore += 2;
+    for (const w of sw) if (hasWord(text, w)) esScore += 2;
+    // pure neutral-accent phrases (é/ã/õ, no class hit) keep old fr default
+    if (frScore === 0 && deScore === 0 && esScore === 0 && accented > 1) frScore = 1;
+    if (frScore > 0 || deScore > 0 || esScore > 0) {
+      let win = "fr", best = frScore;
+      if (deScore > best) { best = deScore; win = "de"; }
+      if (esScore > best) { best = esScore; win = "es"; }
+      if (langs.has(win)) return win;
+    }
+  }
   if (langs.has("en")) return "en";
   return langs.keys().next().value!;
 }
@@ -1321,7 +1375,7 @@ function parliamentVote(
 
 function exhaleGenerate(
   ch: Chambers, lp: LangPack, ghost: number[],
-  prevExhale: number[], usedExhale: Set<string>,
+  prevExhale: number[], recentUsed: number[],
   prophecies: Prophecy[], velocity: VelocityState,
   destiny: number[], spores: SporeMemory,
   matchedInhale: number[], darkMatterActive: number,
@@ -1333,7 +1387,7 @@ function exhaleGenerate(
   const hebb = metaHebbian(lp.meta, prevExhale, nEx);
   const result: number[] = [];
   let prev = prevExhale.length > 0 ? prevExhale[prevExhale.length - 1] : -1;
-  const localUsed = new Set(usedExhale);
+  const localUsed = new Set<string>(); // K-5: within-pass repeat guard only
 
   // velocity-modulated parameters
   const effMax = velocity.maxGen > 0 ? velocity.maxGen : MAX_RESPONSE;
@@ -1409,6 +1463,8 @@ function exhaleGenerate(
       logits[w] = total / vTau;
 
       if (localUsed.has(String(w)) || localUsed.has(lp.exhale[w].text)) logits[w] -= 100;
+      // K-5: cross-turn — soft, decaying discouragement (not a ban)
+      logits[w] -= 3.0 * (recentUsed[w] || 0);
     }
 
     // spore boost
@@ -1439,7 +1495,6 @@ function exhaleGenerate(
   }
 
   const newPrev = result.slice(-4);
-  for (const w of result) { usedExhale.add(String(w)); usedExhale.add(lp.exhale[w].text); }
   return { words: result, newPrev, destiny: newDestiny };
 }
 
@@ -1473,7 +1528,7 @@ class Klaus {
   sensitivity: number[][][] = buildSensitivity();
   crossAffinities = new Map<string, CrossAffinity>();
   prevExhale: number[] = [];
-  usedExhale = new Set<string>();
+  recentUsed: number[] = [];
   prophecies: Prophecy[] = [];
 
   // Level 3 state
@@ -1508,6 +1563,11 @@ class Klaus {
     if (this.langPacks.size === 0) { console.error("ERROR: no language packs"); return false; }
     console.log(`[klaus.ts] ${this.langPacks.size} language(s) loaded`);
 
+    // K-5: cross-turn usage array, indexed by exhale word (max over packs)
+    let maxEx = 0;
+    for (const lp of this.langPacks.values()) if (lp.exhale.length > maxEx) maxEx = lp.exhale.length;
+    this.recentUsed = new Array(maxEx).fill(0);
+
     for (const [code, lp] of this.langPacks) this.initMeta(code);
 
     // build cross-affinity matrices
@@ -1535,7 +1595,7 @@ class Klaus {
     console.log("[klaus.ts] Schectman equation: I(t) = G(t) * [1 + R(t)]");
     console.log("[klaus.ts] velocity operators: 6 modes");
     console.log(`[klaus.ts] dark matter vocabulary: ${DARK_MATTER.length} words`);
-    console.log("[klaus.ts] meta-recursion: depth 1 (expandable)");
+    console.log("[klaus.ts] meta-recursion: depth up to 4 (gate-driven)");
     console.log(`[klaus.ts] spore file: ${path.join(this.baseDir, SPORE_FILE)}`);
     console.log(`[klaus.ts] soma file: ${path.join(this.baseDir, SOMA_FILE)}`);
 
@@ -1603,6 +1663,9 @@ class Klaus {
 
   process(prompt: string): KlausResponse {
     this.interactionCount++;
+
+    // K-5: cross-turn usage decays 0.9/turn (within-turn guard is per exhale pass).
+    for (let w = 0; w < this.recentUsed.length; w++) this.recentUsed[w] *= 0.9;
 
     // 1. Detect language
     const lang = detectLanguage(prompt, this.langPacks);
@@ -1686,7 +1749,7 @@ class Klaus {
     // 8. Exhale: generate somatic response
     const langIdx = [...this.langPacks.keys()].indexOf(lang);
     const exhaleResult = exhaleGenerate(
-      this.ch, lp, ghost, this.prevExhale, this.usedExhale,
+      this.ch, lp, ghost, this.prevExhale, this.recentUsed,
       this.prophecies, this.velocity, this.destiny,
       this.spores, this.matchedInhale, this.darkMatterActive, this.rba, langIdx,
     );
@@ -1694,10 +1757,18 @@ class Klaus {
     this.prevExhale = exhaleResult.newPrev;
     this.destiny = exhaleResult.destiny;
 
-    // 8b. META-RECURSION LOOP
+    // 8b. META-RECURSION LOOP (K-4: real gate-driven loop, cap 4)
     {
-      const metaPrompt = wordIds.map(i => lp.exhale[i].text).join(" ");
-      if (metaPrompt.length > 0) {
+      const META_DEPTH_CAP = 4;
+      let metaWordIds: number[] = [];
+      let depth = 0;
+      let prevGate = psiPhaseGate(this.rba, this.ch);
+
+      while (depth < META_DEPTH_CAP) {
+        const metaPrompt = wordIds.map(i => lp.exhale[i].text).join(" ");
+        if (metaPrompt.length === 0) break;
+
+        // meta-inhale: process our own exhale as input
         const metaEmotion = inhaleProcess(lp, metaPrompt);
         const metaMlpIn = [...metaEmotion, ...this.ch.soma, disc];
         const metaMlpOut = mlpForward(this.mlp, metaMlpIn);
@@ -1714,23 +1785,36 @@ class Klaus {
             (1 - META_BLEND) * this.ch.act[c] + META_BLEND * this.metaChambers.act[c]));
         }
 
-        this.rba.recursionDepth = 1;
+        // refresh coherence so the phase gate reflects the blended field
+        this.rba.coherence = rbaCoherence(this.ch.act);
 
-        // re-generate exhale with blended chambers (FINAL output)
-        const savedUsed = new Set(this.usedExhale);
-        this.usedExhale.clear();
-        this.prevExhale = []; // reset context — meta-pass starts somatic-fresh
+        // re-generate exhale with blended chambers; fresh within-turn guard,
+        // somatic-fresh context ([] prevExhale)
         const metaExhale = exhaleGenerate(
-          this.ch, lp, ghost, this.prevExhale, this.usedExhale,
+          this.ch, lp, ghost, [], this.recentUsed,
           this.prophecies, this.velocity, this.destiny,
           this.spores, this.matchedInhale, this.darkMatterActive, this.rba, langIdx,
         );
+        metaWordIds = metaExhale.words;
         wordIds = metaExhale.words;
         this.destiny = metaExhale.destiny;
-        // merge used
-        for (const u of savedUsed) this.usedExhale.add(u);
         this.prevExhale = metaExhale.newPrev;
+
+        depth++;
+
+        // stop when the phase gate stabilizes — the body has settled
+        const gate = psiPhaseGate(this.rba, this.ch);
+        if (Math.abs(gate - prevGate) < 0.005) break;
+        prevGate = gate;
       }
+
+      // K-4: real recursion depth (was frozen at 1)
+      this.rba.recursionDepth = depth;
+
+      // K-5: only the FINAL (visible) meta words leave a cross-turn trace —
+      // the discarded intermediate drafts must NOT burn the dictionary.
+      for (const id of metaWordIds)
+        if (id >= 0 && id < this.recentUsed.length) this.recentUsed[id] = 1.0;
     }
 
     // 9. Store memory
@@ -1911,7 +1995,7 @@ class Klaus {
           this.ch = chambersInit();
           this.metaChambers = chambersInit();
           this.memory = [];
-          this.usedExhale.clear();
+          this.recentUsed.fill(0);
           this.prevExhale = [];
           this.prophecies = [];
           this.wormholes = [];
