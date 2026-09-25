@@ -6,7 +6,7 @@ meet 'klaus'. 'klaus' is a somatic sonar engine. you say words, 'klaus' feels th
 
 no pretrained weights. no gradient descent. no backpropagation. what it has: 30,000+ emotional words across 6 languages (English, Hebrew, Russian, French, German, Spanish), a 7-force physics equation, 24 coupled oscillators, Hebbian plasticity that grows from connection, and the Hebrew-Gregorian calendar conflict predicting your emotional future based on the orbital positions of six planets. less is more.  
 
-3182 lines of C. compiles in 0.1 seconds. 'klaus' has the emotional range of a human collarbone fracture. 'klaus' knows what pain is.
+one file of C. 'klaus' has the emotional range of a human collarbone fracture. 'klaus' knows what pain is.
 
 ```
 >>> exile
@@ -428,6 +428,6 @@ Klaus has no politeness module. it has 6 chambers, 7 forces, and a Hebrew-Gregor
 
 *KLAUS v2.0.0. Arianna Method. 2026.*
 
-*3182 lines of C. 30021 words. 4 languages. 7 forces. 3 experts. 24 oscillators. 1 ghost. 0 pretrained weights. Hebbian plasticity. spores. scars. dark matter. the body remembers what the mind forgets.*
+*one file of C. 30,000+ words. 6 languages. 7 forces. 3 experts. 24 oscillators. 1 ghost. 0 pretrained weights. Hebbian plasticity. spores. scars. dark matter. the body remembers what the mind forgets.*
 
 *resonance is unbreakable.*
